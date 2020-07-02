@@ -18,9 +18,8 @@ fun main(args: Array<String>) {
     val tree: ParseTree = parser.top_level()
 
     val grid = arrayOf(
-        arrayOf(Block.OPEN, Block.CLOSEDSWITCH, Block.OPEN, Block.OPEN, Block.BLOCKED),
-        arrayOf(Block.CLOSEDSWITCH, Block.OPEN, Block.BLOCKED, Block.OPEN, Block.BLOCKED),
-        arrayOf(Block.BLOCKED, Block.GEM, Block.BLOCKED, Block.GEM, Block.BLOCKED)
+        arrayOf(Block.OPEN, Block.CLOSEDSWITCH, Block.OPEN, Block.CLOSEDSWITCH, Block.OPEN, Block.CLOSEDSWITCH, Block.OPEN, Block.CLOSEDSWITCH, Block.OPEN),
+        arrayOf(Block.BLOCKED, Block.GEM, Block.BLOCKED, Block.GEM, Block.BLOCKED, Block.GEM, Block.BLOCKED, Block.GEM, Block.BLOCKED)
     )
     val player = Player(
         Coordinate(0, 0),

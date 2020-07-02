@@ -14,9 +14,6 @@ fragment IDENT_CHAR: [0-9] | IDENT_HEAD;
 
 // literal:    numeric_literal | boolean_literal;
 // numeric_literal: '-'? integer_literal;
-BOOLEAN_LITERAL: TRUE | FALSE;
-TRUE: 'true';
-FALSE: 'false';
 
 INTEGER_LITERAL: DECIMAL_LITERAL;
 DECIMAL_LITERAL: DECIMAL_DIGIT+;
@@ -32,17 +29,21 @@ expression: 'moveForward()'         # moveForward
           | range_expression        # rangedStep
           ;
 
-conditional_expression: 'isOnGem'                                                       # isOnGem
+conditional_expression:  boolean_literal                                                # isBoolean
+                      | 'isOnGem'                                                       # isOnGem
                       | 'isOnOpenedSwitch'                                              # isOnOpenedSwitch
                       | 'isOnClosedSwitch'                                              # isOnClosedSwitch
                       | 'isBlocked'                                                     # isBlocked
                       | 'isBlockedLeft'                                                 # isBlockedLeft
                       | 'isBlockedRight'                                                # isBlockedRight
-                      | BOOLEAN_LITERAL                                                 # isBoolean
-                      | conditional_expression op=(AND | OR) conditional_expression        # isNestedCondition
+                      | conditional_expression op=(AND | OR) conditional_expression     # isNestedCondition
+                      | NOT conditional_expression                                      # isNegativeCondition
                       ;
+
+boolean_literal: 'true' | 'false';
 AND: '&&';
 OR: '||';
+NOT: '!';
 
 range_expression: INTEGER_LITERAL op=(UNTIL | THROUGH) INTEGER_LITERAL # rangeHandler;
 UNTIL: '..<';
