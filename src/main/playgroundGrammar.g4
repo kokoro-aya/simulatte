@@ -39,12 +39,12 @@ conditional_expression: 'isOnGem'                                               
                       | 'isBlockedLeft'                                                 # isBlockedLeft
                       | 'isBlockedRight'                                                # isBlockedRight
                       | BOOLEAN_LITERAL                                                 # isBoolean
-                      | conditional_expression (AND | OR) conditional_expression        # isNestedCondition
+                      | conditional_expression op=(AND | OR) conditional_expression        # isNestedCondition
                       ;
 AND: '&&';
 OR: '||';
 
-range_expression: INTEGER_LITERAL (UNTIL | THROUGH) INTEGER_LITERAL # rangeHandler;
+range_expression: INTEGER_LITERAL op=(UNTIL | THROUGH) INTEGER_LITERAL # rangeHandler;
 UNTIL: '..<';
 THROUGH: '...';
 
@@ -62,7 +62,7 @@ loop_statement: for_in_statement
               | repeat_while_statement
               ;
 
-for_in_statement: 'for' PATTERN 'in' expression code_block;
+for_in_statement: 'for' pattern 'in' expression code_block;
 
 while_statement: 'while' expression code_block;
 
@@ -85,14 +85,31 @@ declaration: constant_declaration
 
 code_block: '{' statements? '}';
 
-constant_declaration: 'let' PATTERN '=' expression;
+constant_declaration: 'let' pattern '=' expression;
 
-variable_declaration: 'var' PATTERN '=' expression;
+variable_declaration: 'var' pattern '=' expression;
 
-function_declaration: 'func' function_signature function_body;
-function_signature: IDENTIFIER '()';
+function_declaration: 'func' function_name function_signature function_body;
+function_name: IDENTIFIER;
+function_signature: parameter_clause function_result_type?;
+function_result_type: ARROW type;
 function_body: code_block;
+ARROW: '->';
 
-PATTERN: IDENTIFIER_PATTERN | WILDCARD_PATTERN;
-WILDCARD_PATTERN: '_';
-IDENTIFIER_PATTERN: IDENTIFIER;
+parameter_clause: '()' | '(' parameter_list ')';
+parameter_list: parameter (',' parameter)*;
+parameter: param_name type_annotation;
+param_name: IDENTIFIER;
+
+type_annotation: ':' type;
+
+type
+    : 'Int'
+    | 'Bool'
+    | 'Double'
+    | 'Void'
+    ;
+
+pattern: identifier_pattern | wildcard_pattern;
+wildcard_pattern: '_';
+identifier_pattern: IDENTIFIER;

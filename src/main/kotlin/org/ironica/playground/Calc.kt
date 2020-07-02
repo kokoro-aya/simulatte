@@ -16,4 +16,20 @@ fun main(args: Array<String>) {
     val tokens = CommonTokenStream(lexer)
     val parser = playgroundGrammarParser(tokens)
     val tree: ParseTree = parser.top_level()
+
+    val grid = arrayOf(
+        arrayOf(Block.OPEN, Block.CLOSEDSWITCH, Block.OPEN, Block.OPEN, Block.BLOCKED),
+        arrayOf(Block.CLOSEDSWITCH, Block.OPEN, Block.BLOCKED, Block.OPEN, Block.BLOCKED),
+        arrayOf(Block.BLOCKED, Block.GEM, Block.BLOCKED, Block.GEM, Block.BLOCKED)
+    )
+    val player = Player(
+        Coordinate(0, 0),
+        Direction.RIGHT
+    )
+    val playground = Playground(grid, player, 2)
+    playground.printGrid()
+
+    val exec = PlaygroundVisitor(player)
+    exec.visit(tree)
+    playground.printGrid()
 }

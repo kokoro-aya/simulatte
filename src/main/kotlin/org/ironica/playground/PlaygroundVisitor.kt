@@ -9,20 +9,23 @@ import playgroundGrammarVisitor
 
 class PlaygroundVisitor(val player: Player): playgroundGrammarVisitor<Any> {
 
+    val variableTable = mutableMapOf<String, Int>()
+    val constantTable = mutableMapOf<String, Int>()
+
     override fun visitMoveForward(ctx: playgroundGrammarParser.MoveForwardContext?): Any {
-        TODO("Not yet implemented")
+        return player.moveForward()
     }
 
     override fun visitTurnLeft(ctx: playgroundGrammarParser.TurnLeftContext?): Any {
-        TODO("Not yet implemented")
+        return player.turnLeft()
     }
 
     override fun visitToggleSwitch(ctx: playgroundGrammarParser.ToggleSwitchContext?): Any {
-        TODO("Not yet implemented")
+        return player.toggleSwitch()
     }
 
     override fun visitCheckTruth(ctx: playgroundGrammarParser.CheckTruthContext?): Any {
-        TODO("Not yet implemented")
+        return visit(ctx?.conditional_expression())
     }
 
     override fun visitRangedStep(ctx: playgroundGrammarParser.RangedStepContext?): Any {
@@ -30,19 +33,21 @@ class PlaygroundVisitor(val player: Player): playgroundGrammarVisitor<Any> {
     }
 
     override fun visitIsOnGem(ctx: playgroundGrammarParser.IsOnGemContext?): Any {
-        TODO("Not yet implemented")
+        return player.isOnGem()
     }
 
     override fun visitIsOnClosedSwitch(ctx: playgroundGrammarParser.IsOnClosedSwitchContext?): Any {
-        TODO("Not yet implemented")
+        return player.isOnClosedSwitch()
     }
 
     override fun visitIsNestedCondition(ctx: playgroundGrammarParser.IsNestedConditionContext?): Any {
-        TODO("Not yet implemented")
+        val left: Boolean = visit(ctx?.conditional_expression(0)) as Boolean
+        val right = visit(ctx?.conditional_expression(1)) as Boolean
+        return if (ctx?.op?.type == playgroundGrammarParser.AND) left && right else left || right
     }
 
     override fun visitIsBlockedRight(ctx: playgroundGrammarParser.IsBlockedRightContext?): Any {
-        TODO("Not yet implemented")
+        return player.isBlockedRight()
     }
 
     override fun visitRangeHandler(ctx: playgroundGrammarParser.RangeHandlerContext?): Any {
@@ -50,7 +55,8 @@ class PlaygroundVisitor(val player: Player): playgroundGrammarVisitor<Any> {
     }
 
     override fun visitStatements(ctx: playgroundGrammarParser.StatementsContext?): Any {
-        TODO("Not yet implemented")
+        ctx?.children?.forEach { visit(it) }
+        return true
     }
 
     override fun visitLoop_statement(ctx: playgroundGrammarParser.Loop_statementContext?): Any {
@@ -62,7 +68,7 @@ class PlaygroundVisitor(val player: Player): playgroundGrammarVisitor<Any> {
     }
 
     override fun visitBranch_statement(ctx: playgroundGrammarParser.Branch_statementContext?): Any {
-        TODO("Not yet implemented")
+        return visit(ctx?.if_statement())
     }
 
     override fun visitElse_clause(ctx: playgroundGrammarParser.Else_clauseContext?): Any {
@@ -90,35 +96,39 @@ class PlaygroundVisitor(val player: Player): playgroundGrammarVisitor<Any> {
     }
 
     override fun visit(tree: ParseTree?): Any {
-        TODO("Not yet implemented")
+        return tree?.accept(this)!!
     }
 
     override fun visitTop_level(ctx: playgroundGrammarParser.Top_levelContext?): Any {
-        TODO("Not yet implemented")
+        return visit(ctx?.statements())
     }
 
     override fun visitCollectGem(ctx: playgroundGrammarParser.CollectGemContext?): Any {
-        TODO("Not yet implemented")
+        return player.collectGem()
     }
 
     override fun visitIsBoolean(ctx: playgroundGrammarParser.IsBooleanContext?): Any {
-        TODO("Not yet implemented")
+        return when (ctx?.BOOLEAN_LITERAL()?.text) {
+            "true" -> true
+            "false"-> false
+            else -> false
+        }
     }
 
     override fun visitIsBlocked(ctx: playgroundGrammarParser.IsBlockedContext?): Any {
-        TODO("Not yet implemented")
+        return player.isBlocked()
     }
 
     override fun visitIsOnOpenedSwitch(ctx: playgroundGrammarParser.IsOnOpenedSwitchContext?): Any {
-        TODO("Not yet implemented")
+        return player.isOnOpenedSwitch()
     }
 
     override fun visitIsBlockedLeft(ctx: playgroundGrammarParser.IsBlockedLeftContext?): Any {
-        TODO("Not yet implemented")
+        return player.isBlockedLeft()
     }
 
     override fun visitStatement(ctx: playgroundGrammarParser.StatementContext?): Any {
-        TODO("Not yet implemented")
+        return visit(ctx?.children?.get(0))
     }
 
     override fun visitWhile_statement(ctx: playgroundGrammarParser.While_statementContext?): Any {
@@ -142,11 +152,23 @@ class PlaygroundVisitor(val player: Player): playgroundGrammarVisitor<Any> {
     }
 
     override fun visitConstant_declaration(ctx: playgroundGrammarParser.Constant_declarationContext?): Any {
-        TODO("Not yet implemented")
+        val left = visit(ctx?.pattern()) as String
+        val right = visit(ctx?.expression()) as Int
+        if (!constantTable.containsKey(left)) {
+            constantTable[left] = right
+            return true
+        }
+        return false
     }
 
     override fun visitVariable_declaration(ctx: playgroundGrammarParser.Variable_declarationContext?): Any {
-        TODO("Not yet implemented")
+        val left = visit(ctx?.pattern()) as String
+        val right = visit(ctx?.expression()) as Int
+        if (!variableTable.containsKey(left)) {
+            variableTable[left] = right
+            return true
+        }
+        return false
     }
 
     override fun visitTerminal(node: TerminalNode?): Any {
@@ -162,7 +184,19 @@ class PlaygroundVisitor(val player: Player): playgroundGrammarVisitor<Any> {
     }
 
     override fun visitFunction_declaration(ctx: playgroundGrammarParser.Function_declarationContext?): Any {
-        TODO("Not yet implemented")
+        return false
+    }
+
+    override fun visitPattern(ctx: playgroundGrammarParser.PatternContext?): Any {
+        return visit(ctx?.children?.get(0))
+    }
+
+    override fun visitWildcard_pattern(ctx: playgroundGrammarParser.Wildcard_patternContext?): Any {
+        return "_"
+    }
+
+    override fun visitIdentifier_pattern(ctx: playgroundGrammarParser.Identifier_patternContext?): Any {
+        return ctx?.IDENTIFIER()?.text ?: ""
     }
 
 }
