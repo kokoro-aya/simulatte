@@ -27,7 +27,12 @@ expression: 'moveForward()'         # moveForward
           | 'collectGem()'          # collectGem
           | conditional_expression  # checkTruth
           | range_expression        # rangedStep
+          | function_call_expression # function_call
           ;
+
+function_call_expression: function_name ('()' | '(' call_argument_clause ')');
+call_argument_clause:  call_argument (',' call_argument)*;
+call_argument: expression;
 
 conditional_expression:  boolean_literal                                                # isBoolean
                       | 'isOnGem'                                                       # isOnGem
