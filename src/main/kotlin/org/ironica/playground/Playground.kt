@@ -86,7 +86,7 @@ class Player(val coo: Coordinate, var dir: Direction) {
     }
 }
 
-class Playground(private val grid: Grid, private val player: Player, private val initialGem: Int) {
+class Playground(private val grid: Grid, val player: Player, private val initialGem: Int) {
 
     init {
         player.grid = grid

@@ -34,7 +34,7 @@ data class FunctionHead(val name: String, val list: List<TypedParam>, val ret: S
     }
 }
 
-class PlaygroundVisitor(private val player: Player): playgroundGrammarVisitor<Any> {
+class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisitor<Any> {
 
     private val variableTable = mutableMapOf<String, Int>()
     private val constantTable = mutableMapOf<String, Int>()
@@ -45,15 +45,18 @@ class PlaygroundVisitor(private val player: Player): playgroundGrammarVisitor<An
     private var _continue = false
 
     override fun visitMoveForward(ctx: playgroundGrammarParser.MoveForwardContext?): Any {
-        return player.moveForward()
+        ground.printGrid()
+        return ground.player.moveForward()
     }
 
     override fun visitTurnLeft(ctx: playgroundGrammarParser.TurnLeftContext?): Any {
-        return player.turnLeft()
+        ground.printGrid()
+        return ground.player.turnLeft()
     }
 
     override fun visitToggleSwitch(ctx: playgroundGrammarParser.ToggleSwitchContext?): Any {
-        return player.toggleSwitch()
+        ground.printGrid()
+        return ground.player.toggleSwitch()
     }
 
     override fun visitCheckTruth(ctx: playgroundGrammarParser.CheckTruthContext?): Any {
@@ -65,11 +68,11 @@ class PlaygroundVisitor(private val player: Player): playgroundGrammarVisitor<An
     }
 
     override fun visitIsOnGem(ctx: playgroundGrammarParser.IsOnGemContext?): Any {
-        return player.isOnGem()
+        return ground.player.isOnGem()
     }
 
     override fun visitIsOnClosedSwitch(ctx: playgroundGrammarParser.IsOnClosedSwitchContext?): Any {
-        return player.isOnClosedSwitch()
+        return ground.player.isOnClosedSwitch()
     }
 
     override fun visitIsNestedCondition(ctx: playgroundGrammarParser.IsNestedConditionContext?): Any {
@@ -79,7 +82,7 @@ class PlaygroundVisitor(private val player: Player): playgroundGrammarVisitor<An
     }
 
     override fun visitIsBlockedRight(ctx: playgroundGrammarParser.IsBlockedRightContext?): Any {
-        return player.isBlockedRight()
+        return ground.player.isBlockedRight()
     }
 
     override fun visitRangeHandler(ctx: playgroundGrammarParser.RangeHandlerContext?): Any {
@@ -175,7 +178,8 @@ class PlaygroundVisitor(private val player: Player): playgroundGrammarVisitor<An
     }
 
     override fun visitCollectGem(ctx: playgroundGrammarParser.CollectGemContext?): Any {
-        return player.collectGem()
+        ground.printGrid()
+        return ground.player.collectGem()
     }
 
     override fun visitIsBoolean(ctx: playgroundGrammarParser.IsBooleanContext?): Any {
@@ -187,18 +191,19 @@ class PlaygroundVisitor(private val player: Player): playgroundGrammarVisitor<An
     }
 
     override fun visitIsBlocked(ctx: playgroundGrammarParser.IsBlockedContext?): Any {
-        return player.isBlocked()
+        return ground.player.isBlocked()
     }
 
     override fun visitIsOnOpenedSwitch(ctx: playgroundGrammarParser.IsOnOpenedSwitchContext?): Any {
-        return player.isOnOpenedSwitch()
+        return ground.player.isOnOpenedSwitch()
     }
 
     override fun visitIsBlockedLeft(ctx: playgroundGrammarParser.IsBlockedLeftContext?): Any {
-        return player.isBlockedLeft()
+        return ground.player.isBlockedLeft()
     }
 
     override fun visitStatement(ctx: playgroundGrammarParser.StatementContext?): Any {
+//        ground.printGrid()
         return visit(ctx?.children?.get(0))
     }
 

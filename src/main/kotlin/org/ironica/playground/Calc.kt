@@ -26,9 +26,9 @@ fun main(args: Array<String>) {
         Direction.RIGHT
     )
     val playground = Playground(grid, player, 2)
-    playground.printGrid()
 
-    val exec = PlaygroundVisitor(player)
+    val exec = PlaygroundVisitor(playground)
     exec.visit(tree)
     playground.printGrid()
+    println( if (playground.win()) "stage cleared!" else "not finished...")
 }
