@@ -6,11 +6,28 @@ import playgroundGrammarBaseVisitor
 import playgroundGrammarParser
 
 import org.ironica.playground.SpecialRetVal.*
+import org.ironica.playground.Type.*
+import org.ironica.playground.Variability.*
 import playgroundGrammarVisitor
 
 enum class SpecialRetVal {
     Interr, Loop, Statements, Declaration, Branch, Error, Empty, ReDef, NotDef
 }
+
+enum class Type {
+    INT, DOUBLE, CHARACTER, STRING, BOOLEAN, VOID
+}
+
+enum class Variability {
+    VAR, LET
+}
+
+sealed class TypedLiteral
+data class IntLiteral(val variability: Variability, val content: Int): TypedLiteral()
+data class DoubleLiteral(val variability: Variability, val content: Double): TypedLiteral()
+data class BooleanLiteral(val variability: Variability, val content: Boolean): TypedLiteral()
+data class CharacterLiteral(val variability: Variability, val content: Char): TypedLiteral()
+data class StringLiteral(val variability: Variability, val content: String): TypedLiteral()
 
 typealias TypedParam = Pair<String, String>
 
@@ -36,8 +53,7 @@ data class FunctionHead(val name: String, val list: List<TypedParam>, val ret: S
 
 class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisitor<Any> {
 
-    private val variableTable = mutableMapOf<String, Int>()
-    private val constantTable = mutableMapOf<String, Int>()
+    private val variableTable = mutableMapOf<String, TypedLiteral>()
 
     private val functionTable = mutableMapOf<FunctionHead, ParseTree>()
 
@@ -101,7 +117,7 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
     override fun visitStatements(ctx: playgroundGrammarParser.StatementsContext?): Any {
         for (child in ctx?.children!!) {
             if (_break || _continue)
-                return -3
+                break
             visit(child)
         }
         return Statements
@@ -148,7 +164,7 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
             }
             if (_continue) {
                 _continue = false
-                break
+                continue
             }
             visit(ctx?.code_block())
         } while (visit(ctx?.expression()) == true)
@@ -170,7 +186,7 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
     }
 
     override fun visit(tree: ParseTree?): Any {
-        return tree?.accept(this)!!
+        return tree?.accept(this) ?: Error
     }
 
     override fun visitTop_level(ctx: playgroundGrammarParser.Top_levelContext?): Any {
@@ -186,7 +202,7 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
         return when (ctx?.boolean_literal()?.text) {
             "true" -> true
             "false"-> false
-            else -> false
+            else -> Error
         }
     }
 
@@ -219,7 +235,7 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
             }
             visit(ctx?.code_block())
         }
-        return 0
+        return Loop
     }
 
     override fun visitIf_statement(ctx: playgroundGrammarParser.If_statementContext?): Any {
@@ -247,24 +263,46 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
         return visit(ctx?.statements())
     }
 
+    private fun declareConstantOrVariable(left: String, right: Any, constant: Boolean): Boolean {
+        if (!variableTable.containsKey(left) ) {
+            if (right is Int) {
+                variableTable[left] = if (constant) IntLiteral(LET, right) else IntLiteral(VAR, right)
+                return true
+            }
+            if (right is Double) {
+                variableTable[left] = if (constant) DoubleLiteral(LET, right) else DoubleLiteral(VAR, right)
+                return true
+            }
+            if (right is Boolean) {
+                variableTable[left] = if (constant) BooleanLiteral(LET, right) else BooleanLiteral(VAR, right)
+                return true
+            }
+            if (right is Char) {
+                variableTable[left] = if (constant) CharacterLiteral(LET, right) else CharacterLiteral(VAR, right)
+                return true
+            }
+            if (right is String) {
+                variableTable[left] = if (constant) StringLiteral(LET, right) else StringLiteral(VAR, right)
+                return true
+            }
+        }
+        return false
+    }
+
     override fun visitConstant_declaration(ctx: playgroundGrammarParser.Constant_declarationContext?): Any {
         val left = visit(ctx?.pattern()) as String
-        val right = visit(ctx?.expression()) as Int
+        if (!(left[0].isLetter() || left[0] == '_')) return Error
+        val right = visit(ctx?.expression())
         // println("right: $right")
-        if (!constantTable.containsKey(left)) {
-            constantTable[left] = right
-            return Declaration
-        }
+        if (declareConstantOrVariable(left, right, true)) return Declaration
         return Error
     }
 
     override fun visitVariable_declaration(ctx: playgroundGrammarParser.Variable_declarationContext?): Any {
         val left = visit(ctx?.pattern()) as String
-        val right = visit(ctx?.expression()) as Int
-        if (!variableTable.containsKey(left)) {
-            variableTable[left] = right
-            return Declaration
-        }
+        if (!(left[0].isLetter() || left[0] == '_')) return Error
+        val right = visit(ctx?.expression())
+        if (declareConstantOrVariable(left, right, false)) return Declaration
         return Error
     }
 
@@ -272,9 +310,19 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
         var ret: Any? = node?.text?.toIntOrNull()
         if (ret != null) return (ret as Int)
         else {
-            if (node.toString() == "true") return true
-            if (node.toString() == "false") return false
-            return Error
+            ret = node?.text?.toDoubleOrNull()
+            if (ret != null) return (ret as Double)
+            else {
+                if (node?.text.toString() == "true") return true
+                if (node?.text.toString() == "false") return false
+                if (node?.text != null) {
+                    return if (node.text?.length == 1)
+                        node.text[0]
+                    else
+                        node.text
+                }
+                return Error
+            }
         }
     }
 
@@ -326,7 +374,7 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
 
     override fun visitFunction_result_type(ctx: playgroundGrammarParser.Function_result_typeContext?): Any {
         return when (val text = ctx?.type()?.text) {
-            "Bool", "Int" -> text
+            "Bool", "Int", "Double", "String", "Character", "Void" -> text
             else -> Error
         }
     }
@@ -366,8 +414,8 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
     override fun visitFunction_call_expression(ctx: playgroundGrammarParser.Function_call_expressionContext?): Any {
         return try {
             val functionName = visit(ctx?.function_name()) as String
-            val functionPara = if (ctx?.childCount == 2) listOf() else visit(ctx?.call_argument_clause()) as List<TypedParam>
-            val functionHead = FunctionHead(functionName, functionPara, "Call")
+            val funcArgument = if (ctx?.childCount == 2) listOf() else visit(ctx?.call_argument_clause()) as List<TypedParam>
+            val functionHead = FunctionHead(functionName, funcArgument, "Call")
             if (functionTable.containsKey(functionHead))
                 visit(functionTable[functionHead])
             else

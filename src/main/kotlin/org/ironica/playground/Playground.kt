@@ -25,26 +25,31 @@ class Player(val coo: Coordinate, var dir: Direction) {
 
     var collectedGem = 0
 
+    private fun isBlockedYPlus() = coo.y < 1 || grid[coo.y - 1][coo.x] == BLOCKED
+    private fun isBlockedYMinus() = coo.y > grid.size - 2 || grid[coo.y + 1][coo.x] == BLOCKED
+    private fun isBlockedXMinus() = coo.x < 1 || grid[coo.y][coo.x - 1] == BLOCKED
+    private fun isBlockedXPlus() = coo.x > grid[0].size - 2 || grid[coo.y][coo.x + 1] == BLOCKED
+
     fun isOnGem() = grid[coo.y][coo.x] == GEM
     fun isOnOpenedSwitch() = grid[coo.y][coo.x] == OPENEDSWITCH
     fun isOnClosedSwitch() = grid[coo.y][coo.x] == CLOSEDSWITCH
     fun isBlocked() = when (dir) {
-        UP -> coo.y < 1 || grid[coo.y - 1][coo.x] == BLOCKED
-        DOWN -> coo.y > grid.size - 2 || grid[coo.y + 1][coo.x] == BLOCKED
-        LEFT -> coo.x < 1 || grid[coo.y][coo.x - 1] == BLOCKED
-        RIGHT -> coo.x > grid[0].size - 2 || grid[coo.y][coo.x + 1] == BLOCKED
+        UP -> isBlockedYPlus()
+        DOWN -> isBlockedYMinus()
+        LEFT -> isBlockedXMinus()
+        RIGHT -> isBlockedXPlus()
     }
     fun isBlockedLeft() = when (dir) {
-        RIGHT -> coo.y < 1 || grid[coo.y - 1][coo.x] == BLOCKED
-        LEFT -> coo.y > grid.size - 2 || grid[coo.y + 1][coo.x] == BLOCKED
-        UP -> coo.x < 1 || grid[coo.y][coo.x - 1] == BLOCKED
-        DOWN -> coo.x > grid[0].size - 2 || grid[coo.y][coo.x + 1] == BLOCKED
+        RIGHT ->isBlockedYPlus()
+        LEFT -> isBlockedYMinus()
+        UP -> isBlockedXMinus()
+        DOWN -> isBlockedXPlus()
     }
     fun isBlockedRight() = when (dir) {
-        LEFT -> coo.y < 1 || grid[coo.y - 1][coo.x] == BLOCKED
-        RIGHT -> coo.y > grid.size - 2 || grid[coo.y + 1][coo.x] == BLOCKED
-        DOWN -> coo.x < 1 || grid[coo.y][coo.x - 1] == BLOCKED
-        UP -> coo.x > grid[0].size - 2 || grid[coo.y][coo.x + 1] == BLOCKED
+        LEFT -> isBlockedYPlus()
+        RIGHT -> isBlockedYMinus()
+        DOWN -> isBlockedXMinus()
+        UP -> isBlockedXPlus()
     }
 
     fun turnLeft() { dir = when(dir) {
@@ -104,8 +109,7 @@ class Playground(private val grid: Grid, val player: Player, private val initial
 
 
     fun printGrid() {
-        for (i in grid.indices) {
-            for (j in grid[0].indices) {
+        grid.forEachIndexed { i, row -> row.forEachIndexed { j, block ->
                 if (player.coo.x == j && player.coo.y == i) {
                     print(when (player.dir) {
                         UP -> "U"
@@ -122,8 +126,7 @@ class Playground(private val grid: Grid, val player: Player, private val initial
                         CLOSEDSWITCH -> "X"
                         OPENEDSWITCH -> "O"
                     })
-                }
-            }
+            } }
             println()
         }
         println()
