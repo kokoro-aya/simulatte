@@ -109,7 +109,7 @@ class Playground(private val grid: Grid, val player: Player, private val initial
 
 
     fun printGrid() {
-        grid.forEachIndexed { i, row -> row.forEachIndexed { j, block ->
+        grid.forEachIndexed { i, row -> row.forEachIndexed { j, _ ->
                 if (player.coo.x == j && player.coo.y == i) {
                     print(when (player.dir) {
                         UP -> "U"
