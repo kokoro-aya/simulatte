@@ -33,6 +33,7 @@ WS: [ \t\n\r]+ -> skip;
 
 expression: assignment_expression                       # assignmentExpr
           | literal_expression                          # literalValueExpr
+          | function_call_expression                    # function_call
           | member_expression                           # memberExpr
           | variable_expression                         # variableExpr
           | <assoc=right> expression op=EXP expression   # exponentExpr
@@ -43,9 +44,8 @@ expression: assignment_expression                       # assignmentExpr
           | expression op=(GT | LT | GEQ | LEQ) expression # ariComparativeExpr
           | expression op=(EQ | NEQ) expression         # boolComparativeExpr
           | expression op=(MULEQ | DIVEQ | MODEQ | ADDEQ | SUBEQ) expression # ariAssignmentExpr
-          | parenthesized_expression                    # parenthesisExpr
+          | '(' expression ')'                          # parenthesisExpr
           | expression op=(UNTIL | THROUGH) expression  # rangeExpression
-          | function_call_expression                    # function_call
           ;
 
 assignment_expression: pattern '=' expression;
@@ -65,8 +65,6 @@ EXP: '^';
 
 GT: '>'; LT: '<'; GEQ: '>='; LEQ: '<='; EQ: '=='; NEQ: '!=';
 MULEQ: '*='; DIVEQ: '/='; MODEQ: '%='; ADDEQ: '+='; SUBEQ: '-=';
-
-parenthesized_expression: '(' expression ')';
 
 variable_expression: IDENTIFIER;
 

@@ -169,12 +169,6 @@ public interface playgroundGrammarVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitMember_expression(playgroundGrammarParser.Member_expressionContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link playgroundGrammarParser#parenthesized_expression}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitParenthesized_expression(playgroundGrammarParser.Parenthesized_expressionContext ctx);
-	/**
 	 * Visit a parse tree produced by {@link playgroundGrammarParser#variable_expression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result

@@ -184,13 +184,6 @@ public class playgroundGrammarBaseVisitor<T> extends AbstractParseTreeVisitor<T>
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitParenthesized_expression(playgroundGrammarParser.Parenthesized_expressionContext ctx) { return visitChildren(ctx); }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation returns the result of calling
-	 * {@link #visitChildren} on {@code ctx}.</p>
-	 */
 	@Override public T visitVariable_expression(playgroundGrammarParser.Variable_expressionContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}

@@ -1,8 +1,6 @@
 package org.ironica.playground
 
-import org.antlr.v4.codegen.model.decl.Decl
 import org.antlr.v4.runtime.tree.*
-import playgroundGrammarBaseVisitor
 import playgroundGrammarParser
 
 import org.ironica.playground.SpecialRetVal.*
@@ -30,8 +28,9 @@ data class CharacterLiteral(val variability: Variability, val content: Char): Ty
 data class StringLiteral(val variability: Variability, val content: String): TypedLiteral()
 
 typealias TypedParam = Pair<String, Type>
+typealias TypedArgum = Pair<Any, Type>
 
-data class FunctionHead(val name: String, val list: List<TypedParam>, val ret: Type) {
+data class FunctionHead(val name: String, val params: List<String>, val types: List<Type>, val ret: Type) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -39,14 +38,14 @@ data class FunctionHead(val name: String, val list: List<TypedParam>, val ret: T
         other as FunctionHead
 
         if (name != other.name) return false
-        if (list != other.list) return false
+        if (types != other.types) return false
 
         return true
     }
 
     override fun hashCode(): Int {
         var result = name.hashCode()
-        result = 31 * result + list.hashCode()
+        result = 31 * result + types.hashCode()
         return result
     }
 }
@@ -59,6 +58,10 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
 
     private var _break = false
     private var _continue = false
+
+    private fun print(body: Any) {
+        println(body)
+    }
 
     override fun visitIsNestedCondition(ctx: playgroundGrammarParser.IsNestedConditionContext?): Any {
         val left: Boolean = visit(ctx?.expression(0)) as Boolean
@@ -190,25 +193,33 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
         return visit(ctx?.statements())
     }
 
-    private fun declareConstantOrVariable(left: String, right: Any, constant: Boolean): Boolean {
-        if (!variableTable.containsKey(left) ) {
-            if (right is Int) {
+    private fun declareOrAssignConstantOrVariable(left: String, right: Any, constant: Boolean): Boolean {
+        if (right is Int) {
+            if (!variableTable.containsKey(left) || (variableTable[left] as IntLiteral).variability == VAR) {
                 variableTable[left] = if (constant) IntLiteral(LET, right) else IntLiteral(VAR, right)
                 return true
             }
-            if (right is Double) {
+        }
+        if (right is Double) {
+            if (!variableTable.containsKey(left) || (variableTable[left] as DoubleLiteral).variability == VAR) {
                 variableTable[left] = if (constant) DoubleLiteral(LET, right) else DoubleLiteral(VAR, right)
                 return true
             }
-            if (right is Boolean) {
+        }
+        if (right is Boolean) {
+            if (!variableTable.containsKey(left) || (variableTable[left] as BooleanLiteral).variability == VAR) {
                 variableTable[left] = if (constant) BooleanLiteral(LET, right) else BooleanLiteral(VAR, right)
                 return true
             }
-            if (right is Char) {
+        }
+        if (right is Char) {
+            if (!variableTable.containsKey(left) || (variableTable[left] as CharacterLiteral).variability == VAR) {
                 variableTable[left] = if (constant) CharacterLiteral(LET, right) else CharacterLiteral(VAR, right)
                 return true
             }
-            if (right is String) {
+        }
+        if (right is String) {
+            if (!variableTable.containsKey(left) || (variableTable[left] as StringLiteral).variability == VAR) {
                 variableTable[left] = if (constant) StringLiteral(LET, right) else StringLiteral(VAR, right)
                 return true
             }
@@ -221,7 +232,7 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
         if (!(left[0].isLetter() || left[0] == '_')) return Error
         val right = visit(ctx?.expression())
         // println("right: $right")
-        if (declareConstantOrVariable(left, right, true)) return Declaration
+        if (declareOrAssignConstantOrVariable(left, right, true)) return Declaration
         return Error
     }
 
@@ -229,7 +240,7 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
         val left = visit(ctx?.pattern()) as String
         if (!(left[0].isLetter() || left[0] == '_')) return Error
         val right = visit(ctx?.expression())
-        if (declareConstantOrVariable(left, right, false)) return Declaration
+        if (declareOrAssignConstantOrVariable(left, right, false)) return Declaration
         return Error
     }
 
@@ -265,7 +276,7 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
         try {
             val functionName = visit(ctx?.function_name()) as String
             val functionSignature = visit(ctx?.function_signature()) as Pair<List<TypedParam>, Type>
-            val functionHead = FunctionHead(functionName, functionSignature.first, functionSignature.second)
+            val functionHead = FunctionHead(functionName, functionSignature.first.map { it.first }, functionSignature.first.map { it.second }, functionSignature.second)
             if (functionTable.keys.contains(functionHead))
                 return ReDef
             functionTable[functionHead] = ctx?.function_body()!!
@@ -322,9 +333,7 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
     }
 
     override fun visitParameter_list(ctx: playgroundGrammarParser.Parameter_listContext?): Any {
-        val ret = mutableListOf<TypedParam>()
-        ctx?.parameter()?.forEach { ret += (visit(it) as TypedParam) }
-        return ret
+        return ctx?.parameter()?.map { (visit(it) as TypedParam) }!!
     }
 
     override fun visitParameter(ctx: playgroundGrammarParser.ParameterContext?): Any {
@@ -359,20 +368,23 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
         return try {
             val functionName = visit(ctx?.function_name()) as String
             val funcArgument =
-                if (ctx?.childCount == 2) listOf() else visit(ctx?.call_argument_clause()) as List<TypedParam>
-            val functionHead = FunctionHead(functionName, funcArgument, CALL)
-            if (functionHead.name == "moveForward" && functionHead.list.isEmpty()) {
+                if (ctx?.childCount == 2) listOf() else visit(ctx?.call_argument_clause()) as List<Type>
+            val functionHead = FunctionHead(functionName, listOf(), funcArgument, CALL)
+            if (functionHead.name == "moveForward" && functionHead.types.isEmpty()) {
                 ground.printGrid()
                 return ground.player.moveForward()
-            } else if (functionHead.name == "turnLeft" && functionHead.list.isEmpty()) {
+            } else if (functionHead.name == "turnLeft" && functionHead.types.isEmpty()) {
                 ground.printGrid()
                 return ground.player.turnLeft()
-            } else if (functionHead.name == "toggleSwitch" && functionHead.list.isEmpty()) {
+            } else if (functionHead.name == "toggleSwitch" && functionHead.types.isEmpty()) {
                 ground.printGrid()
                 return ground.player.toggleSwitch()
-            } else if (functionHead.name == "collectGem" && functionHead.list.isEmpty()) {
+            } else if (functionHead.name == "collectGem" && functionHead.types.isEmpty()) {
                 ground.printGrid()
                 return ground.player.collectGem()
+            } else if (functionHead.name == "print") {
+                val argum = visit(ctx?.call_argument_clause()) as List<TypedArgum>
+                println(argum[0].first)
             } else {
                 if (functionTable.containsKey(functionHead))
                     visit(functionTable[functionHead])
@@ -385,11 +397,20 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
     }
 
     override fun visitCall_argument_clause(ctx: playgroundGrammarParser.Call_argument_clauseContext?): Any {
-        TODO("Not yet implemented")
+        return ctx?.call_argument()?.map { visit(it) }!! as List<TypedArgum>
     }
 
     override fun visitCall_argument(ctx: playgroundGrammarParser.Call_argumentContext?): Any {
-        TODO("Not yet implemented")
+        val callval = visit(ctx?.expression())
+        val type: Type = when (callval) {
+            is Int -> INT
+            is Double -> DOUBLE
+            is Boolean -> BOOL
+            is Char -> CHARACTER
+            is String -> STRING
+            else -> return Error
+        }
+        return Pair(callval, type)
     }
 
     override fun visitLiteral(ctx: playgroundGrammarParser.LiteralContext?): Any {
@@ -405,15 +426,32 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
     }
 
     override fun visitChar_sequence_literal(ctx: playgroundGrammarParser.Char_sequence_literalContext?): Any {
-        TODO("Not yet implemented")
+        return if (ctx?.getChild(0)?.text?.length == 1)
+            ctx.getChild(0).text[0]
+        else
+            ctx?.getChild(0)?.text!!
     }
 
     override fun visitAssignmentExpr(ctx: playgroundGrammarParser.AssignmentExprContext?): Any {
-        TODO("Not yet implemented")
+        return visit(ctx?.assignment_expression())
     }
 
     override fun visitBoolComparativeExpr(ctx: playgroundGrammarParser.BoolComparativeExprContext?): Any {
-        TODO("Not yet implemented")
+        val left = visit(ctx?.expression(0))
+        val right = visit(ctx?.expression(1))
+        if (left is Boolean && right is Boolean) {
+            return if (ctx?.op?.type == playgroundGrammarParser.EQ) left == right else left != right
+        }
+        if ((left is Int || left is Double) && right is Boolean) {
+            return if (ctx?.op?.type == playgroundGrammarParser.EQ) (left != 0) == right else (left != 0) != right
+        }
+        if (left is Boolean && (right is Int || right is Double)) {
+            return if (ctx?.op?.type == playgroundGrammarParser.EQ) left == (right != 0) else left != (right != 0)
+        }
+        if ((left is Int || left is Double) && (right is Int || right is Double)) {
+            return if (ctx?.op?.type == playgroundGrammarParser.EQ) (left != 0) == (right != 0) else (left != 0) != (right != 0)
+        }
+        return Error
     }
 
     override fun visitExponentExpr(ctx: playgroundGrammarParser.ExponentExprContext?): Any {
@@ -421,7 +459,29 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
     }
 
     override fun visitAddSubExpr(ctx: playgroundGrammarParser.AddSubExprContext?): Any {
-        TODO("Not yet implemented")
+        var left = visit(ctx?.expression(0))
+        var right = visit(ctx?.expression(1))
+        if ((left is Boolean || left is Int) && (right is Boolean || right is Int)) {
+            if (left is Boolean)
+                left = if (left == true) 1 else 0
+            if (right is Boolean)
+                right = if (right == true) 1 else 0
+            return when (ctx?.op?.type) {
+                playgroundGrammarParser.ADD -> left as Int + right as Int
+                else -> left as Int - right as Int
+            }
+        }
+        if ((left is Boolean || left is Double) && (right is Boolean || right is Double)) {
+            if (left is Boolean)
+                left = if (left == true) 1 else 0
+            if (right is Boolean)
+                right = if (right == true) 1 else 0
+            return when (ctx?.op?.type) {
+                playgroundGrammarParser.ADD -> left as Double + right as Double
+                else -> left as Double - right as Double
+            }
+        }
+        return Error
     }
 
     override fun visitAriAssignmentExpr(ctx: playgroundGrammarParser.AriAssignmentExprContext?): Any {
@@ -441,7 +501,29 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
     }
 
     override fun visitMulDivModExpr(ctx: playgroundGrammarParser.MulDivModExprContext?): Any {
-        TODO("Not yet implemented")
+        var left = visit(ctx?.expression(0))
+        var right = visit(ctx?.expression(1))
+        if ((left is Boolean || left is Int) && (right is Boolean || right is Int)) {
+            if (left is Boolean)
+                left = if (left == true) 1 else 0
+            if (right is Boolean)
+                right = if (right == true) 1 else 0
+            return when (ctx?.op?.type) {
+                playgroundGrammarParser.MUL -> left as Int * right as Int
+                else -> left as Int / right as Int
+            }
+        }
+        if ((left is Boolean || left is Double) && (right is Boolean || right is Double)) {
+            if (left is Boolean)
+                left = if (left == true) 1 else 0
+            if (right is Boolean)
+                right = if (right == true) 1 else 0
+            return when (ctx?.op?.type) {
+                playgroundGrammarParser.MUL -> left as Double * right as Double
+                else -> left as Double / right as Double
+            }
+        }
+        return Error
     }
 
     override fun visitVariableExpr(ctx: playgroundGrammarParser.VariableExprContext?): Any {
@@ -462,11 +544,15 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
     }
 
     override fun visitParenthesisExpr(ctx: playgroundGrammarParser.ParenthesisExprContext?): Any {
-        TODO("Not yet implemented")
+        return visit(ctx?.expression())
     }
 
     override fun visitAssignment_expression(ctx: playgroundGrammarParser.Assignment_expressionContext?): Any {
-        TODO("Not yet implemented")
+        val left = visit(ctx?.pattern()) as String
+        if (!(left[0].isLetter() || left[0] == '_')) return Error
+        val right = visit(ctx?.expression())
+        if (declareOrAssignConstantOrVariable(left, right, false)) return Statements
+        return Error
     }
 
     override fun visitLiteral_expression(ctx: playgroundGrammarParser.Literal_expressionContext?): Any {
@@ -474,10 +560,6 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
     }
 
     override fun visitMember_expression(ctx: playgroundGrammarParser.Member_expressionContext?): Any {
-        TODO("Not yet implemented")
-    }
-
-    override fun visitParenthesized_expression(ctx: playgroundGrammarParser.Parenthesized_expressionContext?): Any {
         TODO("Not yet implemented")
     }
 

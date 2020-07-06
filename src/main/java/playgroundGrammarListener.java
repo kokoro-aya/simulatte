@@ -277,16 +277,6 @@ public interface playgroundGrammarListener extends ParseTreeListener {
 	 */
 	void exitMember_expression(playgroundGrammarParser.Member_expressionContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link playgroundGrammarParser#parenthesized_expression}.
-	 * @param ctx the parse tree
-	 */
-	void enterParenthesized_expression(playgroundGrammarParser.Parenthesized_expressionContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link playgroundGrammarParser#parenthesized_expression}.
-	 * @param ctx the parse tree
-	 */
-	void exitParenthesized_expression(playgroundGrammarParser.Parenthesized_expressionContext ctx);
-	/**
 	 * Enter a parse tree produced by {@link playgroundGrammarParser#variable_expression}.
 	 * @param ctx the parse tree
 	 */

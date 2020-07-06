@@ -303,18 +303,6 @@ public class playgroundGrammarBaseListener implements playgroundGrammarListener 
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterParenthesized_expression(playgroundGrammarParser.Parenthesized_expressionContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitParenthesized_expression(playgroundGrammarParser.Parenthesized_expressionContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterVariable_expression(playgroundGrammarParser.Variable_expressionContext ctx) { }
 	/**
 	 * {@inheritDoc}
