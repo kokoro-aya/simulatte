@@ -27,73 +27,121 @@ public class playgroundGrammarBaseListener implements playgroundGrammarListener 
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterMoveForward(playgroundGrammarParser.MoveForwardContext ctx) { }
+	@Override public void enterLiteral(playgroundGrammarParser.LiteralContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitMoveForward(playgroundGrammarParser.MoveForwardContext ctx) { }
+	@Override public void exitLiteral(playgroundGrammarParser.LiteralContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterTurnLeft(playgroundGrammarParser.TurnLeftContext ctx) { }
+	@Override public void enterNumeric_literal(playgroundGrammarParser.Numeric_literalContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitTurnLeft(playgroundGrammarParser.TurnLeftContext ctx) { }
+	@Override public void exitNumeric_literal(playgroundGrammarParser.Numeric_literalContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterToggleSwitch(playgroundGrammarParser.ToggleSwitchContext ctx) { }
+	@Override public void enterChar_sequence_literal(playgroundGrammarParser.Char_sequence_literalContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitToggleSwitch(playgroundGrammarParser.ToggleSwitchContext ctx) { }
+	@Override public void exitChar_sequence_literal(playgroundGrammarParser.Char_sequence_literalContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterCollectGem(playgroundGrammarParser.CollectGemContext ctx) { }
+	@Override public void enterInteger_literal(playgroundGrammarParser.Integer_literalContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitCollectGem(playgroundGrammarParser.CollectGemContext ctx) { }
+	@Override public void exitInteger_literal(playgroundGrammarParser.Integer_literalContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterCheckTruth(playgroundGrammarParser.CheckTruthContext ctx) { }
+	@Override public void enterDouble_literal(playgroundGrammarParser.Double_literalContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitCheckTruth(playgroundGrammarParser.CheckTruthContext ctx) { }
+	@Override public void exitDouble_literal(playgroundGrammarParser.Double_literalContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterRangedStep(playgroundGrammarParser.RangedStepContext ctx) { }
+	@Override public void enterAssignmentExpr(playgroundGrammarParser.AssignmentExprContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitRangedStep(playgroundGrammarParser.RangedStepContext ctx) { }
+	@Override public void exitAssignmentExpr(playgroundGrammarParser.AssignmentExprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterBoolComparativeExpr(playgroundGrammarParser.BoolComparativeExprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitBoolComparativeExpr(playgroundGrammarParser.BoolComparativeExprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterExponentExpr(playgroundGrammarParser.ExponentExprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitExponentExpr(playgroundGrammarParser.ExponentExprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterAddSubExpr(playgroundGrammarParser.AddSubExprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitAddSubExpr(playgroundGrammarParser.AddSubExprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterAriAssignmentExpr(playgroundGrammarParser.AriAssignmentExprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitAriAssignmentExpr(playgroundGrammarParser.AriAssignmentExprContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -106,6 +154,174 @@ public class playgroundGrammarBaseListener implements playgroundGrammarListener 
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitFunction_call(playgroundGrammarParser.Function_callContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterMemberExpr(playgroundGrammarParser.MemberExprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitMemberExpr(playgroundGrammarParser.MemberExprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterAriComparativeExpr(playgroundGrammarParser.AriComparativeExprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitAriComparativeExpr(playgroundGrammarParser.AriComparativeExprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterLiteralValueExpr(playgroundGrammarParser.LiteralValueExprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitLiteralValueExpr(playgroundGrammarParser.LiteralValueExprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterMulDivModExpr(playgroundGrammarParser.MulDivModExprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitMulDivModExpr(playgroundGrammarParser.MulDivModExprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterVariableExpr(playgroundGrammarParser.VariableExprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitVariableExpr(playgroundGrammarParser.VariableExprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterIsNestedCondition(playgroundGrammarParser.IsNestedConditionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitIsNestedCondition(playgroundGrammarParser.IsNestedConditionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterIsNegativeCondition(playgroundGrammarParser.IsNegativeConditionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitIsNegativeCondition(playgroundGrammarParser.IsNegativeConditionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterRangeExpression(playgroundGrammarParser.RangeExpressionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitRangeExpression(playgroundGrammarParser.RangeExpressionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterParenthesisExpr(playgroundGrammarParser.ParenthesisExprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitParenthesisExpr(playgroundGrammarParser.ParenthesisExprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterAssignment_expression(playgroundGrammarParser.Assignment_expressionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitAssignment_expression(playgroundGrammarParser.Assignment_expressionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterLiteral_expression(playgroundGrammarParser.Literal_expressionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitLiteral_expression(playgroundGrammarParser.Literal_expressionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterMember_expression(playgroundGrammarParser.Member_expressionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitMember_expression(playgroundGrammarParser.Member_expressionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterParenthesized_expression(playgroundGrammarParser.Parenthesized_expressionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitParenthesized_expression(playgroundGrammarParser.Parenthesized_expressionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterVariable_expression(playgroundGrammarParser.Variable_expressionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitVariable_expression(playgroundGrammarParser.Variable_expressionContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -147,114 +363,6 @@ public class playgroundGrammarBaseListener implements playgroundGrammarListener 
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterIsOnGem(playgroundGrammarParser.IsOnGemContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitIsOnGem(playgroundGrammarParser.IsOnGemContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterIsOnClosedSwitch(playgroundGrammarParser.IsOnClosedSwitchContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitIsOnClosedSwitch(playgroundGrammarParser.IsOnClosedSwitchContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterIsBoolean(playgroundGrammarParser.IsBooleanContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitIsBoolean(playgroundGrammarParser.IsBooleanContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterIsNestedCondition(playgroundGrammarParser.IsNestedConditionContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitIsNestedCondition(playgroundGrammarParser.IsNestedConditionContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterIsBlocked(playgroundGrammarParser.IsBlockedContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitIsBlocked(playgroundGrammarParser.IsBlockedContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterIsNegativeCondition(playgroundGrammarParser.IsNegativeConditionContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitIsNegativeCondition(playgroundGrammarParser.IsNegativeConditionContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterIsOnOpenedSwitch(playgroundGrammarParser.IsOnOpenedSwitchContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitIsOnOpenedSwitch(playgroundGrammarParser.IsOnOpenedSwitchContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterIsBlockedRight(playgroundGrammarParser.IsBlockedRightContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitIsBlockedRight(playgroundGrammarParser.IsBlockedRightContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterIsBlockedLeft(playgroundGrammarParser.IsBlockedLeftContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitIsBlockedLeft(playgroundGrammarParser.IsBlockedLeftContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterBoolean_literal(playgroundGrammarParser.Boolean_literalContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -262,18 +370,6 @@ public class playgroundGrammarBaseListener implements playgroundGrammarListener 
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitBoolean_literal(playgroundGrammarParser.Boolean_literalContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterRangeHandler(playgroundGrammarParser.RangeHandlerContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitRangeHandler(playgroundGrammarParser.RangeHandlerContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -418,6 +514,18 @@ public class playgroundGrammarBaseListener implements playgroundGrammarListener 
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitContinue_statement(playgroundGrammarParser.Continue_statementContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterReturn_statement(playgroundGrammarParser.Return_statementContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitReturn_statement(playgroundGrammarParser.Return_statementContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

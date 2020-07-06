@@ -12,45 +12,73 @@ IDENTIFIER: IDENT_HEAD IDENT_CHAR*;
 fragment IDENT_HEAD: [a-z] | [A-Z] | '_';
 fragment IDENT_CHAR: [0-9] | IDENT_HEAD;
 
-// literal:    numeric_literal | boolean_literal;
-// numeric_literal: '-'? integer_literal;
+literal:    numeric_literal | boolean_literal | char_sequence_literal;
+numeric_literal: '-'? (integer_literal | double_literal);
+char_sequence_literal: STRING_LITERAL | CHARACTER_LITERAL;
 
-INTEGER_LITERAL: DECIMAL_LITERAL;
+integer_literal: DECIMAL_LITERAL;
+double_literal: DECIMAL_LITERAL '.' DECIMAL_LITERAL?
+              | DECIMAL_LITERAL? '.' DECIMAL_LITERAL
+              ;
 DECIMAL_LITERAL: DECIMAL_DIGIT+;
 fragment DECIMAL_DIGIT: '0' .. '9';
 
+STRING_LITERAL: '"' (ESC|.)*? '"';
+fragment ESC: '\\' | '\\\\';
+
+CHARACTER_LITERAL: '\'' CHAR '\'';
+fragment CHAR: ~["\\EOF\n];
+
 WS: [ \t\n\r]+ -> skip;
 
-expression: 'moveForward()'         # moveForward
-          | 'turnLeft()'            # turnLeft
-          | 'toggleSwitch()'        # toggleSwitch
-          | 'collectGem()'          # collectGem
-          | conditional_expression  # checkTruth
-          | range_expression        # rangedStep
-          | function_call_expression # function_call
+expression: assignment_expression                       # assignmentExpr
+          | literal_expression                          # literalValueExpr
+          | member_expression                           # memberExpr
+          | variable_expression                         # variableExpr
+          | <assoc=right> expression op=EXP expression   # exponentExpr
+          | expression op=(MUL | DIV | MOD) expression  # mulDivModExpr
+          | expression op=(ADD | SUB) expression        # addSubExpr
+          | expression op=(AND | OR) expression         # isNestedCondition
+          | NOT expression                              # isNegativeCondition
+          | expression op=(GT | LT | GEQ | LEQ) expression # ariComparativeExpr
+          | expression op=(EQ | NEQ) expression         # boolComparativeExpr
+          | expression op=(MULEQ | DIVEQ | MODEQ | ADDEQ | SUBEQ) expression # ariAssignmentExpr
+          | parenthesized_expression                    # parenthesisExpr
+          | expression op=(UNTIL | THROUGH) expression  # rangeExpression
+          | function_call_expression                    # function_call
           ;
+
+assignment_expression: pattern '=' expression;
+
+literal_expression: literal;
+
+member_expression: variable_expression '.' IDENTIFIER
+                 | variable_expression '.' DECIMAL_LITERAL
+                 | variable_expression '.' function_call_expression
+                 ;
+ADD: '+';
+SUB: '-';
+MUL: '*';
+DIV: '/';
+MOD: '%';
+EXP: '^';
+
+GT: '>'; LT: '<'; GEQ: '>='; LEQ: '<='; EQ: '=='; NEQ: '!=';
+MULEQ: '*='; DIVEQ: '/='; MODEQ: '%='; ADDEQ: '+='; SUBEQ: '-=';
+
+parenthesized_expression: '(' expression ')';
+
+variable_expression: IDENTIFIER;
 
 function_call_expression: function_name ('()' | '(' call_argument_clause ')');
 call_argument_clause:  call_argument (',' call_argument)*;
 call_argument: expression;
-
-conditional_expression:  boolean_literal                                                # isBoolean
-                      | 'isOnGem'                                                       # isOnGem
-                      | 'isOnOpenedSwitch'                                              # isOnOpenedSwitch
-                      | 'isOnClosedSwitch'                                              # isOnClosedSwitch
-                      | 'isBlocked'                                                     # isBlocked
-                      | 'isBlockedLeft'                                                 # isBlockedLeft
-                      | 'isBlockedRight'                                                # isBlockedRight
-                      | conditional_expression op=(AND | OR) conditional_expression     # isNestedCondition
-                      | NOT conditional_expression                                      # isNegativeCondition
-                      ;
 
 boolean_literal: 'true' | 'false';
 AND: '&&';
 OR: '||';
 NOT: '!';
 
-range_expression: INTEGER_LITERAL op=(UNTIL | THROUGH) INTEGER_LITERAL # rangeHandler;
 UNTIL: '..<';
 THROUGH: '...';
 
@@ -59,6 +87,7 @@ statement: expression ';'?
          | loop_statement ';'?
          | branch_statement ';'?
          | control_transfer_statement ';'?
+         | return_statement ';'?
          ;
 
 statements: statement+;
@@ -83,6 +112,8 @@ control_transfer_statement: break_statement | continue_statement;
 
 break_statement: 'break';
 continue_statement: 'continue';
+
+return_statement: 'return' expression;
 
 declaration: constant_declaration
            | variable_declaration
@@ -113,6 +144,8 @@ type
     : 'Int'
     | 'Bool'
     | 'Double'
+    | 'Character'
+    | 'String'
     | 'Void'
     ;
 

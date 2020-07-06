@@ -17,77 +17,115 @@ public interface playgroundGrammarListener extends ParseTreeListener {
 	 */
 	void exitTop_level(playgroundGrammarParser.Top_levelContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code moveForward}
-	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * Enter a parse tree produced by {@link playgroundGrammarParser#literal}.
 	 * @param ctx the parse tree
 	 */
-	void enterMoveForward(playgroundGrammarParser.MoveForwardContext ctx);
+	void enterLiteral(playgroundGrammarParser.LiteralContext ctx);
 	/**
-	 * Exit a parse tree produced by the {@code moveForward}
-	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * Exit a parse tree produced by {@link playgroundGrammarParser#literal}.
 	 * @param ctx the parse tree
 	 */
-	void exitMoveForward(playgroundGrammarParser.MoveForwardContext ctx);
+	void exitLiteral(playgroundGrammarParser.LiteralContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code turnLeft}
-	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * Enter a parse tree produced by {@link playgroundGrammarParser#numeric_literal}.
 	 * @param ctx the parse tree
 	 */
-	void enterTurnLeft(playgroundGrammarParser.TurnLeftContext ctx);
+	void enterNumeric_literal(playgroundGrammarParser.Numeric_literalContext ctx);
 	/**
-	 * Exit a parse tree produced by the {@code turnLeft}
-	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * Exit a parse tree produced by {@link playgroundGrammarParser#numeric_literal}.
 	 * @param ctx the parse tree
 	 */
-	void exitTurnLeft(playgroundGrammarParser.TurnLeftContext ctx);
+	void exitNumeric_literal(playgroundGrammarParser.Numeric_literalContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code toggleSwitch}
-	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * Enter a parse tree produced by {@link playgroundGrammarParser#char_sequence_literal}.
 	 * @param ctx the parse tree
 	 */
-	void enterToggleSwitch(playgroundGrammarParser.ToggleSwitchContext ctx);
+	void enterChar_sequence_literal(playgroundGrammarParser.Char_sequence_literalContext ctx);
 	/**
-	 * Exit a parse tree produced by the {@code toggleSwitch}
-	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * Exit a parse tree produced by {@link playgroundGrammarParser#char_sequence_literal}.
 	 * @param ctx the parse tree
 	 */
-	void exitToggleSwitch(playgroundGrammarParser.ToggleSwitchContext ctx);
+	void exitChar_sequence_literal(playgroundGrammarParser.Char_sequence_literalContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code collectGem}
-	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * Enter a parse tree produced by {@link playgroundGrammarParser#integer_literal}.
 	 * @param ctx the parse tree
 	 */
-	void enterCollectGem(playgroundGrammarParser.CollectGemContext ctx);
+	void enterInteger_literal(playgroundGrammarParser.Integer_literalContext ctx);
 	/**
-	 * Exit a parse tree produced by the {@code collectGem}
-	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * Exit a parse tree produced by {@link playgroundGrammarParser#integer_literal}.
 	 * @param ctx the parse tree
 	 */
-	void exitCollectGem(playgroundGrammarParser.CollectGemContext ctx);
+	void exitInteger_literal(playgroundGrammarParser.Integer_literalContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code checkTruth}
-	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * Enter a parse tree produced by {@link playgroundGrammarParser#double_literal}.
 	 * @param ctx the parse tree
 	 */
-	void enterCheckTruth(playgroundGrammarParser.CheckTruthContext ctx);
+	void enterDouble_literal(playgroundGrammarParser.Double_literalContext ctx);
 	/**
-	 * Exit a parse tree produced by the {@code checkTruth}
-	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * Exit a parse tree produced by {@link playgroundGrammarParser#double_literal}.
 	 * @param ctx the parse tree
 	 */
-	void exitCheckTruth(playgroundGrammarParser.CheckTruthContext ctx);
+	void exitDouble_literal(playgroundGrammarParser.Double_literalContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code rangedStep}
+	 * Enter a parse tree produced by the {@code assignmentExpr}
 	 * labeled alternative in {@link playgroundGrammarParser#expression}.
 	 * @param ctx the parse tree
 	 */
-	void enterRangedStep(playgroundGrammarParser.RangedStepContext ctx);
+	void enterAssignmentExpr(playgroundGrammarParser.AssignmentExprContext ctx);
 	/**
-	 * Exit a parse tree produced by the {@code rangedStep}
+	 * Exit a parse tree produced by the {@code assignmentExpr}
 	 * labeled alternative in {@link playgroundGrammarParser#expression}.
 	 * @param ctx the parse tree
 	 */
-	void exitRangedStep(playgroundGrammarParser.RangedStepContext ctx);
+	void exitAssignmentExpr(playgroundGrammarParser.AssignmentExprContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code boolComparativeExpr}
+	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * @param ctx the parse tree
+	 */
+	void enterBoolComparativeExpr(playgroundGrammarParser.BoolComparativeExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code boolComparativeExpr}
+	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * @param ctx the parse tree
+	 */
+	void exitBoolComparativeExpr(playgroundGrammarParser.BoolComparativeExprContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code exponentExpr}
+	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * @param ctx the parse tree
+	 */
+	void enterExponentExpr(playgroundGrammarParser.ExponentExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code exponentExpr}
+	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * @param ctx the parse tree
+	 */
+	void exitExponentExpr(playgroundGrammarParser.ExponentExprContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code addSubExpr}
+	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * @param ctx the parse tree
+	 */
+	void enterAddSubExpr(playgroundGrammarParser.AddSubExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code addSubExpr}
+	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * @param ctx the parse tree
+	 */
+	void exitAddSubExpr(playgroundGrammarParser.AddSubExprContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code ariAssignmentExpr}
+	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * @param ctx the parse tree
+	 */
+	void enterAriAssignmentExpr(playgroundGrammarParser.AriAssignmentExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code ariAssignmentExpr}
+	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * @param ctx the parse tree
+	 */
+	void exitAriAssignmentExpr(playgroundGrammarParser.AriAssignmentExprContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code function_call}
 	 * labeled alternative in {@link playgroundGrammarParser#expression}.
@@ -100,6 +138,164 @@ public interface playgroundGrammarListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitFunction_call(playgroundGrammarParser.Function_callContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code memberExpr}
+	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * @param ctx the parse tree
+	 */
+	void enterMemberExpr(playgroundGrammarParser.MemberExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code memberExpr}
+	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * @param ctx the parse tree
+	 */
+	void exitMemberExpr(playgroundGrammarParser.MemberExprContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code ariComparativeExpr}
+	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * @param ctx the parse tree
+	 */
+	void enterAriComparativeExpr(playgroundGrammarParser.AriComparativeExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code ariComparativeExpr}
+	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * @param ctx the parse tree
+	 */
+	void exitAriComparativeExpr(playgroundGrammarParser.AriComparativeExprContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code literalValueExpr}
+	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * @param ctx the parse tree
+	 */
+	void enterLiteralValueExpr(playgroundGrammarParser.LiteralValueExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code literalValueExpr}
+	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * @param ctx the parse tree
+	 */
+	void exitLiteralValueExpr(playgroundGrammarParser.LiteralValueExprContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code mulDivModExpr}
+	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * @param ctx the parse tree
+	 */
+	void enterMulDivModExpr(playgroundGrammarParser.MulDivModExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code mulDivModExpr}
+	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * @param ctx the parse tree
+	 */
+	void exitMulDivModExpr(playgroundGrammarParser.MulDivModExprContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code variableExpr}
+	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * @param ctx the parse tree
+	 */
+	void enterVariableExpr(playgroundGrammarParser.VariableExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code variableExpr}
+	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * @param ctx the parse tree
+	 */
+	void exitVariableExpr(playgroundGrammarParser.VariableExprContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code isNestedCondition}
+	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * @param ctx the parse tree
+	 */
+	void enterIsNestedCondition(playgroundGrammarParser.IsNestedConditionContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code isNestedCondition}
+	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * @param ctx the parse tree
+	 */
+	void exitIsNestedCondition(playgroundGrammarParser.IsNestedConditionContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code isNegativeCondition}
+	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * @param ctx the parse tree
+	 */
+	void enterIsNegativeCondition(playgroundGrammarParser.IsNegativeConditionContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code isNegativeCondition}
+	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * @param ctx the parse tree
+	 */
+	void exitIsNegativeCondition(playgroundGrammarParser.IsNegativeConditionContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code rangeExpression}
+	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * @param ctx the parse tree
+	 */
+	void enterRangeExpression(playgroundGrammarParser.RangeExpressionContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code rangeExpression}
+	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * @param ctx the parse tree
+	 */
+	void exitRangeExpression(playgroundGrammarParser.RangeExpressionContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code parenthesisExpr}
+	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * @param ctx the parse tree
+	 */
+	void enterParenthesisExpr(playgroundGrammarParser.ParenthesisExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code parenthesisExpr}
+	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * @param ctx the parse tree
+	 */
+	void exitParenthesisExpr(playgroundGrammarParser.ParenthesisExprContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link playgroundGrammarParser#assignment_expression}.
+	 * @param ctx the parse tree
+	 */
+	void enterAssignment_expression(playgroundGrammarParser.Assignment_expressionContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link playgroundGrammarParser#assignment_expression}.
+	 * @param ctx the parse tree
+	 */
+	void exitAssignment_expression(playgroundGrammarParser.Assignment_expressionContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link playgroundGrammarParser#literal_expression}.
+	 * @param ctx the parse tree
+	 */
+	void enterLiteral_expression(playgroundGrammarParser.Literal_expressionContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link playgroundGrammarParser#literal_expression}.
+	 * @param ctx the parse tree
+	 */
+	void exitLiteral_expression(playgroundGrammarParser.Literal_expressionContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link playgroundGrammarParser#member_expression}.
+	 * @param ctx the parse tree
+	 */
+	void enterMember_expression(playgroundGrammarParser.Member_expressionContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link playgroundGrammarParser#member_expression}.
+	 * @param ctx the parse tree
+	 */
+	void exitMember_expression(playgroundGrammarParser.Member_expressionContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link playgroundGrammarParser#parenthesized_expression}.
+	 * @param ctx the parse tree
+	 */
+	void enterParenthesized_expression(playgroundGrammarParser.Parenthesized_expressionContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link playgroundGrammarParser#parenthesized_expression}.
+	 * @param ctx the parse tree
+	 */
+	void exitParenthesized_expression(playgroundGrammarParser.Parenthesized_expressionContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link playgroundGrammarParser#variable_expression}.
+	 * @param ctx the parse tree
+	 */
+	void enterVariable_expression(playgroundGrammarParser.Variable_expressionContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link playgroundGrammarParser#variable_expression}.
+	 * @param ctx the parse tree
+	 */
+	void exitVariable_expression(playgroundGrammarParser.Variable_expressionContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link playgroundGrammarParser#function_call_expression}.
 	 * @param ctx the parse tree
@@ -131,114 +327,6 @@ public interface playgroundGrammarListener extends ParseTreeListener {
 	 */
 	void exitCall_argument(playgroundGrammarParser.Call_argumentContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code isOnGem}
-	 * labeled alternative in {@link playgroundGrammarParser#conditional_expression}.
-	 * @param ctx the parse tree
-	 */
-	void enterIsOnGem(playgroundGrammarParser.IsOnGemContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code isOnGem}
-	 * labeled alternative in {@link playgroundGrammarParser#conditional_expression}.
-	 * @param ctx the parse tree
-	 */
-	void exitIsOnGem(playgroundGrammarParser.IsOnGemContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code isOnClosedSwitch}
-	 * labeled alternative in {@link playgroundGrammarParser#conditional_expression}.
-	 * @param ctx the parse tree
-	 */
-	void enterIsOnClosedSwitch(playgroundGrammarParser.IsOnClosedSwitchContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code isOnClosedSwitch}
-	 * labeled alternative in {@link playgroundGrammarParser#conditional_expression}.
-	 * @param ctx the parse tree
-	 */
-	void exitIsOnClosedSwitch(playgroundGrammarParser.IsOnClosedSwitchContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code isBoolean}
-	 * labeled alternative in {@link playgroundGrammarParser#conditional_expression}.
-	 * @param ctx the parse tree
-	 */
-	void enterIsBoolean(playgroundGrammarParser.IsBooleanContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code isBoolean}
-	 * labeled alternative in {@link playgroundGrammarParser#conditional_expression}.
-	 * @param ctx the parse tree
-	 */
-	void exitIsBoolean(playgroundGrammarParser.IsBooleanContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code isNestedCondition}
-	 * labeled alternative in {@link playgroundGrammarParser#conditional_expression}.
-	 * @param ctx the parse tree
-	 */
-	void enterIsNestedCondition(playgroundGrammarParser.IsNestedConditionContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code isNestedCondition}
-	 * labeled alternative in {@link playgroundGrammarParser#conditional_expression}.
-	 * @param ctx the parse tree
-	 */
-	void exitIsNestedCondition(playgroundGrammarParser.IsNestedConditionContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code isBlocked}
-	 * labeled alternative in {@link playgroundGrammarParser#conditional_expression}.
-	 * @param ctx the parse tree
-	 */
-	void enterIsBlocked(playgroundGrammarParser.IsBlockedContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code isBlocked}
-	 * labeled alternative in {@link playgroundGrammarParser#conditional_expression}.
-	 * @param ctx the parse tree
-	 */
-	void exitIsBlocked(playgroundGrammarParser.IsBlockedContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code isNegativeCondition}
-	 * labeled alternative in {@link playgroundGrammarParser#conditional_expression}.
-	 * @param ctx the parse tree
-	 */
-	void enterIsNegativeCondition(playgroundGrammarParser.IsNegativeConditionContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code isNegativeCondition}
-	 * labeled alternative in {@link playgroundGrammarParser#conditional_expression}.
-	 * @param ctx the parse tree
-	 */
-	void exitIsNegativeCondition(playgroundGrammarParser.IsNegativeConditionContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code isOnOpenedSwitch}
-	 * labeled alternative in {@link playgroundGrammarParser#conditional_expression}.
-	 * @param ctx the parse tree
-	 */
-	void enterIsOnOpenedSwitch(playgroundGrammarParser.IsOnOpenedSwitchContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code isOnOpenedSwitch}
-	 * labeled alternative in {@link playgroundGrammarParser#conditional_expression}.
-	 * @param ctx the parse tree
-	 */
-	void exitIsOnOpenedSwitch(playgroundGrammarParser.IsOnOpenedSwitchContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code isBlockedRight}
-	 * labeled alternative in {@link playgroundGrammarParser#conditional_expression}.
-	 * @param ctx the parse tree
-	 */
-	void enterIsBlockedRight(playgroundGrammarParser.IsBlockedRightContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code isBlockedRight}
-	 * labeled alternative in {@link playgroundGrammarParser#conditional_expression}.
-	 * @param ctx the parse tree
-	 */
-	void exitIsBlockedRight(playgroundGrammarParser.IsBlockedRightContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code isBlockedLeft}
-	 * labeled alternative in {@link playgroundGrammarParser#conditional_expression}.
-	 * @param ctx the parse tree
-	 */
-	void enterIsBlockedLeft(playgroundGrammarParser.IsBlockedLeftContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code isBlockedLeft}
-	 * labeled alternative in {@link playgroundGrammarParser#conditional_expression}.
-	 * @param ctx the parse tree
-	 */
-	void exitIsBlockedLeft(playgroundGrammarParser.IsBlockedLeftContext ctx);
-	/**
 	 * Enter a parse tree produced by {@link playgroundGrammarParser#boolean_literal}.
 	 * @param ctx the parse tree
 	 */
@@ -248,18 +336,6 @@ public interface playgroundGrammarListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitBoolean_literal(playgroundGrammarParser.Boolean_literalContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code rangeHandler}
-	 * labeled alternative in {@link playgroundGrammarParser#range_expression}.
-	 * @param ctx the parse tree
-	 */
-	void enterRangeHandler(playgroundGrammarParser.RangeHandlerContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code rangeHandler}
-	 * labeled alternative in {@link playgroundGrammarParser#range_expression}.
-	 * @param ctx the parse tree
-	 */
-	void exitRangeHandler(playgroundGrammarParser.RangeHandlerContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link playgroundGrammarParser#statement}.
 	 * @param ctx the parse tree
@@ -380,6 +456,16 @@ public interface playgroundGrammarListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitContinue_statement(playgroundGrammarParser.Continue_statementContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link playgroundGrammarParser#return_statement}.
+	 * @param ctx the parse tree
+	 */
+	void enterReturn_statement(playgroundGrammarParser.Return_statementContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link playgroundGrammarParser#return_statement}.
+	 * @param ctx the parse tree
+	 */
+	void exitReturn_statement(playgroundGrammarParser.Return_statementContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link playgroundGrammarParser#declaration}.
 	 * @param ctx the parse tree

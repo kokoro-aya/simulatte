@@ -16,47 +16,70 @@ public interface playgroundGrammarVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitTop_level(playgroundGrammarParser.Top_levelContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code moveForward}
-	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * Visit a parse tree produced by {@link playgroundGrammarParser#literal}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitMoveForward(playgroundGrammarParser.MoveForwardContext ctx);
+	T visitLiteral(playgroundGrammarParser.LiteralContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code turnLeft}
-	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * Visit a parse tree produced by {@link playgroundGrammarParser#numeric_literal}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitTurnLeft(playgroundGrammarParser.TurnLeftContext ctx);
+	T visitNumeric_literal(playgroundGrammarParser.Numeric_literalContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code toggleSwitch}
-	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * Visit a parse tree produced by {@link playgroundGrammarParser#char_sequence_literal}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitToggleSwitch(playgroundGrammarParser.ToggleSwitchContext ctx);
+	T visitChar_sequence_literal(playgroundGrammarParser.Char_sequence_literalContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code collectGem}
-	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * Visit a parse tree produced by {@link playgroundGrammarParser#integer_literal}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitCollectGem(playgroundGrammarParser.CollectGemContext ctx);
+	T visitInteger_literal(playgroundGrammarParser.Integer_literalContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code checkTruth}
-	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * Visit a parse tree produced by {@link playgroundGrammarParser#double_literal}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitCheckTruth(playgroundGrammarParser.CheckTruthContext ctx);
+	T visitDouble_literal(playgroundGrammarParser.Double_literalContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code rangedStep}
+	 * Visit a parse tree produced by the {@code assignmentExpr}
 	 * labeled alternative in {@link playgroundGrammarParser#expression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitRangedStep(playgroundGrammarParser.RangedStepContext ctx);
+	T visitAssignmentExpr(playgroundGrammarParser.AssignmentExprContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code boolComparativeExpr}
+	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitBoolComparativeExpr(playgroundGrammarParser.BoolComparativeExprContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code exponentExpr}
+	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitExponentExpr(playgroundGrammarParser.ExponentExprContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code addSubExpr}
+	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitAddSubExpr(playgroundGrammarParser.AddSubExprContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code ariAssignmentExpr}
+	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitAriAssignmentExpr(playgroundGrammarParser.AriAssignmentExprContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code function_call}
 	 * labeled alternative in {@link playgroundGrammarParser#expression}.
@@ -64,6 +87,99 @@ public interface playgroundGrammarVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitFunction_call(playgroundGrammarParser.Function_callContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code memberExpr}
+	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitMemberExpr(playgroundGrammarParser.MemberExprContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code ariComparativeExpr}
+	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitAriComparativeExpr(playgroundGrammarParser.AriComparativeExprContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code literalValueExpr}
+	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitLiteralValueExpr(playgroundGrammarParser.LiteralValueExprContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code mulDivModExpr}
+	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitMulDivModExpr(playgroundGrammarParser.MulDivModExprContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code variableExpr}
+	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitVariableExpr(playgroundGrammarParser.VariableExprContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code isNestedCondition}
+	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitIsNestedCondition(playgroundGrammarParser.IsNestedConditionContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code isNegativeCondition}
+	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitIsNegativeCondition(playgroundGrammarParser.IsNegativeConditionContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code rangeExpression}
+	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitRangeExpression(playgroundGrammarParser.RangeExpressionContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code parenthesisExpr}
+	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitParenthesisExpr(playgroundGrammarParser.ParenthesisExprContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link playgroundGrammarParser#assignment_expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitAssignment_expression(playgroundGrammarParser.Assignment_expressionContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link playgroundGrammarParser#literal_expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitLiteral_expression(playgroundGrammarParser.Literal_expressionContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link playgroundGrammarParser#member_expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitMember_expression(playgroundGrammarParser.Member_expressionContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link playgroundGrammarParser#parenthesized_expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitParenthesized_expression(playgroundGrammarParser.Parenthesized_expressionContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link playgroundGrammarParser#variable_expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitVariable_expression(playgroundGrammarParser.Variable_expressionContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link playgroundGrammarParser#function_call_expression}.
 	 * @param ctx the parse tree
@@ -83,81 +199,11 @@ public interface playgroundGrammarVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitCall_argument(playgroundGrammarParser.Call_argumentContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code isOnGem}
-	 * labeled alternative in {@link playgroundGrammarParser#conditional_expression}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitIsOnGem(playgroundGrammarParser.IsOnGemContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code isOnClosedSwitch}
-	 * labeled alternative in {@link playgroundGrammarParser#conditional_expression}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitIsOnClosedSwitch(playgroundGrammarParser.IsOnClosedSwitchContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code isBoolean}
-	 * labeled alternative in {@link playgroundGrammarParser#conditional_expression}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitIsBoolean(playgroundGrammarParser.IsBooleanContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code isNestedCondition}
-	 * labeled alternative in {@link playgroundGrammarParser#conditional_expression}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitIsNestedCondition(playgroundGrammarParser.IsNestedConditionContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code isBlocked}
-	 * labeled alternative in {@link playgroundGrammarParser#conditional_expression}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitIsBlocked(playgroundGrammarParser.IsBlockedContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code isNegativeCondition}
-	 * labeled alternative in {@link playgroundGrammarParser#conditional_expression}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitIsNegativeCondition(playgroundGrammarParser.IsNegativeConditionContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code isOnOpenedSwitch}
-	 * labeled alternative in {@link playgroundGrammarParser#conditional_expression}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitIsOnOpenedSwitch(playgroundGrammarParser.IsOnOpenedSwitchContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code isBlockedRight}
-	 * labeled alternative in {@link playgroundGrammarParser#conditional_expression}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitIsBlockedRight(playgroundGrammarParser.IsBlockedRightContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code isBlockedLeft}
-	 * labeled alternative in {@link playgroundGrammarParser#conditional_expression}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitIsBlockedLeft(playgroundGrammarParser.IsBlockedLeftContext ctx);
-	/**
 	 * Visit a parse tree produced by {@link playgroundGrammarParser#boolean_literal}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitBoolean_literal(playgroundGrammarParser.Boolean_literalContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code rangeHandler}
-	 * labeled alternative in {@link playgroundGrammarParser#range_expression}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitRangeHandler(playgroundGrammarParser.RangeHandlerContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link playgroundGrammarParser#statement}.
 	 * @param ctx the parse tree
@@ -230,6 +276,12 @@ public interface playgroundGrammarVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitContinue_statement(playgroundGrammarParser.Continue_statementContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link playgroundGrammarParser#return_statement}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitReturn_statement(playgroundGrammarParser.Return_statementContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link playgroundGrammarParser#declaration}.
 	 * @param ctx the parse tree
