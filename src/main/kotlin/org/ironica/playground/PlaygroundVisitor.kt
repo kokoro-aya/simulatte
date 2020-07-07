@@ -11,7 +11,7 @@ import kotlin.math.exp
 import kotlin.math.pow
 
 enum class SpecialRetVal {
-    Interr, Loop, Statements, Declaration, Branch, Error, Empty, ReDef, NotDef, CallOnSuccess
+    Interr, Loop, Statements, Declaration, Branch, Empty, ReDef, NotDef
 }
 
 enum class Type {
@@ -75,9 +75,9 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
     private var _break = false
     private var _continue = false
 
-    private val internalVariables = mutableMapOf<String, TypedLiteral>()
+    private var _return = false
 
-    private var _internal = false
+    private val internalVariables = mutableMapOf<String, TypedLiteral>()
 
     private fun print(body: Any) {
         println(body)
@@ -90,12 +90,13 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
     }
 
     override fun visitStatements(ctx: playgroundGrammarParser.StatementsContext?): Any {
+        var ret: Any = Statements
         for (child in ctx?.children!!) {
-            if (_break || _continue)
+            if (_break || _continue || _return)
                 break
-            visit(child)
+            ret = visit(child)
         }
-        return Statements
+        return ret
     }
 
     override fun visitLoop_statement(ctx: playgroundGrammarParser.Loop_statementContext?): Any {
@@ -107,7 +108,6 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
         val pattern = visit(ctx?.pattern()) as String
         // println(range)
         for (x in range) {
-            _internal = true
             if (pattern != "_") {
                 internalVariables[pattern] = IntLiteral(VAR, x)
             }
@@ -122,7 +122,6 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
             visit(ctx?.code_block())
         }
         internalVariables.remove(pattern)
-        _internal = false
         return Loop
     }
 
@@ -135,7 +134,7 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
     }
 
     override fun visitErrorNode(node: ErrorNode?): Any {
-        return Error
+        throw Exception("Return from ErrorNode")
     }
 
     override fun visitRepeat_while_statement(ctx: playgroundGrammarParser.Repeat_while_statementContext?): Any {
@@ -168,7 +167,7 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
     }
 
     override fun visit(tree: ParseTree?): Any {
-        return tree?.accept(this) ?: Error
+        return tree?.accept(this) ?: throw Exception("Encountered error while visiting AST")
     }
 
     override fun visitTop_level(ctx: playgroundGrammarParser.Top_levelContext?): Any {
@@ -176,7 +175,6 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
     }
 
     override fun visitStatement(ctx: playgroundGrammarParser.StatementContext?): Any {
-//        ground.printGrid()
         return visit(ctx?.children?.get(0))
     }
 
@@ -256,19 +254,19 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
 
     override fun visitConstant_declaration(ctx: playgroundGrammarParser.Constant_declarationContext?): Any {
         val left = visit(ctx?.pattern()) as String
-        if (!(left[0].isLetter() || left[0] == '_')) return Error
+        if (!(left[0].isLetter() || left[0] == '_')) throw Exception("Illegal variable name")
         val right = visit(ctx?.expression())
         // println("right: $right")
         if (declareOrAssignConstantOrVariable(left, right, true)) return Declaration
-        return Error
+        throw Exception("Encountered error while declaring constant")
     }
 
     override fun visitVariable_declaration(ctx: playgroundGrammarParser.Variable_declarationContext?): Any {
         val left = visit(ctx?.pattern()) as String
-        if (!(left[0].isLetter() || left[0] == '_')) return Error
+        if (!(left[0].isLetter() || left[0] == '_')) throw Exception("Illegal variable name")
         val right = visit(ctx?.expression())
         if (declareOrAssignConstantOrVariable(left, right, false)) return Declaration
-        return Error
+        throw Exception("Encountered error while declaring variable")
     }
 
     override fun visitTerminal(node: TerminalNode?): Any {
@@ -286,7 +284,7 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
                     else
                         node.text
                 }
-                return Error
+                throw Exception("Encountered error while visiting terminal node")
             }
         }
     }
@@ -311,7 +309,7 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
             functionTable[functionHead] = ctx?.function_body()!!
             return Declaration
         } catch (e: Exception) {
-            return Error
+            throw Exception("Encountered error within function declaration")
         }
     }
 
@@ -324,7 +322,7 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
     }
 
     override fun visitIdentifier_pattern(ctx: playgroundGrammarParser.Identifier_patternContext?): Any {
-        return ctx?.IDENTIFIER()?.text ?: Error
+        return ctx?.IDENTIFIER()?.text ?: throw Exception("Null identifier encountered")
     }
 
     override fun visitIsNegativeCondition(ctx: playgroundGrammarParser.IsNegativeConditionContext?): Any {
@@ -335,12 +333,12 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
         return when (ctx?.text) {
             "true" -> true
             "false"-> false
-            else -> Error
+            else -> throw Exception("Cannot parse literal to boolean type")
         }
     }
 
     override fun visitFunction_name(ctx: playgroundGrammarParser.Function_nameContext?): Any {
-        return ctx?.IDENTIFIER()?.text ?: Error
+        return ctx?.IDENTIFIER()?.text ?: throw Exception("Function name cannot be null")
     }
 
     override fun visitFunction_result_type(ctx: playgroundGrammarParser.Function_result_typeContext?): Any {
@@ -351,7 +349,7 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
             "Character" -> CHARACTER
             "String" -> STRING
             "Void", "" -> VOID
-            else -> Error
+            else -> throw Exception("Unsupported function return type")
         }
     }
 
@@ -372,7 +370,7 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
     }
 
     override fun visitParam_name(ctx: playgroundGrammarParser.Param_nameContext?): Any {
-        return ctx?.IDENTIFIER()?.text ?: Error
+        return ctx?.IDENTIFIER()?.text ?: throw Exception("Function parameter name cannot be null")
     }
 
     override fun visitType_annotation(ctx: playgroundGrammarParser.Type_annotationContext?): Any {
@@ -387,7 +385,7 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
             "Character" -> CHARACTER
             "String" -> STRING
             "Void", "" -> VOID
-            else -> Error
+            else -> throw Exception("Unsupported data type")
         }
     }
 
@@ -421,8 +419,7 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
                     if (functionHead.pseudoEquals(key)) {
                         val realHead = key
                         if (realHead.params.isEmpty()) {
-                            visit(functionTable[realHead])
-                            return CallOnSuccess
+                            return visit(functionTable[realHead])
                         } else {
                             val paramContents = funcArgument.map { it.first }.map {
                                 when (val content = it) {
@@ -431,27 +428,25 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
                                     is Boolean -> BooleanLiteral(VAR, content)
                                     is Char -> CharacterLiteral(VAR, content)
                                     is String -> StringLiteral(VAR, content)
-                                    else -> return Error
+                                    else -> throw Exception("Unsupported argument type")
                                 }
                             }
                             val paramNames = realHead.params
-                            _internal = true
                             for (idx in paramNames.indices) {
                                 internalVariables[paramNames[idx]] = paramContents[idx]
                             }
-                            visit(functionTable[realHead])
+                            val ret = visit(functionTable[realHead]) // TODO: return expression
                             for (name in paramNames) {
                                 internalVariables.remove(name)
                             }
-                            _internal = false
-                            return CallOnSuccess
+                            return ret
                         }
                     }
                 }
                 return NotDef
             }
         } catch (e: Exception) {
-            return Error
+            throw Exception("Something went wrong while passing function call")
         }
     }
 
@@ -467,7 +462,7 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
             is Boolean -> BOOL
             is Char -> CHARACTER
             is String -> STRING
-            else -> return Error
+            else -> throw Exception("Unrecognized argument type")
         }
         return Pair(callval, type) as TypedArgum
     }
@@ -510,7 +505,7 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
         if ((left is Int || left is Double) && (right is Int || right is Double)) {
             return if (ctx?.op?.type == playgroundGrammarParser.EQ) (left != 0) == (right != 0) else (left != 0) != (right != 0)
         }
-        return Error
+        throw Exception("Boolean comparative expression on unsupported type")
     }
 
     override fun visitExponentExpr(ctx: playgroundGrammarParser.ExponentExprContext?): Any {
@@ -542,11 +537,38 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
                 else -> left as Double - right as Double
             }
         }
-        return Error
+        throw Exception("AddSub: on unsupported type")
     }
 
     override fun visitAriAssignmentExpr(ctx: playgroundGrammarParser.AriAssignmentExprContext?): Any {
-        TODO("Not yet implemented")
+        val left = visit(ctx?.pattern()) as String
+        if (!(left[0].isLetter() || left[0] == '_')) throw Exception("Illegal variable name")
+        val right = visit(ctx?.expression())
+        if (variableTable[left] is IntLiteral && right is Int && (variableTable[left] as IntLiteral).variability == VAR) {
+            val old = (variableTable[left] as IntLiteral).content
+            val new = when (ctx?.op?.type) {
+                playgroundGrammarParser.ADDEQ -> old + right
+                playgroundGrammarParser.SUBEQ -> old - right
+                playgroundGrammarParser.MULEQ -> old * right
+                playgroundGrammarParser.DIVEQ -> old / right
+                else -> old % right
+            }
+            variableTable[left] = IntLiteral(VAR, new)
+            return new
+        }
+        if (variableTable[left] is DoubleLiteral && right is Double && (variableTable[left] as DoubleLiteral).variability == VAR) {
+            val old = (variableTable[left] as DoubleLiteral).content
+            val new = when (ctx?.op?.type) {
+                playgroundGrammarParser.ADDEQ -> old + right
+                playgroundGrammarParser.SUBEQ -> old - right
+                playgroundGrammarParser.MULEQ -> old * right
+                playgroundGrammarParser.DIVEQ -> old / right
+                else -> old % right
+            }
+            variableTable[left] = DoubleLiteral(VAR, new)
+            return new
+        }
+        throw Exception("Arithmetic assignment: unsupported type")
     }
 
     override fun visitMemberExpr(ctx: playgroundGrammarParser.MemberExprContext?): Any {
@@ -576,7 +598,7 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
                 else -> left <= right
             }
         }
-        return Error
+        throw Exception("Arithmetic comparable expression on unsupported type")
     }
 
     override fun visitLiteralValueExpr(ctx: playgroundGrammarParser.LiteralValueExprContext?): Any {
@@ -606,7 +628,7 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
                 else -> left as Double / right as Double
             }
         }
-        return Error
+        throw Exception("MulDivMod: on unsupported type")
     }
 
     override fun visitVariableExpr(ctx: playgroundGrammarParser.VariableExprContext?): Any {
@@ -623,7 +645,7 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
         if (ctx?.op?.type == playgroundGrammarParser.THROUGH) {
             return (lower .. upper)
         }
-        return Error
+        throw Exception("Something goes wrong within range expression")
     }
 
     override fun visitParenthesisExpr(ctx: playgroundGrammarParser.ParenthesisExprContext?): Any {
@@ -632,10 +654,10 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
 
     override fun visitAssignment_expression(ctx: playgroundGrammarParser.Assignment_expressionContext?): Any {
         val left = visit(ctx?.pattern()) as String
-        if (!(left[0].isLetter() || left[0] == '_')) return Error
+        if (!(left[0].isLetter() || left[0] == '_')) throw Exception("Illegal variable name")
         val right = visit(ctx?.expression())
-        if (declareOrAssignConstantOrVariable(left, right, false)) return Statements
-        return Error
+        if (declareOrAssignConstantOrVariable(left, right, false)) return variableTable[left]!!
+        throw Exception("Something goes wrong within assignment expression")
     }
 
     override fun visitLiteral_expression(ctx: playgroundGrammarParser.Literal_expressionContext?): Any {
@@ -655,8 +677,8 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
             "isBlockedLeft" -> ground.player.isBlockedLeft()
             "isBlockedRight" -> ground.player.isBlockedRight()
             else -> {
-                if (_internal) {
-                    if (internalVariables.containsKey(name)) {
+                when {
+                    internalVariables.containsKey(name) -> {
                         when (val literal = internalVariables[name]!!) {
                             is IntLiteral -> literal.content
                             is DoubleLiteral -> literal.content
@@ -664,11 +686,8 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
                             is StringLiteral -> literal.content
                             is BooleanLiteral -> literal.content
                         }
-                    } else {
-                        NotDef
                     }
-                } else {
-                    if (variableTable.containsKey(name)) {
+                    variableTable.containsKey(name) -> {
                         when (val literal = variableTable[name]!!) {
                             is IntLiteral -> literal.content
                             is DoubleLiteral -> literal.content
@@ -676,7 +695,8 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
                             is StringLiteral -> literal.content
                             is BooleanLiteral -> literal.content
                         }
-                    } else {
+                    }
+                    else -> {
                         NotDef
                     }
                 }
@@ -685,7 +705,8 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
     }
 
     override fun visitReturn_statement(ctx: playgroundGrammarParser.Return_statementContext?): Any {
-        TODO("Not yet implemented")
+        _return = true
+        return visit(ctx?.expression())
     }
 
     override fun visitInteger_literal(ctx: playgroundGrammarParser.Integer_literalContext?): Any {
