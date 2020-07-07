@@ -1,4 +1,4 @@
-// Generated from /Users/irony/IdeaProjects/playground/src/main/playgroundGrammar.g4 by ANTLR 4.8
+// Generated from C:/Users/admin/IdeaProjects/playground/src/main\playgroundGrammar.g4 by ANTLR 4.8
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
@@ -111,6 +111,18 @@ public class playgroundGrammarBaseListener implements playgroundGrammarListener 
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterAriAssignmentExpr(playgroundGrammarParser.AriAssignmentExprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitAriAssignmentExpr(playgroundGrammarParser.AriAssignmentExprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterExponentExpr(playgroundGrammarParser.ExponentExprContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -130,18 +142,6 @@ public class playgroundGrammarBaseListener implements playgroundGrammarListener 
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitAddSubExpr(playgroundGrammarParser.AddSubExprContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterAriAssignmentExpr(playgroundGrammarParser.AriAssignmentExprContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitAriAssignmentExpr(playgroundGrammarParser.AriAssignmentExprContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

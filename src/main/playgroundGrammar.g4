@@ -36,14 +36,14 @@ expression: assignment_expression                       # assignmentExpr
           | function_call_expression                    # function_call
           | member_expression                           # memberExpr
           | variable_expression                         # variableExpr
-          | <assoc=right> expression op=EXP expression   # exponentExpr
+          | <assoc=right> expression EXP expression   # exponentExpr
           | expression op=(MUL | DIV | MOD) expression  # mulDivModExpr
           | expression op=(ADD | SUB) expression        # addSubExpr
           | expression op=(AND | OR) expression         # isNestedCondition
           | NOT expression                              # isNegativeCondition
           | expression op=(GT | LT | GEQ | LEQ) expression # ariComparativeExpr
           | expression op=(EQ | NEQ) expression         # boolComparativeExpr
-          | expression op=(MULEQ | DIVEQ | MODEQ | ADDEQ | SUBEQ) expression # ariAssignmentExpr
+          | pattern op=(MULEQ | DIVEQ | MODEQ | ADDEQ | SUBEQ) expression # ariAssignmentExpr
           | '(' expression ')'                          # parenthesisExpr
           | expression op=(UNTIL | THROUGH) expression  # rangeExpression
           ;

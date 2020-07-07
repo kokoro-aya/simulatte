@@ -1,4 +1,4 @@
-// Generated from /Users/irony/IdeaProjects/playground/src/main/playgroundGrammar.g4 by ANTLR 4.8
+// Generated from C:/Users/admin/IdeaProjects/playground/src/main\playgroundGrammar.g4 by ANTLR 4.8
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 
 /**
@@ -60,6 +60,13 @@ public interface playgroundGrammarVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitBoolComparativeExpr(playgroundGrammarParser.BoolComparativeExprContext ctx);
 	/**
+	 * Visit a parse tree produced by the {@code ariAssignmentExpr}
+	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitAriAssignmentExpr(playgroundGrammarParser.AriAssignmentExprContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code exponentExpr}
 	 * labeled alternative in {@link playgroundGrammarParser#expression}.
 	 * @param ctx the parse tree
@@ -73,13 +80,6 @@ public interface playgroundGrammarVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitAddSubExpr(playgroundGrammarParser.AddSubExprContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code ariAssignmentExpr}
-	 * labeled alternative in {@link playgroundGrammarParser#expression}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitAriAssignmentExpr(playgroundGrammarParser.AriAssignmentExprContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code function_call}
 	 * labeled alternative in {@link playgroundGrammarParser#expression}.

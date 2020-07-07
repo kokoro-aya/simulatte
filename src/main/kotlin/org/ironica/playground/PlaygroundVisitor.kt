@@ -7,9 +7,11 @@ import org.ironica.playground.SpecialRetVal.*
 import org.ironica.playground.Type.*
 import org.ironica.playground.Variability.*
 import playgroundGrammarVisitor
+import kotlin.math.exp
+import kotlin.math.pow
 
 enum class SpecialRetVal {
-    Interr, Loop, Statements, Declaration, Branch, Error, Empty, ReDef, NotDef
+    Interr, Loop, Statements, Declaration, Branch, Error, Empty, ReDef, NotDef, CallOnSuccess
 }
 
 enum class Type {
@@ -31,7 +33,7 @@ typealias TypedParam = Pair<String, Type>
 typealias TypedArgum = Pair<Any, Type>
 
 data class FunctionHead(val name: String, val params: List<String>, val types: List<Type>, val ret: Type) {
-    override fun equals(other: Any?): Boolean {
+    fun pseudoEquals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
@@ -48,6 +50,20 @@ data class FunctionHead(val name: String, val params: List<String>, val types: L
         result = 31 * result + types.hashCode()
         return result
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as FunctionHead
+
+        if (name != other.name) return false
+        if (params != other.params) return false
+        if (types != other.types) return false
+        if (ret != other.ret) return false
+
+        return true
+    }
 }
 
 class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisitor<Any> {
@@ -58,6 +74,10 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
 
     private var _break = false
     private var _continue = false
+
+    private val internalVariables = mutableMapOf<String, TypedLiteral>()
+
+    private var _internal = false
 
     private fun print(body: Any) {
         println(body)
@@ -84,8 +104,13 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
 
     override fun visitFor_in_statement(ctx: playgroundGrammarParser.For_in_statementContext?): Any {
         val range = visit(ctx?.expression()) as IntRange
+        val pattern = visit(ctx?.pattern()) as String
         // println(range)
         for (x in range) {
+            _internal = true
+            if (pattern != "_") {
+                internalVariables[pattern] = IntLiteral(VAR, x)
+            }
             if (_break) {
                 _break = false
                 break
@@ -96,6 +121,8 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
             }
             visit(ctx?.code_block())
         }
+        internalVariables.remove(pattern)
+        _internal = false
         return Loop
     }
 
@@ -277,8 +304,10 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
             val functionName = visit(ctx?.function_name()) as String
             val functionSignature = visit(ctx?.function_signature()) as Pair<List<TypedParam>, Type>
             val functionHead = FunctionHead(functionName, functionSignature.first.map { it.first }, functionSignature.first.map { it.second }, functionSignature.second)
-            if (functionTable.keys.contains(functionHead))
-                return ReDef
+            for (key in functionTable.keys) {
+                if (functionHead.pseudoEquals(key))
+                    return ReDef
+            }
             functionTable[functionHead] = ctx?.function_body()!!
             return Declaration
         } catch (e: Exception) {
@@ -337,7 +366,9 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
     }
 
     override fun visitParameter(ctx: playgroundGrammarParser.ParameterContext?): Any {
-        return Pair(visit(ctx?.param_name()) as String, visit(ctx?.type_annotation()) as String)
+        val param = visit(ctx?.param_name()) as String
+        val type = visit(ctx?.type_annotation()) as Type
+        return Pair(param, type) as TypedParam
     }
 
     override fun visitParam_name(ctx: playgroundGrammarParser.Param_nameContext?): Any {
@@ -365,11 +396,11 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
     }
 
     override fun visitFunction_call_expression(ctx: playgroundGrammarParser.Function_call_expressionContext?): Any {
-        return try {
+        try {
             val functionName = visit(ctx?.function_name()) as String
             val funcArgument =
-                if (ctx?.childCount == 2) listOf() else visit(ctx?.call_argument_clause()) as List<Type>
-            val functionHead = FunctionHead(functionName, listOf(), funcArgument, CALL)
+                if (ctx?.childCount == 2) listOf() else visit(ctx?.call_argument_clause()) as List<TypedArgum>
+            val functionHead = FunctionHead(functionName, listOf(), funcArgument.map { it.second }, CALL)
             if (functionHead.name == "moveForward" && functionHead.types.isEmpty()) {
                 ground.printGrid()
                 return ground.player.moveForward()
@@ -383,16 +414,44 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
                 ground.printGrid()
                 return ground.player.collectGem()
             } else if (functionHead.name == "print") {
-                val argum = visit(ctx?.call_argument_clause()) as List<TypedArgum>
-                println(argum[0].first)
+                println(funcArgument[0].first)
+                return Empty
             } else {
-                if (functionTable.containsKey(functionHead))
-                    visit(functionTable[functionHead])
-                else
-                    NotDef
+                for (key in functionTable.keys) {
+                    if (functionHead.pseudoEquals(key)) {
+                        val realHead = key
+                        if (realHead.params.isEmpty()) {
+                            visit(functionTable[realHead])
+                            return CallOnSuccess
+                        } else {
+                            val paramContents = funcArgument.map { it.first }.map {
+                                when (val content = it) {
+                                    is Int -> IntLiteral(VAR, content)
+                                    is Double -> DoubleLiteral(VAR, content)
+                                    is Boolean -> BooleanLiteral(VAR, content)
+                                    is Char -> CharacterLiteral(VAR, content)
+                                    is String -> StringLiteral(VAR, content)
+                                    else -> return Error
+                                }
+                            }
+                            val paramNames = realHead.params
+                            _internal = true
+                            for (idx in paramNames.indices) {
+                                internalVariables[paramNames[idx]] = paramContents[idx]
+                            }
+                            visit(functionTable[realHead])
+                            for (name in paramNames) {
+                                internalVariables.remove(name)
+                            }
+                            _internal = false
+                            return CallOnSuccess
+                        }
+                    }
+                }
+                return NotDef
             }
         } catch (e: Exception) {
-            Error
+            return Error
         }
     }
 
@@ -410,7 +469,7 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
             is String -> STRING
             else -> return Error
         }
-        return Pair(callval, type)
+        return Pair(callval, type) as TypedArgum
     }
 
     override fun visitLiteral(ctx: playgroundGrammarParser.LiteralContext?): Any {
@@ -455,7 +514,9 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
     }
 
     override fun visitExponentExpr(ctx: playgroundGrammarParser.ExponentExprContext?): Any {
-        TODO("Not yet implemented")
+        val left = visit(ctx?.expression(0)).toString().toDouble()
+        val right = visit(ctx?.expression(1)).toString().toDouble()
+        return left.pow(right)
     }
 
     override fun visitAddSubExpr(ctx: playgroundGrammarParser.AddSubExprContext?): Any {
@@ -493,7 +554,29 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
     }
 
     override fun visitAriComparativeExpr(ctx: playgroundGrammarParser.AriComparativeExprContext?): Any {
-        TODO("Not yet implemented")
+        var left = visit(ctx?.expression(0))
+        var right = visit(ctx?.expression(1))
+        if (left is Int && right is Double)
+            left = left.toDouble()
+        if (left is Double && right is Int)
+            right = right.toDouble()
+        if (left is Int && right is Int) {
+            return when (ctx?.op?.type) {
+                playgroundGrammarParser.GT -> left > right
+                playgroundGrammarParser.LT -> left < right
+                playgroundGrammarParser.GEQ -> left >= right
+                else -> left <= right
+            }
+        }
+        if (left is Double && right is Double) {
+            return when (ctx?.op?.type) {
+                playgroundGrammarParser.GT -> left > right
+                playgroundGrammarParser.LT -> left < right
+                playgroundGrammarParser.GEQ -> left >= right
+                else -> left <= right
+            }
+        }
+        return Error
     }
 
     override fun visitLiteralValueExpr(ctx: playgroundGrammarParser.LiteralValueExprContext?): Any {
@@ -527,7 +610,7 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
     }
 
     override fun visitVariableExpr(ctx: playgroundGrammarParser.VariableExprContext?): Any {
-        TODO("Not yet implemented")
+        return visit(ctx?.variable_expression())
     }
 
     override fun visitRangeExpression(ctx: playgroundGrammarParser.RangeExpressionContext?): Any {
@@ -564,7 +647,7 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
     }
 
     override fun visitVariable_expression(ctx: playgroundGrammarParser.Variable_expressionContext?): Any {
-        return when (val name = visit(ctx?.IDENTIFIER()) as String) {
+        return when (val name = visit(ctx?.IDENTIFIER()).toString()) {
             "isOnGem" -> ground.player.isOnGem()
             "isOnOpenedSwitch" -> ground.player.isOnOpenedSwitch()
             "isOnClosedSwitch" -> ground.player.isOnClosedSwitch()
@@ -572,16 +655,30 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
             "isBlockedLeft" -> ground.player.isBlockedLeft()
             "isBlockedRight" -> ground.player.isBlockedRight()
             else -> {
-                if (variableTable.containsKey(name)) {
-                    when (val literal = variableTable[name]!!) {
-                        is IntLiteral -> literal.content
-                        is DoubleLiteral -> literal.content
-                        is CharacterLiteral -> literal.content
-                        is StringLiteral -> literal.content
-                        is BooleanLiteral -> literal.content
+                if (_internal) {
+                    if (internalVariables.containsKey(name)) {
+                        when (val literal = internalVariables[name]!!) {
+                            is IntLiteral -> literal.content
+                            is DoubleLiteral -> literal.content
+                            is CharacterLiteral -> literal.content
+                            is StringLiteral -> literal.content
+                            is BooleanLiteral -> literal.content
+                        }
+                    } else {
+                        NotDef
                     }
                 } else {
-                    NotDef
+                    if (variableTable.containsKey(name)) {
+                        when (val literal = variableTable[name]!!) {
+                            is IntLiteral -> literal.content
+                            is DoubleLiteral -> literal.content
+                            is CharacterLiteral -> literal.content
+                            is StringLiteral -> literal.content
+                            is BooleanLiteral -> literal.content
+                        }
+                    } else {
+                        NotDef
+                    }
                 }
             }
         }

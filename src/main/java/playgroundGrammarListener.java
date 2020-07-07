@@ -1,4 +1,4 @@
-// Generated from /Users/irony/IdeaProjects/playground/src/main/playgroundGrammar.g4 by ANTLR 4.8
+// Generated from C:/Users/admin/IdeaProjects/playground/src/main\playgroundGrammar.g4 by ANTLR 4.8
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
 /**
@@ -91,6 +91,18 @@ public interface playgroundGrammarListener extends ParseTreeListener {
 	 */
 	void exitBoolComparativeExpr(playgroundGrammarParser.BoolComparativeExprContext ctx);
 	/**
+	 * Enter a parse tree produced by the {@code ariAssignmentExpr}
+	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * @param ctx the parse tree
+	 */
+	void enterAriAssignmentExpr(playgroundGrammarParser.AriAssignmentExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code ariAssignmentExpr}
+	 * labeled alternative in {@link playgroundGrammarParser#expression}.
+	 * @param ctx the parse tree
+	 */
+	void exitAriAssignmentExpr(playgroundGrammarParser.AriAssignmentExprContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code exponentExpr}
 	 * labeled alternative in {@link playgroundGrammarParser#expression}.
 	 * @param ctx the parse tree
@@ -114,18 +126,6 @@ public interface playgroundGrammarListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitAddSubExpr(playgroundGrammarParser.AddSubExprContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code ariAssignmentExpr}
-	 * labeled alternative in {@link playgroundGrammarParser#expression}.
-	 * @param ctx the parse tree
-	 */
-	void enterAriAssignmentExpr(playgroundGrammarParser.AriAssignmentExprContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code ariAssignmentExpr}
-	 * labeled alternative in {@link playgroundGrammarParser#expression}.
-	 * @param ctx the parse tree
-	 */
-	void exitAriAssignmentExpr(playgroundGrammarParser.AriAssignmentExprContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code function_call}
 	 * labeled alternative in {@link playgroundGrammarParser#expression}.
