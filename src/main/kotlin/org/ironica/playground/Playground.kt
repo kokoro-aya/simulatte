@@ -30,27 +30,27 @@ class Player(val coo: Coordinate, var dir: Direction) {
     private fun isBlockedXMinus() = coo.x < 1 || grid[coo.y][coo.x - 1] == BLOCKED
     private fun isBlockedXPlus() = coo.x > grid[0].size - 2 || grid[coo.y][coo.x + 1] == BLOCKED
 
-    fun isOnGem() = grid[coo.y][coo.x] == GEM
-    fun isOnOpenedSwitch() = grid[coo.y][coo.x] == OPENEDSWITCH
-    fun isOnClosedSwitch() = grid[coo.y][coo.x] == CLOSEDSWITCH
-    fun isBlocked() = when (dir) {
+    val isOnGem = { grid[coo.y][coo.x] == GEM }
+    val isOnOpenedSwitch = { grid[coo.y][coo.x] == OPENEDSWITCH }
+    val isOnClosedSwitch = { grid[coo.y][coo.x] == CLOSEDSWITCH }
+    val isBlocked = { when (dir) {
         UP -> isBlockedYPlus()
         DOWN -> isBlockedYMinus()
         LEFT -> isBlockedXMinus()
         RIGHT -> isBlockedXPlus()
-    }
-    fun isBlockedLeft() = when (dir) {
+    }}
+    val isBlockedLeft = { when (dir) {
         RIGHT ->isBlockedYPlus()
         LEFT -> isBlockedYMinus()
         UP -> isBlockedXMinus()
         DOWN -> isBlockedXPlus()
-    }
-    fun isBlockedRight() = when (dir) {
+    }}
+    val isBlockedRight = { when (dir) {
         LEFT -> isBlockedYPlus()
         RIGHT -> isBlockedYMinus()
         DOWN -> isBlockedXMinus()
         UP -> isBlockedXPlus()
-    }
+    }}
 
     fun turnLeft() { dir = when(dir) {
         UP -> LEFT

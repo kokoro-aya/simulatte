@@ -700,6 +700,7 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
             "isBlocked" -> ground.player.isBlocked()
             "isBlockedLeft" -> ground.player.isBlockedLeft()
             "isBlockedRight" -> ground.player.isBlockedRight()
+            "collectedGem" -> ground.player.collectedGem
             else -> {
                 when {
                     internalVariables.containsKey(name) -> {
