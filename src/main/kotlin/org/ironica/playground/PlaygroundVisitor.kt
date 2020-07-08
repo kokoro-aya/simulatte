@@ -29,6 +29,8 @@ data class BooleanLiteral(val variability: Variability, val content: Boolean): T
 data class CharacterLiteral(val variability: Variability, val content: Char): TypedLiteral()
 data class StringLiteral(val variability: Variability, val content: String): TypedLiteral()
 
+data class ReturnedLiteral(val content: Any): Throwable()
+
 typealias TypedParam = Pair<String, Type>
 typealias TypedArgum = Pair<Any, Type>
 
@@ -90,13 +92,20 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
     }
 
     override fun visitStatements(ctx: playgroundGrammarParser.StatementsContext?): Any {
-        var ret: Any = Statements
-        for (child in ctx?.children!!) {
-            if (_break || _continue || _return)
-                break
-            ret = visit(child)
+        try {
+            var ret: Any = Statements
+            for (child in ctx?.children!!) {
+                if (_break || _continue)
+                    break
+                ret = visit(child)
+            }
+            return ret
+        } catch (e: Throwable) {
+            if (e is ReturnedLiteral)
+                throw e
+            else
+                throw Exception("Something goes wrong while visiting statements")
         }
-        return ret
     }
 
     override fun visitLoop_statement(ctx: playgroundGrammarParser.Loop_statementContext?): Any {
@@ -419,7 +428,13 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
                     if (functionHead.pseudoEquals(key)) {
                         val realHead = key
                         if (realHead.params.isEmpty()) {
-                            return visit(functionTable[realHead])
+                            try {
+                                return visit(functionTable[realHead])
+                            } catch (e: Throwable) {
+                                if (e is ReturnedLiteral)
+                                    return e.content
+                                else throw e
+                            }
                         } else {
                             val paramContents = funcArgument.map { it.first }.map {
                                 when (val content = it) {
@@ -435,11 +450,20 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
                             for (idx in paramNames.indices) {
                                 internalVariables[paramNames[idx]] = paramContents[idx]
                             }
-                            val ret = visit(functionTable[realHead]) // TODO: return expression
-                            for (name in paramNames) {
-                                internalVariables.remove(name)
+                            try {
+                                val ret = visit(functionTable[realHead])
+                                for (name in paramNames) {
+                                    internalVariables.remove(name)
+                                }
+                                return ret
+                            } catch (e: Throwable) {
+                                if (e is ReturnedLiteral) {
+                                    for (name in paramNames)
+                                        internalVariables.remove(name)
+                                    return e.content
+                                }
+                                else throw e
                             }
-                            return ret
                         }
                     }
                 }
@@ -657,7 +681,7 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
         if (!(left[0].isLetter() || left[0] == '_')) throw Exception("Illegal variable name")
         val right = visit(ctx?.expression())
         if (declareOrAssignConstantOrVariable(left, right, false)) return variableTable[left]!!
-        throw Exception("Something goes wrong within assignment expression")
+        throw Exception("Something goes wrong within assignment expression, or maybe you assign to a constant")
     }
 
     override fun visitLiteral_expression(ctx: playgroundGrammarParser.Literal_expressionContext?): Any {
@@ -705,8 +729,8 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
     }
 
     override fun visitReturn_statement(ctx: playgroundGrammarParser.Return_statementContext?): Any {
-        _return = true
-        return visit(ctx?.expression())
+        val ret = ReturnedLiteral(visit(ctx?.expression()))
+        throw ret
     }
 
     override fun visitInteger_literal(ctx: playgroundGrammarParser.Integer_literalContext?): Any {
