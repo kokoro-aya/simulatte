@@ -68,7 +68,7 @@ data class FunctionHead(val name: String, val params: List<String>, val types: L
     }
 }
 
-class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisitor<Any> {
+class PlaygroundVisitor(private val manager: PlaygroundManager): playgroundGrammarVisitor<Any> {
 
     private val variableTable = mutableMapOf<String, TypedLiteral>()
 
@@ -80,10 +80,6 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
     private var _return = false
 
     private val internalVariables = mutableMapOf<String, TypedLiteral>()
-
-    private fun print(body: Any) {
-        println(body)
-    }
 
     override fun visitIsNestedCondition(ctx: playgroundGrammarParser.IsNestedConditionContext?): Any {
         val left: Boolean = visit(ctx?.expression(0)) as Boolean
@@ -104,7 +100,7 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
             if (e is ReturnedLiteral)
                 throw e
             else
-                throw Exception("Something goes wrong while visiting statements")
+                throw Exception("Something goes wrong while visiting statements: ${e.message}")
         }
     }
 
@@ -261,6 +257,7 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
         return false
     }
 
+    // TODO constant and variable declaration in function scope
     override fun visitConstant_declaration(ctx: playgroundGrammarParser.Constant_declarationContext?): Any {
         val left = visit(ctx?.pattern()) as String
         if (!(left[0].isLetter() || left[0] == '_')) throw Exception("Illegal variable name")
@@ -402,6 +399,7 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
         return visit(ctx?.function_call_expression())
     }
 
+    // TODO recheck the function call, especially when applying the parameters
     override fun visitFunction_call_expression(ctx: playgroundGrammarParser.Function_call_expressionContext?): Any {
         try {
             val functionName = visit(ctx?.function_name()) as String
@@ -409,17 +407,17 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
                 if (ctx?.childCount == 2) listOf() else visit(ctx?.call_argument_clause()) as List<TypedArgum>
             val functionHead = FunctionHead(functionName, listOf(), funcArgument.map { it.second }, CALL)
             if (functionHead.name == "moveForward" && functionHead.types.isEmpty()) {
-                ground.printGrid()
-                return ground.player.moveForward()
+                manager.printGrid()
+                return manager.moveForward()
             } else if (functionHead.name == "turnLeft" && functionHead.types.isEmpty()) {
-                ground.printGrid()
-                return ground.player.turnLeft()
+                manager.printGrid()
+                return manager.turnLeft()
             } else if (functionHead.name == "toggleSwitch" && functionHead.types.isEmpty()) {
-                ground.printGrid()
-                return ground.player.toggleSwitch()
+                manager.printGrid()
+                return manager.toggleSwitch()
             } else if (functionHead.name == "collectGem" && functionHead.types.isEmpty()) {
-                ground.printGrid()
-                return ground.player.collectGem()
+                manager.printGrid()
+                return manager.collectGem()
             } else if (functionHead.name == "print") {
                 println(funcArgument[0].first)
                 return Empty
@@ -676,6 +674,7 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
         return visit(ctx?.expression())
     }
 
+    // TODO to add in function scope support
     override fun visitAssignment_expression(ctx: playgroundGrammarParser.Assignment_expressionContext?): Any {
         val left = visit(ctx?.pattern()) as String
         if (!(left[0].isLetter() || left[0] == '_')) throw Exception("Illegal variable name")
@@ -694,13 +693,13 @@ class PlaygroundVisitor(private val ground: Playground): playgroundGrammarVisito
 
     override fun visitVariable_expression(ctx: playgroundGrammarParser.Variable_expressionContext?): Any {
         return when (val name = visit(ctx?.IDENTIFIER()).toString()) {
-            "isOnGem" -> ground.player.isOnGem()
-            "isOnOpenedSwitch" -> ground.player.isOnOpenedSwitch()
-            "isOnClosedSwitch" -> ground.player.isOnClosedSwitch()
-            "isBlocked" -> ground.player.isBlocked()
-            "isBlockedLeft" -> ground.player.isBlockedLeft()
-            "isBlockedRight" -> ground.player.isBlockedRight()
-            "collectedGem" -> ground.player.collectedGem
+            "isOnGem" -> manager.isOnGem()
+            "isOnOpenedSwitch" -> manager.isOnOpenedSwitch()
+            "isOnClosedSwitch" -> manager.isOnClosedSwitch()
+            "isBlocked" -> manager.isBlocked()
+            "isBlockedLeft" -> manager.isBlockedLeft()
+            "isBlockedRight" -> manager.isBlockedRight()
+            "collectedGem" -> manager.collectedGem
             else -> {
                 when {
                     internalVariables.containsKey(name) -> {

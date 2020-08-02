@@ -1,5 +1,6 @@
 package org.ironica.playground
 
+import kotlinx.serialization.Serializable
 import org.ironica.playground.Direction.*
 import org.ironica.playground.Block.*
 enum class Direction {
@@ -91,7 +92,7 @@ class Player(val coo: Coordinate, var dir: Direction) {
     }
 }
 
-class Playground(private val grid: Grid, val player: Player, private val initialGem: Int) {
+class Playground(val grid: Grid, val player: Player, private val initialGem: Int) {
 
     init {
         player.grid = grid
