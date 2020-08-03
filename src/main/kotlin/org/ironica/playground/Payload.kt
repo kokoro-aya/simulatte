@@ -9,7 +9,16 @@ data class SerializedPlayer(val x: Int, val y: Int, val dir: Direction)
 data class SerializedGrid(val grid: Grid)
 
 @Serializable
-data class Payload(val serializedPlayer: SerializedPlayer, val serializedGrid: SerializedGrid)
+data class Payload(val player: SerializedPlayer, val grid: SerializedGrid, val consoleLog: String)
 
 
 val payloadStorage = mutableListOf<Payload>()
+
+enum class Status { OK, ERROR }
+
+@Serializable
+sealed class Message
+@Serializable
+data class NormalMessage(val status: Status, val payload: List<Payload>): Message()
+@Serializable
+data class ErrorMessage(val status: Status, val msg: String): Message()

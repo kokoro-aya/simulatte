@@ -11,14 +11,14 @@ import java.io.FileInputStream
 import java.io.InputStream
 
 @Serializable
-data class Code(val code: String)
+data class Code(val value: String)
 
 class PlaygroundInterface(code: String) {
-        private val input: CharStream = CharStreams.fromString(code)
-        private val lexer = playgroundGrammarLexer(input)
-        private val tokens = CommonTokenStream(lexer)
-        private val parser = playgroundGrammarParser(tokens)
-        private val tree: ParseTree = parser.top_level()
+    private val input: CharStream = CharStreams.fromString(code)
+    private val lexer = playgroundGrammarLexer(input)
+    private val tokens = CommonTokenStream(lexer)
+    private val parser = playgroundGrammarParser(tokens)
+    private val tree: ParseTree = parser.top_level()
     private val grid = arrayOf(
         arrayOf(Block.OPEN, Block.CLOSEDSWITCH, Block.OPEN, Block.CLOSEDSWITCH, Block.OPEN, Block.CLOSEDSWITCH, Block.OPEN, Block.CLOSEDSWITCH, Block.OPEN),
         arrayOf(Block.BLOCKED, Block.GEM, Block.BLOCKED, Block.GEM, Block.BLOCKED, Block.GEM, Block.BLOCKED, Block.GEM, Block.BLOCKED)

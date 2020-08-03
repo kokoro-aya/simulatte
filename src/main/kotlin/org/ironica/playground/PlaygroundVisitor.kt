@@ -223,6 +223,7 @@ class PlaygroundVisitor(private val manager: PlaygroundManager): playgroundGramm
         return visit(ctx?.statements())
     }
 
+    // TODO new assignment should not change the variability
     private fun declareOrAssignConstantOrVariable(left: String, right: Any, constant: Boolean): Boolean {
         if (right is Int) {
             if (!variableTable.containsKey(left) || (variableTable[left] as IntLiteral).variability == VAR) {
@@ -407,19 +408,15 @@ class PlaygroundVisitor(private val manager: PlaygroundManager): playgroundGramm
                 if (ctx?.childCount == 2) listOf() else visit(ctx?.call_argument_clause()) as List<TypedArgum>
             val functionHead = FunctionHead(functionName, listOf(), funcArgument.map { it.second }, CALL)
             if (functionHead.name == "moveForward" && functionHead.types.isEmpty()) {
-                manager.printGrid()
                 return manager.moveForward()
             } else if (functionHead.name == "turnLeft" && functionHead.types.isEmpty()) {
-                manager.printGrid()
                 return manager.turnLeft()
             } else if (functionHead.name == "toggleSwitch" && functionHead.types.isEmpty()) {
-                manager.printGrid()
                 return manager.toggleSwitch()
             } else if (functionHead.name == "collectGem" && functionHead.types.isEmpty()) {
-                manager.printGrid()
                 return manager.collectGem()
             } else if (functionHead.name == "print") {
-                println(funcArgument[0].first)
+                funcArgument.forEach { manager.print(it.first.toString()) }
                 return Empty
             } else {
                 for (key in functionTable.keys) {
@@ -741,3 +738,15 @@ class PlaygroundVisitor(private val manager: PlaygroundManager): playgroundGramm
         return "${visit(ctx?.DECIMAL_LITERAL(0))}.${visit(ctx?.DECIMAL_LITERAL(1))}".toDouble()
     }
 }
+
+/*
+func foo(a: Int, b: String) -> Int {
+    print(b)
+    a += 1
+    return a
+}
+
+let b = 3
+let c = foo(b, "bar")
+print(c)
+ */

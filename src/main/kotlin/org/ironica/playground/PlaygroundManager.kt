@@ -1,6 +1,12 @@
 package org.ironica.playground
 
+import com.bennyhuo.kotlin.deepcopy.compiler.deepCopy
+import java.util.*
+import java.util.function.Function
+
 class PlaygroundManager(val playground: Playground) {
+
+    private var consoleLog = ""
 
     init {
         appendEntry()
@@ -16,18 +22,28 @@ class PlaygroundManager(val playground: Playground) {
 
     fun turnLeft() {
         playground.player.turnLeft()
+        printGrid()
         appendEntry()
     }
     fun moveForward() {
         playground.player.moveForward()
+        printGrid()
         appendEntry()
     }
     fun collectGem() {
         playground.player.collectGem()
+        printGrid()
         appendEntry()
     }
     fun toggleSwitch() {
         playground.player.toggleSwitch()
+        printGrid()
+        appendEntry()
+    }
+
+    fun print(msg: String) {
+        println(msg)
+        consoleLog += msg + "\n"
         appendEntry()
     }
 
@@ -40,16 +56,21 @@ class PlaygroundManager(val playground: Playground) {
     fun switchCount(): Int {
         return playground.switchCount()
     }
-    fun printGrid() {
+    private fun printGrid() {
         return playground.printGrid()
     }
 
     private fun appendEntry() {
         if (payloadStorage.size > 1000)
             throw Exception("Too many entries!")
+        val currentGrid = Array(playground.grid.size) { Array(playground.grid[0].size) { Block.OPEN } }
+        for (i in playground.grid.indices)
+            for (j in playground.grid[0].indices)
+                currentGrid[i][j] = playground.grid[i][j]
         val payload = Payload(
             SerializedPlayer(playground.player.coo.x, playground.player.coo.y, playground.player.dir),
-            SerializedGrid(playground.grid)
+            SerializedGrid(currentGrid),
+            this.consoleLog
         )
         payloadStorage.add(payload)
     }

@@ -11,14 +11,14 @@ enum class Block {
     OPEN, BLOCKED, GEM, CLOSEDSWITCH, OPENEDSWITCH
 }
 
+typealias Grid = Array<Array<Block>>
+
 data class Coordinate(var x: Int, var y: Int) {
     fun incrementX() { x += 1 }
     fun decrementX() { x -= 1 }
     fun incrementY() { y += 1 }
     fun decrementY() { y -= 1 }
 }
-
-typealias Grid = Array<Array<Block>>
 
 class Player(val coo: Coordinate, var dir: Direction) {
 

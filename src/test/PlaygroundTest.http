@@ -2,7 +2,7 @@ POST http://127.0.0.1:8080/playground
 Content-Type: application/json
 
 {
-  "code": "let a = 4\nprint(a)"
+  "value": "let a = 4\nprint(a)"
 }
 
 ###
@@ -11,5 +11,25 @@ POST http://127.0.0.1:8080/playground
 Content-Type: application/json
 
 {
-  "code": "let totalGem = 4\nvar collected = 0\n\nfunc turnRight() {\n    turnLeft()\n    turnLeft()\n    turnLeft()\n}\n\nwhile collected < totalGem {\n    if isOnGem {\n        collectGem()\n        collected += 1\n    }\n    if isOnClosedSwitch {\n        toggleSwitch()\n    }\n    if !isBlockedRight {\n        turnRight()\n        moveForward()\n    } else {\n        if isBlocked {\n            while isBlocked {\n                turnLeft()\n            }\n        }\n        moveForward()\n    }\n}"
+  "value": "for i in 1 ... 4 {\n  print(i)\n}"
 }
+
+###
+
+POST http://127.0.0.1:8080/playground
+Content-Type: application/json
+
+{
+  "value": "let totalGem = 4\nvar collected = 0\n\nfunc turnRight() {\n    turnLeft()\n    turnLeft()\n    turnLeft()\n}\n\nwhile collected < totalGem {\n    if isOnGem {\n        collectGem()\n        collected += 1\n    }\n    if isOnClosedSwitch {\n        toggleSwitch()\n    }\n    if !isBlockedRight {\n        turnRight()\n        moveForward()\n    } else {\n        if isBlocked {\n            while isBlocked {\n                turnLeft()\n            }\n        }\n        moveForward()\n    }\n}"
+}
+
+###
+
+POST http://127.0.0.1:8080/playground
+Content-Type: application/json
+
+{
+  "value": "func foo(a: Int, b: String) -> Int {\n    print(b)\n   a += 1\n   return a}\n\nlet b = 3\nlet c = foo(b, \"bar\")\nprint(c)"
+}
+
+###
