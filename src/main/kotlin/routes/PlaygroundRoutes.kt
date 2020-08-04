@@ -16,9 +16,9 @@ import java.lang.Exception
 fun Route.getPlaygroundRoute() {
     route("/playground") {
         post {
-            val code = call.receive<Code>()
+            val code = call.receive<String>()
             payloadStorage.clear()
-            val playgroundInterface = PlaygroundInterface(code.value)
+            val playgroundInterface = PlaygroundInterface(code)
             try {
                 playgroundInterface.start()
                 val moves = payloadStorage

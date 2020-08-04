@@ -416,7 +416,7 @@ class PlaygroundVisitor(private val manager: PlaygroundManager): playgroundGramm
             } else if (functionHead.name == "collectGem" && functionHead.types.isEmpty()) {
                 return manager.collectGem()
             } else if (functionHead.name == "print") {
-                funcArgument.forEach { manager.print(it.first.toString()) }
+                manager.print(funcArgument.map{ it.first.toString() })
                 return Empty
             } else {
                 for (key in functionTable.keys) {

@@ -41,9 +41,11 @@ class PlaygroundManager(val playground: Playground) {
         appendEntry()
     }
 
-    fun print(msg: String) {
-        println(msg)
-        consoleLog += msg + "\n"
+    fun print(lmsg: List<String>) {
+        lmsg.forEach { print("$it ") }
+        println()
+        lmsg.forEach { consoleLog += "$it " }
+        consoleLog += "\n"
         appendEntry()
     }
 
