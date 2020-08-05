@@ -7,6 +7,7 @@ import java.util.function.Function
 class PlaygroundManager(val playground: Playground) {
 
     private var consoleLog = ""
+    private var special = ""
 
     init {
         appendEntry()
@@ -33,11 +34,13 @@ class PlaygroundManager(val playground: Playground) {
     fun collectGem() {
         playground.player.collectGem()
         printGrid()
+        this.special = "GEM"
         appendEntry()
     }
     fun toggleSwitch() {
         playground.player.toggleSwitch()
         printGrid()
+        this.special = "SWITCH"
         appendEntry()
     }
 
@@ -72,9 +75,11 @@ class PlaygroundManager(val playground: Playground) {
         val payload = Payload(
             SerializedPlayer(playground.player.coo.x, playground.player.coo.y, playground.player.dir),
             SerializedGrid(currentGrid),
-            this.consoleLog
+            this.consoleLog,
+            this.special
         )
         payloadStorage.add(payload)
+        this.special = ""
     }
 
 }

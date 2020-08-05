@@ -9,7 +9,7 @@ data class SerializedPlayer(val x: Int, val y: Int, val dir: Direction)
 data class SerializedGrid(val grid: Grid)
 
 @Serializable
-data class Payload(val player: SerializedPlayer, val grid: SerializedGrid, val consoleLog: String)
+data class Payload(val player: SerializedPlayer, val grid: SerializedGrid, val consoleLog: String, val special: String)
 
 
 val payloadStorage = mutableListOf<Payload>()

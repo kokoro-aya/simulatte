@@ -223,73 +223,85 @@ class PlaygroundVisitor(private val manager: PlaygroundManager): playgroundGramm
         return visit(ctx?.statements())
     }
 
-    // TODO new assignment should not change the variability
     private fun declareOrAssignConstantOrVariable(left: String, right: Any, constant: Boolean, inFunc: Boolean): Boolean {
         if (inFunc) {
-            if (right is Int) {
-                if (!internalVariables.containsKey(left) || (internalVariables[left] as IntLiteral).variability == VAR) {
-                    internalVariables[left] = if (constant) IntLiteral(LET, right) else IntLiteral(VAR, right)
+            if (constant) {
+                if (!internalVariables.containsKey(left)) {
+                    internalVariables[left] = when (right) {
+                        is Int -> IntLiteral(LET, right)
+                        is Double -> DoubleLiteral(LET, right)
+                        is Boolean -> BooleanLiteral(LET, right)
+                        is Char -> CharacterLiteral(LET, right)
+                        is String -> StringLiteral(LET, right)
+                        else -> throw Exception("Cannot recognize type while declaring or assigning a variable")
+                    }
                     return true
                 }
-            }
-            if (right is Double) {
-                if (!internalVariables.containsKey(left) || (internalVariables[left] as DoubleLiteral).variability == VAR) {
-                    internalVariables[left] = if (constant) DoubleLiteral(LET, right) else DoubleLiteral(VAR, right)
-                    return true
+            } else {
+                when (right) {
+                    is Int -> if (!internalVariables.containsKey(left) || (internalVariables[left] as IntLiteral).variability == VAR) {
+                        internalVariables[left] = IntLiteral(VAR, right)
+                        return true
+                    }
+                    is Double -> if (!internalVariables.containsKey(left) || (internalVariables[left] as DoubleLiteral).variability == VAR) {
+                        internalVariables[left] = DoubleLiteral(VAR, right)
+                        return true
+                    }
+                    is Boolean -> if (!internalVariables.containsKey(left) || (internalVariables[left] as BooleanLiteral).variability == VAR) {
+                        internalVariables[left] = BooleanLiteral(VAR, right)
+                        return true
+                    }
+                    is Char -> if (!internalVariables.containsKey(left) || (internalVariables[left] as CharacterLiteral).variability == VAR) {
+                        internalVariables[left] = CharacterLiteral(VAR, right)
+                        return true
+                    }
+                    is String -> if (!internalVariables.containsKey(left) || (internalVariables[left] as StringLiteral).variability == VAR) {
+                        internalVariables[left] = StringLiteral(VAR, right)
+                        return true
+                    }
+                    else -> throw Exception("Cannot recognize type while declaring or assigning a variable")
                 }
             }
-            if (right is Boolean) {
-                if (!internalVariables.containsKey(left) || (internalVariables[left] as BooleanLiteral).variability == VAR) {
-                    internalVariables[left] = if (constant) BooleanLiteral(LET, right) else BooleanLiteral(VAR, right)
-                    return true
-                }
-            }
-            if (right is Char) {
-                if (!internalVariables.containsKey(left) || (internalVariables[left] as CharacterLiteral).variability == VAR) {
-                    internalVariables[left] = if (constant) CharacterLiteral(LET, right) else CharacterLiteral(VAR, right)
-                    return true
-                }
-            }
-            if (right is String) {
-                if (!internalVariables.containsKey(left) || (internalVariables[left] as StringLiteral).variability == VAR) {
-                    internalVariables[left] = if (constant) StringLiteral(LET, right) else StringLiteral(VAR, right)
-                    return true
-                }
-            }
-            return false
         } else {
-            if (right is Int) {
-                if (!variableTable.containsKey(left) || (variableTable[left] as IntLiteral).variability == VAR) {
-                    variableTable[left] = if (constant) IntLiteral(LET, right) else IntLiteral(VAR, right)
+            if (constant) {
+                if (!variableTable.containsKey(left)) {
+                    variableTable[left] = when (right) {
+                        is Int -> IntLiteral(LET, right)
+                        is Double -> DoubleLiteral(LET, right)
+                        is Boolean -> BooleanLiteral(LET, right)
+                        is Char -> CharacterLiteral(LET, right)
+                        is String -> StringLiteral(LET, right)
+                        else -> throw Exception("Cannot recognize type while declaring or assigning a variable")
+                    }
                     return true
                 }
-            }
-            if (right is Double) {
-                if (!variableTable.containsKey(left) || (variableTable[left] as DoubleLiteral).variability == VAR) {
-                    variableTable[left] = if (constant) DoubleLiteral(LET, right) else DoubleLiteral(VAR, right)
-                    return true
+            } else {
+                when (right) {
+                    is Int -> if (!variableTable.containsKey(left) || (variableTable[left] as IntLiteral).variability == VAR) {
+                        variableTable[left] = IntLiteral(VAR, right)
+                        return true
+                    }
+                    is Double -> if (!variableTable.containsKey(left) || (variableTable[left] as DoubleLiteral).variability == VAR) {
+                        variableTable[left] = DoubleLiteral(VAR, right)
+                        return true
+                    }
+                    is Boolean -> if (!variableTable.containsKey(left) || (variableTable[left] as BooleanLiteral).variability == VAR) {
+                        variableTable[left] = BooleanLiteral(VAR, right)
+                        return true
+                    }
+                    is Char -> if (!variableTable.containsKey(left) || (variableTable[left] as CharacterLiteral).variability == VAR) {
+                        variableTable[left] = CharacterLiteral(VAR, right)
+                        return true
+                    }
+                    is String -> if (!variableTable.containsKey(left) || (variableTable[left] as StringLiteral).variability == VAR) {
+                        variableTable[left] = StringLiteral(VAR, right)
+                        return true
+                    }
+                    else -> throw Exception("Cannot recognize type while declaring or assigning a variable")
                 }
             }
-            if (right is Boolean) {
-                if (!variableTable.containsKey(left) || (variableTable[left] as BooleanLiteral).variability == VAR) {
-                    variableTable[left] = if (constant) BooleanLiteral(LET, right) else BooleanLiteral(VAR, right)
-                    return true
-                }
-            }
-            if (right is Char) {
-                if (!variableTable.containsKey(left) || (variableTable[left] as CharacterLiteral).variability == VAR) {
-                    variableTable[left] = if (constant) CharacterLiteral(LET, right) else CharacterLiteral(VAR, right)
-                    return true
-                }
-            }
-            if (right is String) {
-                if (!variableTable.containsKey(left) || (variableTable[left] as StringLiteral).variability == VAR) {
-                    variableTable[left] = if (constant) StringLiteral(LET, right) else StringLiteral(VAR, right)
-                    return true
-                }
-            }
-            return false
         }
+        return false
     }
 
     override fun visitConstant_declaration(ctx: playgroundGrammarParser.Constant_declarationContext?): Any {
@@ -457,7 +469,7 @@ class PlaygroundVisitor(private val manager: PlaygroundManager): playgroundGramm
             } else if (functionHead.name == "collectGem" && functionHead.types.isEmpty()) {
                 return manager.collectGem()
             } else if (functionHead.name == "print") {
-                manager.print(funcArgument.map{ it.first.toString() })
+                manager.print(funcArgument.map{ if (it.first is String && (it.first as String)[0] == '"') (it.first as String).substring(1, (it.first as String).length - 1) else it.first.toString() })
                 return Empty
             } else {
                 for (key in functionTable.keys) {

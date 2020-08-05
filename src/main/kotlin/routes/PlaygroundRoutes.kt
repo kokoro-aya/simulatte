@@ -14,11 +14,11 @@ import org.ironica.playground.*
 import java.lang.Exception
 
 fun Route.getPlaygroundRoute() {
-    route("/playground") {
+    route("/paidiki-xara") {
         post {
-            val code = call.receive<String>()
+            val data = call.receive<Data>()
             payloadStorage.clear()
-            val playgroundInterface = PlaygroundInterface(code)
+            val playgroundInterface = PlaygroundInterface(data.code, convertJsonToGrid(data.grid))
             try {
                 playgroundInterface.start()
                 val moves = payloadStorage
