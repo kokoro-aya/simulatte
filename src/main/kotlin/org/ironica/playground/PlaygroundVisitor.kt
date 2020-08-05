@@ -100,7 +100,7 @@ class PlaygroundVisitor(private val manager: PlaygroundManager): playgroundGramm
             if (e is ReturnedLiteral)
                 throw e
             else
-                throw Exception("Something goes wrong while visiting statements: ${e.message}")
+                throw Exception("Something goes wrong while visiting statements:\n    ${e.message}")
         }
     }
 
@@ -224,47 +224,84 @@ class PlaygroundVisitor(private val manager: PlaygroundManager): playgroundGramm
     }
 
     // TODO new assignment should not change the variability
-    private fun declareOrAssignConstantOrVariable(left: String, right: Any, constant: Boolean): Boolean {
-        if (right is Int) {
-            if (!variableTable.containsKey(left) || (variableTable[left] as IntLiteral).variability == VAR) {
-                variableTable[left] = if (constant) IntLiteral(LET, right) else IntLiteral(VAR, right)
-                return true
+    private fun declareOrAssignConstantOrVariable(left: String, right: Any, constant: Boolean, inFunc: Boolean): Boolean {
+        if (inFunc) {
+            if (right is Int) {
+                if (!internalVariables.containsKey(left) || (internalVariables[left] as IntLiteral).variability == VAR) {
+                    internalVariables[left] = if (constant) IntLiteral(LET, right) else IntLiteral(VAR, right)
+                    return true
+                }
             }
-        }
-        if (right is Double) {
-            if (!variableTable.containsKey(left) || (variableTable[left] as DoubleLiteral).variability == VAR) {
-                variableTable[left] = if (constant) DoubleLiteral(LET, right) else DoubleLiteral(VAR, right)
-                return true
+            if (right is Double) {
+                if (!internalVariables.containsKey(left) || (internalVariables[left] as DoubleLiteral).variability == VAR) {
+                    internalVariables[left] = if (constant) DoubleLiteral(LET, right) else DoubleLiteral(VAR, right)
+                    return true
+                }
             }
-        }
-        if (right is Boolean) {
-            if (!variableTable.containsKey(left) || (variableTable[left] as BooleanLiteral).variability == VAR) {
-                variableTable[left] = if (constant) BooleanLiteral(LET, right) else BooleanLiteral(VAR, right)
-                return true
+            if (right is Boolean) {
+                if (!internalVariables.containsKey(left) || (internalVariables[left] as BooleanLiteral).variability == VAR) {
+                    internalVariables[left] = if (constant) BooleanLiteral(LET, right) else BooleanLiteral(VAR, right)
+                    return true
+                }
             }
-        }
-        if (right is Char) {
-            if (!variableTable.containsKey(left) || (variableTable[left] as CharacterLiteral).variability == VAR) {
-                variableTable[left] = if (constant) CharacterLiteral(LET, right) else CharacterLiteral(VAR, right)
-                return true
+            if (right is Char) {
+                if (!internalVariables.containsKey(left) || (internalVariables[left] as CharacterLiteral).variability == VAR) {
+                    internalVariables[left] = if (constant) CharacterLiteral(LET, right) else CharacterLiteral(VAR, right)
+                    return true
+                }
             }
-        }
-        if (right is String) {
-            if (!variableTable.containsKey(left) || (variableTable[left] as StringLiteral).variability == VAR) {
-                variableTable[left] = if (constant) StringLiteral(LET, right) else StringLiteral(VAR, right)
-                return true
+            if (right is String) {
+                if (!internalVariables.containsKey(left) || (internalVariables[left] as StringLiteral).variability == VAR) {
+                    internalVariables[left] = if (constant) StringLiteral(LET, right) else StringLiteral(VAR, right)
+                    return true
+                }
             }
+            return false
+        } else {
+            if (right is Int) {
+                if (!variableTable.containsKey(left) || (variableTable[left] as IntLiteral).variability == VAR) {
+                    variableTable[left] = if (constant) IntLiteral(LET, right) else IntLiteral(VAR, right)
+                    return true
+                }
+            }
+            if (right is Double) {
+                if (!variableTable.containsKey(left) || (variableTable[left] as DoubleLiteral).variability == VAR) {
+                    variableTable[left] = if (constant) DoubleLiteral(LET, right) else DoubleLiteral(VAR, right)
+                    return true
+                }
+            }
+            if (right is Boolean) {
+                if (!variableTable.containsKey(left) || (variableTable[left] as BooleanLiteral).variability == VAR) {
+                    variableTable[left] = if (constant) BooleanLiteral(LET, right) else BooleanLiteral(VAR, right)
+                    return true
+                }
+            }
+            if (right is Char) {
+                if (!variableTable.containsKey(left) || (variableTable[left] as CharacterLiteral).variability == VAR) {
+                    variableTable[left] = if (constant) CharacterLiteral(LET, right) else CharacterLiteral(VAR, right)
+                    return true
+                }
+            }
+            if (right is String) {
+                if (!variableTable.containsKey(left) || (variableTable[left] as StringLiteral).variability == VAR) {
+                    variableTable[left] = if (constant) StringLiteral(LET, right) else StringLiteral(VAR, right)
+                    return true
+                }
+            }
+            return false
         }
-        return false
     }
 
-    // TODO constant and variable declaration in function scope
     override fun visitConstant_declaration(ctx: playgroundGrammarParser.Constant_declarationContext?): Any {
         val left = visit(ctx?.pattern()) as String
         if (!(left[0].isLetter() || left[0] == '_')) throw Exception("Illegal variable name")
         val right = visit(ctx?.expression())
         // println("right: $right")
-        if (declareOrAssignConstantOrVariable(left, right, true)) return Declaration
+        if (ctx?.parent?.parent?.parent?.parent?.parent is playgroundGrammarParser.Function_bodyContext) {
+            if (declareOrAssignConstantOrVariable(left, right, constant = true, inFunc = true)) return Declaration
+        } else {
+            if (declareOrAssignConstantOrVariable(left, right, constant = true, inFunc = false)) return Declaration
+        }
         throw Exception("Encountered error while declaring constant")
     }
 
@@ -272,7 +309,11 @@ class PlaygroundVisitor(private val manager: PlaygroundManager): playgroundGramm
         val left = visit(ctx?.pattern()) as String
         if (!(left[0].isLetter() || left[0] == '_')) throw Exception("Illegal variable name")
         val right = visit(ctx?.expression())
-        if (declareOrAssignConstantOrVariable(left, right, false)) return Declaration
+        if (ctx?.parent?.parent?.parent?.parent?.parent is playgroundGrammarParser.Function_bodyContext) {
+            if (declareOrAssignConstantOrVariable(left, right, constant = false, inFunc = true)) return Declaration
+        } else {
+            if (declareOrAssignConstantOrVariable(left, right, constant = false, inFunc = false)) return Declaration
+        }
         throw Exception("Encountered error while declaring variable")
     }
 
@@ -316,7 +357,7 @@ class PlaygroundVisitor(private val manager: PlaygroundManager): playgroundGramm
             functionTable[functionHead] = ctx?.function_body()!!
             return Declaration
         } catch (e: Exception) {
-            throw Exception("Encountered error within function declaration")
+            throw Exception("Encountered error within function declaration: \n    ${e.message}")
         }
     }
 
@@ -465,7 +506,7 @@ class PlaygroundVisitor(private val manager: PlaygroundManager): playgroundGramm
                 return NotDef
             }
         } catch (e: Exception) {
-            throw Exception("Something went wrong while passing function call")
+            throw Exception("Something went wrong while passing function call: \n    ${e.message}")
         }
     }
 
@@ -563,29 +604,56 @@ class PlaygroundVisitor(private val manager: PlaygroundManager): playgroundGramm
         val left = visit(ctx?.pattern()) as String
         if (!(left[0].isLetter() || left[0] == '_')) throw Exception("Illegal variable name")
         val right = visit(ctx?.expression())
-        if (variableTable[left] is IntLiteral && right is Int && (variableTable[left] as IntLiteral).variability == VAR) {
-            val old = (variableTable[left] as IntLiteral).content
-            val new = when (ctx?.op?.type) {
-                playgroundGrammarParser.ADDEQ -> old + right
-                playgroundGrammarParser.SUBEQ -> old - right
-                playgroundGrammarParser.MULEQ -> old * right
-                playgroundGrammarParser.DIVEQ -> old / right
-                else -> old % right
+        if (ctx?.parent?.parent?.parent?.parent is playgroundGrammarParser.Function_bodyContext) {
+            if (internalVariables[left] is IntLiteral && right is Int && (internalVariables[left] as IntLiteral).variability == VAR) {
+                val old = (internalVariables[left] as IntLiteral).content
+                val new = when (ctx?.op?.type) {
+                    playgroundGrammarParser.ADDEQ -> old + right
+                    playgroundGrammarParser.SUBEQ -> old - right
+                    playgroundGrammarParser.MULEQ -> old * right
+                    playgroundGrammarParser.DIVEQ -> old / right
+                    else -> old % right
+                }
+                internalVariables[left] = IntLiteral(VAR, new)
+                return new
             }
-            variableTable[left] = IntLiteral(VAR, new)
-            return new
-        }
-        if (variableTable[left] is DoubleLiteral && right is Double && (variableTable[left] as DoubleLiteral).variability == VAR) {
-            val old = (variableTable[left] as DoubleLiteral).content
-            val new = when (ctx?.op?.type) {
-                playgroundGrammarParser.ADDEQ -> old + right
-                playgroundGrammarParser.SUBEQ -> old - right
-                playgroundGrammarParser.MULEQ -> old * right
-                playgroundGrammarParser.DIVEQ -> old / right
-                else -> old % right
+            if (internalVariables[left] is DoubleLiteral && right is Double && (internalVariables[left] as DoubleLiteral).variability == VAR) {
+                val old = (internalVariables[left] as DoubleLiteral).content
+                val new = when (ctx?.op?.type) {
+                    playgroundGrammarParser.ADDEQ -> old + right
+                    playgroundGrammarParser.SUBEQ -> old - right
+                    playgroundGrammarParser.MULEQ -> old * right
+                    playgroundGrammarParser.DIVEQ -> old / right
+                    else -> old % right
+                }
+                internalVariables[left] = DoubleLiteral(VAR, new)
+                return new
             }
-            variableTable[left] = DoubleLiteral(VAR, new)
-            return new
+        } else {
+            if (variableTable[left] is IntLiteral && right is Int && (variableTable[left] as IntLiteral).variability == VAR) {
+                val old = (variableTable[left] as IntLiteral).content
+                val new = when (ctx?.op?.type) {
+                    playgroundGrammarParser.ADDEQ -> old + right
+                    playgroundGrammarParser.SUBEQ -> old - right
+                    playgroundGrammarParser.MULEQ -> old * right
+                    playgroundGrammarParser.DIVEQ -> old / right
+                    else -> old % right
+                }
+                variableTable[left] = IntLiteral(VAR, new)
+                return new
+            }
+            if (variableTable[left] is DoubleLiteral && right is Double && (variableTable[left] as DoubleLiteral).variability == VAR) {
+                val old = (variableTable[left] as DoubleLiteral).content
+                val new = when (ctx?.op?.type) {
+                    playgroundGrammarParser.ADDEQ -> old + right
+                    playgroundGrammarParser.SUBEQ -> old - right
+                    playgroundGrammarParser.MULEQ -> old * right
+                    playgroundGrammarParser.DIVEQ -> old / right
+                    else -> old % right
+                }
+                variableTable[left] = DoubleLiteral(VAR, new)
+                return new
+            }
         }
         throw Exception("Arithmetic assignment: unsupported type")
     }
@@ -671,12 +739,15 @@ class PlaygroundVisitor(private val manager: PlaygroundManager): playgroundGramm
         return visit(ctx?.expression())
     }
 
-    // TODO to add in function scope support
     override fun visitAssignment_expression(ctx: playgroundGrammarParser.Assignment_expressionContext?): Any {
         val left = visit(ctx?.pattern()) as String
         if (!(left[0].isLetter() || left[0] == '_')) throw Exception("Illegal variable name")
         val right = visit(ctx?.expression())
-        if (declareOrAssignConstantOrVariable(left, right, false)) return variableTable[left]!!
+        if (ctx?.parent?.parent?.parent?.parent?.parent is playgroundGrammarParser.Function_bodyContext) {
+            if (declareOrAssignConstantOrVariable(left, right, constant = false, inFunc = true)) return internalVariables[left]!!
+        } else {
+            if (declareOrAssignConstantOrVariable(left, right, constant = false, inFunc = false)) return variableTable[left]!!
+        }
         throw Exception("Something goes wrong within assignment expression, or maybe you assign to a constant")
     }
 
@@ -749,4 +820,12 @@ func foo(a: Int, b: String) -> Int {
 let b = 3
 let c = foo(b, "bar")
 print(c)
+ */
+/*
+let a = 1
+func foo() {
+    let a = 2
+    print(a)
+}
+print(a)
  */
