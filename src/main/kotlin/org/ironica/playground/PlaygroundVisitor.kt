@@ -114,7 +114,8 @@ class PlaygroundVisitor(private val manager: PlaygroundManager): playgroundGramm
         // println(range)
         for (x in range) {
             if (pattern != "_") {
-                internalVariables[pattern] = IntLiteral(VAR, x)
+                variableTable[pattern] = IntLiteral(VAR, x)
+                // TODO this might cause problem if the pattern shallows another variable in the outer scope?
             }
             if (_break) {
                 _break = false
@@ -126,7 +127,7 @@ class PlaygroundVisitor(private val manager: PlaygroundManager): playgroundGramm
             }
             visit(ctx?.code_block())
         }
-        internalVariables.remove(pattern)
+        variableTable.remove(pattern)
         return Loop
     }
 
@@ -714,7 +715,8 @@ class PlaygroundVisitor(private val manager: PlaygroundManager): playgroundGramm
                 right = if (right == true) 1 else 0
             return when (ctx?.op?.type) {
                 playgroundGrammarParser.MUL -> left as Int * right as Int
-                else -> left as Int / right as Int
+                playgroundGrammarParser.DIV -> left as Int / right as Int
+                else -> left as Int % right as Int
             }
         }
         if ((left is Boolean || left is Double) && (right is Boolean || right is Double)) {
@@ -724,7 +726,8 @@ class PlaygroundVisitor(private val manager: PlaygroundManager): playgroundGramm
                 right = if (right == true) 1 else 0
             return when (ctx?.op?.type) {
                 playgroundGrammarParser.MUL -> left as Double * right as Double
-                else -> left as Double / right as Double
+                playgroundGrammarParser.DIV -> left as Double / right as Double
+                else -> left as Double % right as Double
             }
         }
         throw Exception("MulDivMod: on unsupported type")
