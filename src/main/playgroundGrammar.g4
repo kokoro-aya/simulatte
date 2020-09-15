@@ -12,9 +12,11 @@ IDENTIFIER: IDENT_HEAD IDENT_CHAR*;
 fragment IDENT_HEAD: [a-z] | [A-Z] | '_';
 fragment IDENT_CHAR: [0-9] | IDENT_HEAD;
 
-literal:    numeric_literal | boolean_literal | char_sequence_literal;
+literal:    numeric_literal | boolean_literal | char_sequence_literal | nil_literal;
 numeric_literal: '-'? (integer_literal | double_literal);
+boolean_literal: 'true' | 'false';
 char_sequence_literal: STRING_LITERAL | CHARACTER_LITERAL;
+nil_literal: 'nil';
 
 integer_literal: DECIMAL_LITERAL;
 double_literal: DECIMAL_LITERAL '.' DECIMAL_LITERAL?
@@ -29,14 +31,22 @@ fragment ESC: '\\' | '\\\\';
 CHARACTER_LITERAL: '\'' CHAR '\'';
 fragment CHAR: ~["\\EOF\n];
 
+//comment: '//' ~('\r' | '\n')*
+//       | '/*' ~('*/')* '*/'
+//       ;
+
 WS: [ \t\n\r]+ -> skip;
 
 expression: assignment_expression                       # assignmentExpr
+          | subscript_expression                        # subscriExpr
           | literal_expression                          # literalValueExpr
           | function_call_expression                    # function_call
+          | struct_initialize_expression                # struct_call
           | member_expression                           # memberExpr
+          | this_expression                             # thisExpr
           | variable_expression                         # variableExpr
-          | <assoc=right> expression EXP expression   # exponentExpr
+          | expressional_function_declaration           # exprFuncDeclExpr
+          | <assoc=right> expression EXP expression     # exponentExpr
           | expression op=(MUL | DIV | MOD) expression  # mulDivModExpr
           | expression op=(ADD | SUB) expression        # addSubExpr
           | expression op=(AND | OR) expression         # isNestedCondition
@@ -50,12 +60,32 @@ expression: assignment_expression                       # assignmentExpr
 
 assignment_expression: pattern '=' expression;
 
-literal_expression: literal;
+literal_expression: literal | array_literal;
 
-member_expression: variable_expression '.' IDENTIFIER
-                 | variable_expression '.' DECIMAL_LITERAL
-                 | variable_expression '.' function_call_expression
-                 ;
+array_literal: '{}' | '{' array_literal_item (',' array_literal_item)* '}';
+array_literal_item: expression;
+
+this_expression: 'this' IDENTIFIER;
+
+member_expression: explicit_member_expression;
+explicit_member_expression: variable_expression '.' IDENTIFIER
+                          | variable_expression '.' DECIMAL_LITERAL
+                          | variable_expression '.' function_call_expression
+                          | explicit_member_expression '.' IDENTIFIER
+                          ;
+//implicit_member_expression: '.' IDENTIFIER;
+
+subscript_expression: (variable_expression | member_expression) '[' subscript ']';
+subscript: IDENTIFIER | DECIMAL_LITERAL;
+
+variable_expression: IDENTIFIER;
+
+function_call_expression: function_name ('()' | '(' call_argument_clause ')');
+call_argument_clause:  call_argument (',' call_argument)*;
+call_argument: expression;
+
+struct_initialize_expression: 'new' struct_name ('()' | '(' call_argument_clause ')');
+
 ADD: '+';
 SUB: '-';
 MUL: '*';
@@ -66,13 +96,6 @@ EXP: '^';
 GT: '>'; LT: '<'; GEQ: '>='; LEQ: '<='; EQ: '=='; NEQ: '!=';
 MULEQ: '*='; DIVEQ: '/='; MODEQ: '%='; ADDEQ: '+='; SUBEQ: '-=';
 
-variable_expression: IDENTIFIER;
-
-function_call_expression: function_name ('()' | '(' call_argument_clause ')');
-call_argument_clause:  call_argument (',' call_argument)*;
-call_argument: expression;
-
-boolean_literal: 'true' | 'false';
 AND: '&&';
 OR: '||';
 NOT: '!';
@@ -80,12 +103,15 @@ NOT: '!';
 UNTIL: '..<';
 THROUGH: '...';
 
+dot_operator: '.' IDENTIFIER;
+
 statement: expression ';'?
          | declaration ';'?
          | loop_statement ';'?
          | branch_statement ';'?
          | control_transfer_statement ';'?
          | return_statement ';'?
+         | yield_statement ';'?
          ;
 
 statements: statement+;
@@ -113,40 +139,61 @@ continue_statement: 'continue';
 
 return_statement: 'return' expression;
 
-declaration: constant_declaration
-           | variable_declaration
-           | function_declaration
+yield_statement: 'yield' expression;
+
+declaration: constant_declaration # constantDecl
+           | variable_declaration # variableDecl
+           | function_declaration # functionDecl
+           | enum_declaration     # enumDecl
+           | struct_declaration   # structDecl
            ;
 
 code_block: '{' statements? '}';
 
-constant_declaration: 'let' pattern '=' expression;
+constant_declaration: 'let' pattern (':' type)? '=' expression;
 
-variable_declaration: 'var' pattern '=' expression;
+variable_declaration: 'var' pattern (':' type)? '=' expression;
 
-function_declaration: 'func' function_name function_signature function_body;
+function_declaration: 'func' GENERATOR_IDENT? function_name? function_signature function_body;
 function_name: IDENTIFIER;
 function_signature: parameter_clause function_result_type?;
 function_result_type: ARROW type;
 function_body: code_block;
 ARROW: '->';
+GENERATOR_IDENT: '**';
+
+expressional_function_declaration: function_declaration;
+arrowfun_declaration: function_signature '=>' function_body;
 
 parameter_clause: '()' | '(' parameter_list ')';
-parameter_list: parameter (',' parameter)*;
+parameter_list: '&'? parameter (',' '&'? parameter)*;
 parameter: param_name type_annotation;
 param_name: IDENTIFIER;
 
+enum_declaration: 'enum' enum_name '{' enum_members+ '}';
+enum_name: IDENTIFIER;
+enum_members: enum_member (',' enum_member)*;
+enum_member: IDENTIFIER;
+
+struct_declaration: 'struct' struct_name type_inheritance_clause? parameter_clause struct_body;
+struct_name: IDENTIFIER;
+struct_body: '{' struct_member* '}';
+struct_member: 'this.'? IDENTIFIER ':' ( function_declaration
+                                       | arrowfun_declaration
+                                       | expression
+                                       );
+
+type_inheritance_clause: ':>' type;
 type_annotation: ':' type;
 
 type
-    : 'Int'
-    | 'Bool'
-    | 'Double'
-    | 'Character'
-    | 'String'
-    | 'Void'
+    : IDENTIFIER
+    | 'Array<' type '>'
+    | '[' type ']'
     ;
 
-pattern: identifier_pattern | wildcard_pattern;
+pattern: identifier_pattern | wildcard_pattern | member_expression_pattern | subscript_expression_pattern;
 wildcard_pattern: '_';
 identifier_pattern: IDENTIFIER;
+member_expression_pattern: member_expression;
+subscript_expression_pattern: subscript_expression;
