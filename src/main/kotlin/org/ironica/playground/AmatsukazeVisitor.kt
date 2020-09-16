@@ -6,9 +6,103 @@ import org.antlr.v4.runtime.tree.ParseTree
 import org.antlr.v4.runtime.tree.RuleNode
 import org.antlr.v4.runtime.tree.TerminalNode
 
+sealed class DataType
+object _INT
+object _DOUBLE
+object _CHARACTER
+object _STRING
+object _BOOL
+object _VOID
+object _CALL
+object _FUNCTION
+object _STRUCT
+object _ENUM
+data class _ARRAY(val type: DataType)
+
+sealed class Proto
+sealed class TypeL: Proto()
+data class IntegerL(val variability: Variability, val content: Int, val prototype: Prototype): TypeL()
+data class DoubleL(val variability: Variability, val content: Double, val prototype: Prototype): TypeL()
+data class BooleanL(val variability: Variability, val content: Boolean, val prototype: Prototype): TypeL()
+data class CharacterL(val variability: Variability, val content: Char, val prototype: Prototype): TypeL()
+data class StringL(val variability: Variability, val content: String, val prototype: Prototype): TypeL()
+
+data class ReturnedL(val content: Any): Throwable()
+data class StructL(val variability: Variability, val body: MutableMap<String, Any>, var prototype: Prototype): TypeL()
+data class FunctionL(val variability: Variability, var head: FuncHead, var body: ParseTree, var prototype: Prototype): TypeL()
+data class ArrayL(val variability: Variability, val size: Int, val content: Array<TypeL> = Array(size) { NullL }): TypeL()
+object NullL: TypeL()
+data class Prototype (
+    val members: MutableMap<String, TypeL>,
+    var prototype: Proto,
+    var ctor: TypeL
+): Proto()
+
+data class FuncHead(val name: String, val params: List<String>, val types: List<DataType>, val ret: DataType) {
+    fun pseudoEquals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as FuncHead
+
+        if (name != other.name) return false
+        if (types != other.types) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = name.hashCode()
+        result = 31 * result + types.hashCode()
+        return result
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as FuncHead
+
+        if (name != other.name) return false
+        if (params != other.params) return false
+        if (types != other.types) return false
+        if (ret != other.ret) return false
+
+        return true
+    }
+}
+
 class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGrammarVisitor<Any> {
+
+    private val typeTable = mutableMapOf<String, Prototype>()
+    private val variableTable = mutableMapOf<String, TypeL>()
+    private val internalVariables = listOf<Map<String, TypeL>>()
+
+    private fun initialize() {
+        val Null = NullL
+        val IntProto = Prototype(mutableMapOf(), Null, Null)
+        val DoubleProto = Prototype(mutableMapOf(), Null, Null)
+        val BooleanProto = Prototype(mutableMapOf(), Null, Null)
+        val CharacterProto = Prototype(mutableMapOf(), Null, Null)
+        val StringProto = Prototype(mutableMapOf(), Null, Null)
+        val StructProto = Prototype(mutableMapOf(), Null, Null)
+        val FunctionProto = Prototype(mutableMapOf(), Null, Null)
+        val ArrayProto = Prototype(mutableMapOf(), Null, Null)
+        typeTable.putAll(mapOf("Int" to IntProto, "Double" to DoubleProto, "Boolean" to BooleanProto, "Character" to CharacterProto,
+        "String" to StringProto, "Struct" to StructProto, "Function" to FunctionProto, "Array" to ArrayProto))
+        /*
+        String -> size, replace, substr, toCharArray
+        Boolean -> not, and, or, xor
+        Character -> isDigit, isAlpha, isUpper, isLower, isWhite, toInt
+        Struct -> varDump, count, erase, clear
+        Array -> size, clear, swap, first, last, push_back, push_front, pop_back, pop_front
+        Certain functions can be done by adding extensions on prototype chain.
+         */
+
+    }
+
     override fun visit(tree: ParseTree?): Any {
-        TODO("Not yet implemented")
+        return tree?.accept(this) ?: throw Exception("Encountered error while visiting AST")
     }
 
     override fun visitChildren(node: RuleNode?): Any {
@@ -16,43 +110,55 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
     }
 
     override fun visitTerminal(node: TerminalNode?): Any {
-        TODO("Not yet implemented")
+        if (node?.text != null) return node.text
+        throw Exception("Encountered error while visiting terminal node")
     }
 
     override fun visitErrorNode(node: ErrorNode?): Any {
-        TODO("Not yet implemented")
+        throw Exception("Return from ErrorNode")
     }
 
     override fun visitTop_level(ctx: amatsukazeGrammarParser.Top_levelContext?): Any {
-        TODO("Not yet implemented")
+        return visit(ctx?.statements())
     }
 
     override fun visitLiteral(ctx: amatsukazeGrammarParser.LiteralContext?): Any {
-        TODO("Not yet implemented")
+        return visit(ctx?.children?.get(0))
     }
 
     override fun visitNumeric_literal(ctx: amatsukazeGrammarParser.Numeric_literalContext?): Any {
-        TODO("Not yet implemented")
+        return when {
+            ctx?.childCount == 1 -> visit(ctx.getChild(0))
+            ctx?.integer_literal()?.isEmpty!! -> - (visit(ctx.getChild(1)) as Double)
+            else -> - (visit(ctx.getChild(1)) as Int)
+        }
     }
 
     override fun visitBoolean_literal(ctx: amatsukazeGrammarParser.Boolean_literalContext?): Any {
-        TODO("Not yet implemented")
+        return when (ctx?.text) {
+            "true" -> true
+            "false" -> false
+            else -> throw Exception("Cannot parse literal to boolean type")
+        }
     }
 
     override fun visitChar_sequence_literal(ctx: amatsukazeGrammarParser.Char_sequence_literalContext?): Any {
-        TODO("Not yet implemented")
+        return if (ctx?.STRING_LITERAL()?.text?.isEmpty()!!)
+            ctx.getChild(0).text[0]
+        else
+            ctx?.getChild(0)?.text!!
     }
 
     override fun visitNil_literal(ctx: amatsukazeGrammarParser.Nil_literalContext?): Any {
-        TODO("Not yet implemented")
+        return NullL
     }
 
     override fun visitInteger_literal(ctx: amatsukazeGrammarParser.Integer_literalContext?): Any {
-        TODO("Not yet implemented")
+        return "${visit(ctx?.DECIMAL_LITERAL())}".toInt()
     }
 
     override fun visitDouble_literal(ctx: amatsukazeGrammarParser.Double_literalContext?): Any {
-        TODO("Not yet implemented")
+        return "${visit(ctx?.DECIMAL_LITERAL(0))}.${visit(ctx?.DECIMAL_LITERAL(1))}".toDouble()
     }
 
     override fun visitAssignmentExpr(ctx: amatsukazeGrammarParser.AssignmentExprContext?): Any {
@@ -152,10 +258,6 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
     }
 
     override fun visitMember_expression(ctx: amatsukazeGrammarParser.Member_expressionContext?): Any {
-        TODO("Not yet implemented")
-    }
-
-    override fun visitExplicit_member_expression(ctx: amatsukazeGrammarParser.Explicit_member_expressionContext?): Any {
         TODO("Not yet implemented")
     }
 
@@ -371,10 +473,6 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
         TODO("Not yet implemented")
     }
 
-    override fun visitType(ctx: amatsukazeGrammarParser.TypeContext?): Any {
-        TODO("Not yet implemented")
-    }
-
     override fun visitPattern(ctx: amatsukazeGrammarParser.PatternContext?): Any {
         TODO("Not yet implemented")
     }
@@ -392,6 +490,38 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
     }
 
     override fun visitSubscript_expression_pattern(ctx: amatsukazeGrammarParser.Subscript_expression_patternContext?): Any {
+        TODO("Not yet implemented")
+    }
+
+    override fun visitNumberedExpMemberExpr(ctx: amatsukazeGrammarParser.NumberedExpMemberExprContext?): Any {
+        TODO("Not yet implemented")
+    }
+
+    override fun visitNamedExpMemberExpr(ctx: amatsukazeGrammarParser.NamedExpMemberExprContext?): Any {
+        TODO("Not yet implemented")
+    }
+
+    override fun visitFuncExpMemberExpr(ctx: amatsukazeGrammarParser.FuncExpMemberExprContext?): Any {
+        TODO("Not yet implemented")
+    }
+
+    override fun visitMemberOfFuncCallExpr(ctx: amatsukazeGrammarParser.MemberOfFuncCallExprContext?): Any {
+        TODO("Not yet implemented")
+    }
+
+    override fun visitRecursiveExpMemberExpr(ctx: amatsukazeGrammarParser.RecursiveExpMemberExprContext?): Any {
+        TODO("Not yet implemented")
+    }
+
+    override fun visitSimpleType(ctx: amatsukazeGrammarParser.SimpleTypeContext?): Any {
+        TODO("Not yet implemented")
+    }
+
+    override fun visitArrayType(ctx: amatsukazeGrammarParser.ArrayTypeContext?): Any {
+        TODO("Not yet implemented")
+    }
+
+    override fun visitArrayTypeSub(ctx: amatsukazeGrammarParser.ArrayTypeSubContext?): Any {
         TODO("Not yet implemented")
     }
 
