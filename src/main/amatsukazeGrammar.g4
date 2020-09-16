@@ -4,7 +4,8 @@
  * and open the template in the editor.
  */
 
-grammar playgroundGrammar;
+grammar amatsukazeGrammar;
+// 天津風（あまつかぜ）とは、「空高く吹き抜ける風」を表した単語である。
 
 top_level: statements? EOF;
 
@@ -41,7 +42,7 @@ expression: assignment_expression                       # assignmentExpr
           | subscript_expression                        # subscriExpr
           | literal_expression                          # literalValueExpr
           | function_call_expression                    # function_call
-          | struct_initialize_expression                # struct_call
+          | struct_call_expression                      # struct_call
           | member_expression                           # memberExpr
           | this_expression                             # thisExpr
           | variable_expression                         # variableExpr
@@ -68,10 +69,11 @@ array_literal_item: expression;
 this_expression: 'this' IDENTIFIER;
 
 member_expression: explicit_member_expression;
-explicit_member_expression: variable_expression '.' IDENTIFIER
-                          | variable_expression '.' DECIMAL_LITERAL
-                          | variable_expression '.' function_call_expression
-                          | explicit_member_expression '.' IDENTIFIER
+explicit_member_expression: variable_expression '.' IDENTIFIER               # namedExpMemberExpr
+                          | variable_expression '.' DECIMAL_LITERAL          # numberedExpMemberExpr
+                          | variable_expression '.' function_call_expression # funcExpMemberExpr
+                          | explicit_member_expression '.' IDENTIFIER        # recursiveExpMemberExpr
+                          | function_call_expression '.' IDENTIFIER          # memberOfFuncCallExpr
                           ;
 //implicit_member_expression: '.' IDENTIFIER;
 
@@ -84,7 +86,7 @@ function_call_expression: function_name ('()' | '(' call_argument_clause ')');
 call_argument_clause:  call_argument (',' call_argument)*;
 call_argument: expression;
 
-struct_initialize_expression: 'new' struct_name ('()' | '(' call_argument_clause ')');
+struct_call_expression: 'new' struct_name ('()' | '(' call_argument_clause ')');
 
 ADD: '+';
 SUB: '-';
@@ -150,7 +152,7 @@ declaration: constant_declaration # constantDecl
 
 code_block: '{' statements? '}';
 
-constant_declaration: 'let' pattern (':' type)? '=' expression;
+constant_declaration: 'let' pattern (':' type)? ('=' expression)?;
 
 variable_declaration: 'var' pattern (':' type)? '=' expression;
 
@@ -177,7 +179,13 @@ enum_member: IDENTIFIER;
 
 struct_declaration: 'struct' struct_name type_inheritance_clause? parameter_clause struct_body;
 struct_name: IDENTIFIER;
-struct_body: '{' struct_member* '}';
+struct_body: '{' struct_initializer? struct_member* '}';
+struct_initializer: 'init' '{' attribute_assignment* '}';
+attribute_assignment: 'super.'? IDENTIFIER ':' ( function_declaration
+                                               | arrowfun_declaration
+                                               | expression
+                                               );
+
 struct_member: 'this.'? IDENTIFIER ':' ( function_declaration
                                        | arrowfun_declaration
                                        | expression
@@ -187,9 +195,9 @@ type_inheritance_clause: ':>' type;
 type_annotation: ':' type;
 
 type
-    : IDENTIFIER
-    | 'Array<' type '>'
-    | '[' type ']'
+    : IDENTIFIER        # simpleType
+    | 'Array<' type '>' # arrayType
+    | '[' type ']'      # arrayTypeSub
     ;
 
 pattern: identifier_pattern | wildcard_pattern | member_expression_pattern | subscript_expression_pattern;

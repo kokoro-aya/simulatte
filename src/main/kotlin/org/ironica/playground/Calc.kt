@@ -1,20 +1,20 @@
 package org.ironica.playground
 
+import amatsukazeGrammarLexer
+import amatsukazeGrammarParser
 import org.antlr.v4.runtime.CharStream
 import org.antlr.v4.runtime.CharStreams.fromStream
 import org.antlr.v4.runtime.CommonTokenStream
 import org.antlr.v4.runtime.tree.ParseTree
-import playgroundGrammarLexer
-import playgroundGrammarParser
 import java.io.FileInputStream
 import java.io.InputStream
 
 fun main(args: Array<String>) {
     val inputstream: InputStream = if (args.isNotEmpty()) FileInputStream(args[0]) else System.`in`
     val input: CharStream = fromStream(inputstream)
-    val lexer = playgroundGrammarLexer(input)
+    val lexer = amatsukazeGrammarLexer(input)
     val tokens = CommonTokenStream(lexer)
-    val parser = playgroundGrammarParser(tokens)
+    val parser = amatsukazeGrammarParser(tokens)
     val tree: ParseTree = parser.top_level()
 
     val grid = arrayOf(
@@ -27,7 +27,7 @@ fun main(args: Array<String>) {
     )
     val playground = Playground(grid, player, 2)
     val manager = PlaygroundManager(playground)
-    val exec = PlaygroundVisitor(manager)
+    val exec = AmatsukazeVisitor(manager)
     exec.visit(tree)
     playground.printGrid()
     println( if (playground.win()) "stage cleared!" else "not finished...")
