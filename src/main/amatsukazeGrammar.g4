@@ -44,7 +44,6 @@ expression: assignment_expression                       # assignmentExpr
           | function_call_expression                    # function_call
           | struct_call_expression                      # struct_call
           | member_expression                           # memberExpr
-          | this_expression                             # thisExpr
           | variable_expression                         # variableExpr
           | expressional_function_declaration           # exprFuncDeclExpr
           | <assoc=right> expression EXP expression     # exponentExpr
@@ -65,8 +64,6 @@ literal_expression: literal | array_literal;
 
 array_literal: '{}' | '{' array_literal_item (',' array_literal_item)* '}';
 array_literal_item: expression;
-
-this_expression: 'this' IDENTIFIER;
 
 member_expression: explicit_member_expression;
 explicit_member_expression: variable_expression '.' IDENTIFIER               # namedExpMemberExpr
@@ -200,8 +197,10 @@ type
     | '[' type ']'      # arrayTypeSub
     ;
 
-pattern: identifier_pattern | wildcard_pattern | member_expression_pattern | subscript_expression_pattern;
+pattern: identifier_pattern | wildcard_pattern | member_pattern | subscript_pattern;
 wildcard_pattern: '_';
 identifier_pattern: IDENTIFIER;
-member_expression_pattern: member_expression;
-subscript_expression_pattern: subscript_expression;
+member_pattern: identifier_pattern '.' IDENTIFIER
+              | member_pattern '.' IDENTIFIER
+              ;
+subscript_pattern: (identifier_pattern | member_expression) '[' subscript ']';

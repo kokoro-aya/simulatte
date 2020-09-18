@@ -5,37 +5,37 @@ import org.antlr.v4.runtime.tree.ErrorNode
 import org.antlr.v4.runtime.tree.ParseTree
 import org.antlr.v4.runtime.tree.RuleNode
 import org.antlr.v4.runtime.tree.TerminalNode
+import kotlin.math.pow
 
 sealed class DataType
-object _INT
-object _DOUBLE
-object _CHARACTER
-object _STRING
-object _BOOL
-object _VOID
-object _CALL
-object _FUNCTION
-object _STRUCT
-object _ENUM
-data class _ARRAY(val type: DataType)
+object _INT: DataType()
+object _DOUBLE: DataType()
+object _CHARACTER: DataType()
+object _STRING: DataType()
+object _BOOL: DataType()
+object _VOID: DataType()
+object _CALL: DataType()
+object _FUNCTION: DataType()
+object _STRUCT: DataType()
+object _ENUM: DataType()
+data class _ARRAY(val type: DataType): DataType()
 
 sealed class Proto
-sealed class TypeL: Proto()
-data class IntegerL(val variability: Variability, val content: Int, val prototype: Prototype): TypeL()
-data class DoubleL(val variability: Variability, val content: Double, val prototype: Prototype): TypeL()
-data class BooleanL(val variability: Variability, val content: Boolean, val prototype: Prototype): TypeL()
-data class CharacterL(val variability: Variability, val content: Char, val prototype: Prototype): TypeL()
-data class StringL(val variability: Variability, val content: String, val prototype: Prototype): TypeL()
+sealed class Literal(): Proto()
+data class IntegerL(val variability: Variability, var content: Int, val prototype: Prototype): Literal()
+data class DoubleL(val variability: Variability, var content: Double, val prototype: Prototype): Literal()
+data class BooleanL(val variability: Variability, var content: Boolean, val prototype: Prototype): Literal()
+data class CharacterL(val variability: Variability, var content: Char, val prototype: Prototype): Literal()
+data class StringL(val variability: Variability, var content: String, val prototype: Prototype): Literal()
 
 data class ReturnedL(val content: Any): Throwable()
-data class StructL(val variability: Variability, val body: MutableMap<String, Any>, var prototype: Prototype): TypeL()
-data class FunctionL(val variability: Variability, var head: FuncHead, var body: ParseTree, var prototype: Prototype): TypeL()
-data class ArrayL(val variability: Variability, val size: Int, val content: Array<TypeL> = Array(size) { NullL }): TypeL()
-object NullL: TypeL()
+data class StructL(val variability: Variability, val body: MutableMap<String, Any>, var prototype: Prototype): Literal()
+data class FunctionL(val variability: Variability, var head: FuncHead, var body: ParseTree, var closureScope: List<Scope>, var prototype: Prototype): Literal()
+data class ArrayL(val variability: Variability, var size: Int, var content: Array<Literal?> = Array(size) { null }, var prototype: Prototype): Literal()
 data class Prototype (
-    val members: MutableMap<String, TypeL>,
-    var prototype: Proto,
-    var ctor: TypeL
+    val members: MutableMap<String, Literal>,
+    var prototype: Proto? = null,
+    var ctor: Literal? = null
 ): Proto()
 
 data class FuncHead(val name: String, val params: List<String>, val types: List<DataType>, val ret: DataType) {
@@ -72,33 +72,246 @@ data class FuncHead(val name: String, val params: List<String>, val types: List<
     }
 }
 
+typealias Scope = MutableMap<String, Literal>
+
 class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGrammarVisitor<Any> {
 
-    private val typeTable = mutableMapOf<String, Prototype>()
-    private val variableTable = mutableMapOf<String, TypeL>()
-    private val internalVariables = listOf<Map<String, TypeL>>()
+    private var _break = false
+    private var _continue = false
 
-    private fun initialize() {
-        val Null = NullL
-        val IntProto = Prototype(mutableMapOf(), Null, Null)
-        val DoubleProto = Prototype(mutableMapOf(), Null, Null)
-        val BooleanProto = Prototype(mutableMapOf(), Null, Null)
-        val CharacterProto = Prototype(mutableMapOf(), Null, Null)
-        val StringProto = Prototype(mutableMapOf(), Null, Null)
-        val StructProto = Prototype(mutableMapOf(), Null, Null)
-        val FunctionProto = Prototype(mutableMapOf(), Null, Null)
-        val ArrayProto = Prototype(mutableMapOf(), Null, Null)
-        typeTable.putAll(mapOf("Int" to IntProto, "Double" to DoubleProto, "Boolean" to BooleanProto, "Character" to CharacterProto,
-        "String" to StringProto, "Struct" to StructProto, "Function" to FunctionProto, "Array" to ArrayProto))
-        /*
-        String -> size, replace, substr, toCharArray
+    private val typeTable = mutableMapOf(
+        "Integer" to Prototype(mutableMapOf()), "Double" to Prototype(mutableMapOf()), "Bool" to Prototype(mutableMapOf()),
+        "Character" to Prototype(mutableMapOf()), "String" to Prototype(mutableMapOf()), "Struct" to Prototype(mutableMapOf()),
+        "Function" to Prototype(mutableMapOf()), "Array" to Prototype(mutableMapOf())
+    )
+
+    /*
+        default: print, typeof
+        Object -> toString
+        String -> size, replace, subStr, toCharArray
         Boolean -> not, and, or, xor
-        Character -> isDigit, isAlpha, isUpper, isLower, isWhite, toInt
+        Character -> isDigit, isAlpha, isUpper, isLower, isEmpty, toInt
         Struct -> varDump, count, erase, clear
-        Array -> size, clear, swap, first, last, push_back, push_front, pop_back, pop_front
-        Certain functions can be done by adding extensions on prototype chain.
+        Array -> size, clear, swap, first, last, pushBack, pushFront, popBack, popFront
+              -> (hof) foreach, map, filter, all, any
+        Some functions can be done by adding extensions on prototype chain.
          */
 
+    private val variableTable = mutableMapOf<String, Literal>()
+    private val internalVariables = mutableListOf<Scope>()
+
+    private fun queryVariableTable(of: String): Pair<Literal?, Int> {
+        for (i in internalVariables.indices.reversed()) {
+            if (internalVariables[i].containsKey(of)) {
+                return internalVariables[i][of] to i
+            }
+        }
+        if (variableTable.containsKey(of)) {
+            return variableTable[of] to -1
+        }
+        return null to -2
+    }
+
+    private fun assignVariable(left: Literal, right: Any): Literal {
+        when (left) {
+            is IntegerL -> {
+                if (left.variability == Variability.LET) throw Exception("Attempt modify constant")
+                when (right) {
+                    is Int -> return IntegerL(Variability.VAR, right, typeTable["Integer"]!!)
+                    is IntegerL -> return IntegerL(Variability.VAR, right.content, typeTable["Integer"]!!)
+                }
+            }
+            is DoubleL -> {
+                if (left.variability == Variability.LET) throw Exception("Attempt modify constant")
+                when (right) {
+                    is Double -> return DoubleL(Variability.VAR, right, typeTable["Double"]!!)
+                    is DoubleL -> return DoubleL(Variability.VAR, right.content, typeTable["Double"]!!)
+                    else -> throw Exception("Type of lhs and rhs of assignment don't match")
+                }
+            }
+            is BooleanL -> {
+                if (left.variability == Variability.LET) throw Exception("Attempt modify constant")
+                when (right) {
+                    is Boolean -> return BooleanL(Variability.VAR, right, typeTable["Bool"]!!)
+                    is BooleanL -> return BooleanL(Variability.VAR, right.content, typeTable["Bool"]!!)
+                    else -> throw Exception("Type of lhs and rhs of assignment don't match")
+                }
+            }
+            is CharacterL -> {
+                if (left.variability == Variability.LET) throw Exception("Attempt modify constant")
+                when (right) {
+                    is Pair<*, *>  -> {
+                        if (right.second is _CHARACTER)
+                            return CharacterL(Variability.VAR, right.first as Char, typeTable["Character"]!!)
+                    }
+                    is CharacterL -> return CharacterL(Variability.VAR, right.content, typeTable["Character"]!!)
+                    else -> throw Exception("Type of lhs and rhs of assignment don't match")
+                }
+            }
+            is StringL -> {
+                if (left.variability == Variability.LET) throw Exception("Attempt modify constant")
+                when (right) {
+                    is Pair<*, *>  -> {
+                        if (right.second is _STRING)
+                        return StringL(Variability.VAR, right.first as String, typeTable["String"]!!)
+                    }
+                    is StringL -> return StringL(Variability.VAR, right.content, typeTable["String"]!!)
+                    else -> throw Exception("Type of lhs and rhs of assignment don't match")
+                }
+            }
+            is StructL -> {
+                if (left.variability == Variability.LET) throw Exception("Attempt modify constant")
+                when (right) {
+                    is StructL -> return StructL(Variability.VAR, right.body, typeTable["Struct"]!!)
+                    else -> throw Exception("Type of lhs and rhs of assignment don't match")
+                }
+            }
+            is FunctionL -> {
+                if (left.variability == Variability.LET) throw Exception("Attempt modify constant")
+                when (right) {
+                    is FunctionL -> return FunctionL(Variability.VAR, right.head, right.body, right.closureScope, typeTable["Function"]!!)
+                    else -> throw Exception("Type of lhs and rhs of assignment don't match")
+                }
+            }
+            is ArrayL -> {
+                if (left.variability == Variability.LET) throw Exception("Attempt modify constant")
+                when (right) {
+                    is ArrayL -> return ArrayL(Variability.VAR, right.size, right.content, typeTable["Array"]!!)
+                    else -> throw Exception("Type of lhs and rhs of assignment don't match")
+                }
+            }
+        }
+        throw Exception("Something went wrong while declaring or assigning a variable")
+    }
+
+    private fun checkTypeEquality(right: Literal, type: DataType): DataType? {
+        return if (right is IntegerL && type is _INT
+                || right is DoubleL && type is _DOUBLE
+                || right is BooleanL && type is _BOOL
+                || right is CharacterL && type is _CHARACTER
+                || right is StringL && type is _STRING
+                || right is FunctionL && type is _FUNCTION
+                || right is StructL && type is _STRUCT
+                || right is ArrayL && type is _ARRAY) type else null
+    }
+
+    private fun checkTypeOfLiteralsIdentical(left: Literal, right: Literal): Boolean {
+        return left is IntegerL && right is IntegerL
+                || left is DoubleL && right is DoubleL
+                || left is BooleanL && right is BooleanL
+                || left is CharacterL && right is CharacterL
+                || left is StringL && right is StringL
+                || left is FunctionL && right is FunctionL
+                || left is StructL && right is StructL
+                || left is ArrayL && right is ArrayL
+    }
+
+    private fun declareConstantOrVariable(type: DataType?, right: Literal, constant: Boolean): Literal? {
+        if (type != null) {
+            val checkedType = checkTypeEquality(type = type, right = right) ?: throw Exception("Declaration type check failed")
+            return when (checkedType) {
+                _INT -> {
+                    if (constant)
+                        IntegerL(Variability.LET, (right as IntegerL).content, right.prototype)
+                    else
+                        IntegerL(Variability.VAR, (right as IntegerL).content, right.prototype)
+                }
+                _DOUBLE -> {
+                    if (constant)
+                        DoubleL(Variability.LET, (right as DoubleL).content, right.prototype)
+                    else
+                        DoubleL(Variability.VAR, (right as DoubleL).content, right.prototype)
+                }
+                _BOOL -> {
+                    if (constant)
+                        BooleanL(Variability.LET, (right as BooleanL).content, right.prototype)
+                    else
+                        BooleanL(Variability.VAR, (right as BooleanL).content, right.prototype)
+                }
+                _CHARACTER -> {
+                    if (constant)
+                        CharacterL(Variability.LET, (right as CharacterL).content, right.prototype)
+                    else
+                        CharacterL(Variability.VAR, (right as CharacterL).content, right.prototype)
+                }
+                _STRING -> {
+                    if (constant)
+                        StringL(Variability.LET, (right as StringL).content, right.prototype)
+                    else
+                        StringL(Variability.VAR, (right as StringL).content, right.prototype)
+                }
+                _STRUCT -> {
+                    if (constant)
+                        StructL(Variability.LET, (right as StructL).body, right.prototype)
+                    else
+                        StructL(Variability.VAR, (right as StructL).body, right.prototype)
+                }
+                _FUNCTION -> {
+                    if (constant)
+                        FunctionL(Variability.LET, (right as FunctionL).head, right.body, right.closureScope, right.prototype)
+                    else
+                        FunctionL(Variability.VAR, (right as FunctionL).head, right.body, right.closureScope, right.prototype)
+                }
+                is _ARRAY -> {
+                    if (constant)
+                        ArrayL(Variability.LET, (right as ArrayL).size, right.content, right.prototype)
+                    else
+                        ArrayL(Variability.VAR, (right as ArrayL).size, right.content, right.prototype)
+                }
+                else -> throw Exception("This could not happen")
+            }
+        } else {
+            return when (right) {
+                is IntegerL -> {
+                    if (constant)
+                        IntegerL(Variability.LET, right.content, right.prototype)
+                    else
+                        IntegerL(Variability.VAR, right.content, right.prototype)
+                }
+                is DoubleL -> {
+                    if (constant)
+                        DoubleL(Variability.LET, right.content, right.prototype)
+                    else
+                        DoubleL(Variability.VAR, right.content, right.prototype)
+                }
+                is BooleanL -> {
+                    if (constant)
+                        BooleanL(Variability.LET, right.content, right.prototype)
+                    else
+                        BooleanL(Variability.VAR, right.content, right.prototype)
+                }
+                is CharacterL -> {
+                    if (constant)
+                        CharacterL(Variability.LET, right.content, right.prototype)
+                    else
+                        CharacterL(Variability.VAR, right.content, right.prototype)
+                }
+                is StringL -> {
+                    if (constant)
+                        StringL(Variability.LET, right.content, right.prototype)
+                    else
+                        StringL(Variability.VAR, right.content, right.prototype)
+                }
+                is StructL -> {
+                    if (constant)
+                        StructL(Variability.LET, right.body, right.prototype)
+                    else
+                        StructL(Variability.VAR, right.body, right.prototype)
+                }
+                is FunctionL -> {
+                    if (constant)
+                        FunctionL(Variability.LET, right.head, right.body, right.closureScope, right.prototype)
+                    else
+                        FunctionL(Variability.VAR, right.head, right.body, right.closureScope, right.prototype)
+                }
+                is ArrayL -> {
+                    if (constant)
+                        ArrayL(Variability.LET, right.size, right.content, right.prototype)
+                    else
+                        ArrayL(Variability.VAR, right.size, right.content, right.prototype)
+                }
+            }
+        }
     }
 
     override fun visit(tree: ParseTree?): Any {
@@ -144,13 +357,13 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
 
     override fun visitChar_sequence_literal(ctx: amatsukazeGrammarParser.Char_sequence_literalContext?): Any {
         return if (ctx?.STRING_LITERAL()?.text?.isEmpty()!!)
-            ctx.getChild(0).text[0]
+            ctx.getChild(0).text[0] to _CHARACTER
         else
-            ctx?.getChild(0)?.text!!
+            ctx.getChild(0)?.text!! to _STRING
     }
 
     override fun visitNil_literal(ctx: amatsukazeGrammarParser.Nil_literalContext?): Any {
-        return NullL
+        TODO("Not yet implemented")
     }
 
     override fun visitInteger_literal(ctx: amatsukazeGrammarParser.Integer_literalContext?): Any {
@@ -162,11 +375,7 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
     }
 
     override fun visitAssignmentExpr(ctx: amatsukazeGrammarParser.AssignmentExprContext?): Any {
-        TODO("Not yet implemented")
-    }
-
-    override fun visitThisExpr(ctx: amatsukazeGrammarParser.ThisExprContext?): Any {
-        TODO("Not yet implemented")
+        return visit(ctx?.assignment_expression())
     }
 
     override fun visitBoolComparativeExpr(ctx: amatsukazeGrammarParser.BoolComparativeExprContext?): Any {
@@ -182,11 +391,67 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
     }
 
     override fun visitExponentExpr(ctx: amatsukazeGrammarParser.ExponentExprContext?): Any {
-        TODO("Not yet implemented")
+        val left = visit(ctx?.expression(0))
+        val right = visit(ctx?.expression(1))
+        assert((left is IntegerL || left is DoubleL) && (right is DoubleL || right is IntegerL))
+        var leftctn = 0.0
+        var rightctn = 0.0
+        if (left is IntegerL) leftctn = left.content.toDouble()
+        if (left is DoubleL) leftctn = left.content
+        if (right is IntegerL) rightctn = right.content.toDouble()
+        if (right is DoubleL) rightctn = right.content
+        return DoubleL(Variability.LET, leftctn.pow(rightctn), typeTable["Double"]!!)
     }
 
     override fun visitAddSubExpr(ctx: amatsukazeGrammarParser.AddSubExprContext?): Any {
-        TODO("Not yet implemented")
+        val left = visit(ctx?.expression(0)) as Literal
+        val right = visit(ctx?.expression(1)) as Literal
+        if ((left is BooleanL || left is DoubleL || left is IntegerL) && (right is BooleanL || right is DoubleL || right is IntegerL)) {
+            var lcontentInt = 0
+            var lcontentDbl = 0.0
+            var rcontentInt = 0
+            var rcontentDbl = 0.0
+            var dblFlag = false
+            if (left is BooleanL)
+                lcontentInt = if (left.content) 1 else 0
+            if (right is BooleanL)
+                rcontentInt = if (right.content) 1 else 0
+            if (left is IntegerL)
+                lcontentInt = left.content
+            if (right is IntegerL)
+                rcontentInt = right.content
+            if (left is DoubleL) {
+                lcontentDbl = left.content
+                dblFlag = true
+            }
+            if (right is DoubleL) {
+                rcontentDbl = right.content
+                dblFlag = true
+            }
+            if (dblFlag) {
+                val ans = when (ctx?.op?.type) {
+                    amatsukazeGrammarParser.ADD -> lcontentDbl + rcontentDbl + lcontentInt + rcontentInt
+                    else -> lcontentDbl + lcontentInt  - rcontentDbl - rcontentInt
+                }
+                return DoubleL(Variability.LET, ans, typeTable["Double"]!!)
+            } else {
+                val ans = when (ctx?.op?.type) {
+                    amatsukazeGrammarParser.ADD -> lcontentInt + rcontentInt
+                    else -> lcontentInt  - rcontentInt
+                }
+                return IntegerL(Variability.LET, ans, typeTable["Integer"]!!)
+            }
+        }
+        if ((left is StringL || left is CharacterL) && (right is StringL || right is CharacterL)) {
+            var leftctn: String = ""
+            var rightctn: String = ""
+            if (left is StringL) leftctn = left.content
+            if (left is CharacterL) leftctn = left.content.toString()
+            if (right is StringL) rightctn = right.content
+            if (right is CharacterL) rightctn = right.content.toString()
+            return StringL(Variability.LET, leftctn + rightctn, typeTable["String"]!!)
+        }
+        throw Exception("AddSub: on unsupported type")
     }
 
     override fun visitFunction_call(ctx: amatsukazeGrammarParser.Function_callContext?): Any {
@@ -202,19 +467,70 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
     }
 
     override fun visitLiteralValueExpr(ctx: amatsukazeGrammarParser.LiteralValueExprContext?): Any {
-        TODO("Not yet implemented")
+        return visit(ctx?.literal_expression())
     }
 
     override fun visitMulDivModExpr(ctx: amatsukazeGrammarParser.MulDivModExprContext?): Any {
-        TODO("Not yet implemented")
+        val left = visit(ctx?.expression(0)) as Literal
+        val right = visit(ctx?.expression(1)) as Literal
+        if ((left is BooleanL || left is DoubleL || left is IntegerL) && (right is BooleanL || right is DoubleL || right is IntegerL)) {
+            var lcontentInt = 1
+            var lcontentDbl = 1.0
+            var rcontentInt = 1
+            var rcontentDbl = 1.0
+            var dblFlag = false
+            if (left is BooleanL)
+                lcontentInt = if (left.content) 1 else 0
+            if (right is BooleanL)
+                rcontentInt = if (right.content) 1 else 0
+            if (left is IntegerL)
+                lcontentInt = left.content
+            if (right is IntegerL)
+                rcontentInt = right.content
+            if (left is DoubleL) {
+                lcontentDbl = left.content
+                dblFlag = true
+            }
+            if (right is DoubleL) {
+                rcontentDbl = right.content
+                dblFlag = true
+            }
+            if (dblFlag) {
+                val ans = when (ctx?.op?.type) {
+                    amatsukazeGrammarParser.MUL -> lcontentDbl * lcontentInt * rcontentDbl * rcontentInt
+                    amatsukazeGrammarParser.DIV -> lcontentDbl * lcontentInt / rcontentDbl / rcontentInt
+                    else -> (lcontentDbl * lcontentInt) % (rcontentDbl * rcontentInt)
+                }
+                return DoubleL(Variability.LET, ans, typeTable["Double"]!!)
+            } else {
+                val ans = when (ctx?.op?.type) {
+                    amatsukazeGrammarParser.MUL -> lcontentInt * rcontentInt
+                    amatsukazeGrammarParser.DIV -> lcontentInt / rcontentInt
+                    else -> lcontentInt % rcontentInt
+                }
+                return IntegerL(Variability.LET, ans, typeTable["Double"]!!)
+            }
+        }
+        throw Exception("MulDivMod: on unsupported type")
     }
 
     override fun visitVariableExpr(ctx: amatsukazeGrammarParser.VariableExprContext?): Any {
-        TODO("Not yet implemented")
+        return visit(ctx?.variable_expression())
     }
 
     override fun visitIsNestedCondition(ctx: amatsukazeGrammarParser.IsNestedConditionContext?): Any {
-        TODO("Not yet implemented")
+        val left = visit(ctx?.expression(0)) as Literal
+        val right = visit(ctx?.expression(1)) as Literal
+        assert((left is BooleanL || left is IntegerL || left is DoubleL) && (right is BooleanL || right is IntegerL || right is BooleanL))
+        var leftctn = false
+        var rightctn = false
+        if (left is BooleanL) leftctn = left.content
+        if (right is BooleanL) rightctn = right.content
+        if (left is IntegerL) leftctn = left.content != 0
+        if (right is IntegerL) rightctn = right.content != 0
+        if (left is DoubleL) leftctn = left.content != 0.0
+        if (right is DoubleL) rightctn = right.content != 0.0
+        return BooleanL(Variability.LET, if (ctx?.op?.type == amatsukazeGrammarParser.AND) leftctn && rightctn else leftctn || rightctn, typeTable["Bool"]!!)
     }
 
     override fun visitExprFuncDeclExpr(ctx: amatsukazeGrammarParser.ExprFuncDeclExprContext?): Any {
@@ -222,7 +538,7 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
     }
 
     override fun visitIsNegativeCondition(ctx: amatsukazeGrammarParser.IsNegativeConditionContext?): Any {
-        TODO("Not yet implemented")
+        return !(visit(ctx?.getChild(1)) as Boolean)
     }
 
     override fun visitRangeExpression(ctx: amatsukazeGrammarParser.RangeExpressionContext?): Any {
@@ -234,27 +550,67 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
     }
 
     override fun visitParenthesisExpr(ctx: amatsukazeGrammarParser.ParenthesisExprContext?): Any {
-        TODO("Not yet implemented")
+        return visit(ctx?.expression())
     }
 
     override fun visitAssignment_expression(ctx: amatsukazeGrammarParser.Assignment_expressionContext?): Any {
-        TODO("Not yet implemented")
+        val left = visit(ctx?.pattern())
+        if (left is String) {
+            if (!(left[0].isLetter() || left[0] == '_')) throw Exception("Illegal variable name")
+            val right = visit(ctx?.expression())
+            // println("right: $right")
+            val lvar = queryVariableTable(left)
+            if (lvar.first == null) throw Exception("Variable not defined!")
+            val newlvar: Literal
+            if (ctx?.parent?.parent?.parent?.parent?.parent is playgroundGrammarParser.Function_bodyContext) {
+                newlvar = assignVariable(lvar.first!!, right)
+                internalVariables[lvar.second][left] = newlvar
+            } else {
+                newlvar = assignVariable(lvar.first!!, right)
+                variableTable[left] = newlvar
+            }
+            return newlvar
+        } else { // List of String, e.g. foo.bar.1 => ["foo", "bar", "1"]
+            TODO("need to review search of variable in stack")
+        }
     }
 
     override fun visitLiteral_expression(ctx: amatsukazeGrammarParser.Literal_expressionContext?): Any {
-        TODO("Not yet implemented")
+        return when(val content = visit(ctx?.getChild(0))) {
+            is Int -> IntegerL(Variability.LET, content, typeTable["Integer"]!!)
+            is Double -> DoubleL(Variability.LET, content, typeTable["Double"]!!)
+            is Boolean -> BooleanL(Variability.LET, content, typeTable["Bool"]!!)
+            is Pair<*, *> ->
+                when (content.second) {
+                    _STRING -> StringL(Variability.LET, content as String, typeTable["String"]!!)
+                    _CHARACTER -> CharacterL(Variability.LET, content as Char, typeTable["Character"]!!)
+                    else -> throw Exception("This cannot happen.")
+                }
+            else -> content as Literal
+        }
     }
 
     override fun visitArray_literal(ctx: amatsukazeGrammarParser.Array_literalContext?): Any {
-        TODO("Not yet implemented")
+        val array = Array<Literal?>(ctx?.childCount!!) { null }
+        for (i in 0 until ctx.childCount) {
+            array[i] = when (val content = visit(ctx.getChild(i))) {
+                is Int -> IntegerL(Variability.LET, content, typeTable["Integer"]!!)
+                is Double -> DoubleL(Variability.LET, content, typeTable["Double"]!!)
+                is Boolean -> BooleanL(Variability.LET, content, typeTable["Bool"]!!)
+                is Pair<*, *> ->
+                    when (content.second) {
+                        _STRING -> StringL(Variability.LET, content as String, typeTable["String"]!!)
+                        _CHARACTER -> CharacterL(Variability.LET, content as Char, typeTable["Character"]!!)
+                        else -> throw Exception("This cannot happen.")
+                    }
+                else -> content as Literal
+            }
+        }
+        return array
     }
 
     override fun visitArray_literal_item(ctx: amatsukazeGrammarParser.Array_literal_itemContext?): Any {
-        TODO("Not yet implemented")
-    }
-
-    override fun visitThis_expression(ctx: amatsukazeGrammarParser.This_expressionContext?): Any {
-        TODO("Not yet implemented")
+        return visit(ctx?.expression())
     }
 
     override fun visitMember_expression(ctx: amatsukazeGrammarParser.Member_expressionContext?): Any {
@@ -266,11 +622,27 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
     }
 
     override fun visitSubscript(ctx: amatsukazeGrammarParser.SubscriptContext?): Any {
-        TODO("Not yet implemented")
+        return if (ctx?.DECIMAL_LITERAL() == null) ctx?.IDENTIFIER()?.text ?: throw Exception("Null identifier encountered")
+        else "${visit(ctx?.DECIMAL_LITERAL())}".toInt()
     }
 
     override fun visitVariable_expression(ctx: amatsukazeGrammarParser.Variable_expressionContext?): Any {
-        TODO("Not yet implemented")
+        try {
+            return when (val name = visit(ctx?.IDENTIFIER()).toString()) {
+                "isOnGem" -> manager.isOnGem()
+                "isOnOpenedSwitch" -> manager.isOnOpenedSwitch()
+                "isOnClosedSwitch" -> manager.isOnClosedSwitch()
+                "isBlocked" -> manager.isBlocked()
+                "isBlockedLeft" -> manager.isBlockedLeft()
+                "isBlockedRight" -> manager.isBlockedRight()
+                "collectedGem" -> manager.collectedGem
+                else -> {
+                    return queryVariableTable(name)
+                }
+            }
+        } catch (e: Exception) {
+            throw Exception("The variable looking for doesn't exist!")
+        }
     }
 
     override fun visitFunction_call_expression(ctx: amatsukazeGrammarParser.Function_call_expressionContext?): Any {
@@ -294,55 +666,123 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
     }
 
     override fun visitStatement(ctx: amatsukazeGrammarParser.StatementContext?): Any {
-        TODO("Not yet implemented")
+        return visit(ctx?.getChild(0))
     }
 
     override fun visitStatements(ctx: amatsukazeGrammarParser.StatementsContext?): Any {
-        TODO("Not yet implemented")
+        try {
+            var ret: Any = SpecialRetVal.Statements
+            for (child in ctx?.children!!) {
+                if (_break || _continue)
+                    break
+                ret = visit(child)
+            }
+            return ret
+        } catch (e: Throwable) {
+            if (e is ReturnedLiteral)
+                throw e
+            else
+                throw Exception("Something goes wrong while visiting statements:\n    ${e.message}")
+        }
     }
 
     override fun visitLoop_statement(ctx: amatsukazeGrammarParser.Loop_statementContext?): Any {
-        TODO("Not yet implemented")
+        return visit(ctx?.getChild(0))
     }
 
     override fun visitFor_in_statement(ctx: amatsukazeGrammarParser.For_in_statementContext?): Any {
-        TODO("Not yet implemented")
+        try {
+            val range = visit(ctx?.expression()) as IntRange
+            val pattern = visit(ctx?.pattern()) as String
+            // println(range)
+            for (x in range) {
+                if (pattern != "_") {
+                    variableTable[pattern] = IntegerL(Variability.VAR, x, typeTable["Integer"]!!)
+                    // TODO this might cause problem if the pattern shallows another variable in the outer scope?
+                }
+                if (_break) {
+                    _break = false
+                    break
+                }
+                if (_continue) {
+                    _continue = false
+                    continue
+                }
+                visit(ctx?.code_block())
+            }
+            variableTable.remove(pattern)
+        } catch (e: Exception) {
+            throw Exception("Something goes wrong while visiting for-in expression:\n    ${e.message}")
+        }
+        return SpecialRetVal.Loop
     }
 
     override fun visitWhile_statement(ctx: amatsukazeGrammarParser.While_statementContext?): Any {
-        TODO("Not yet implemented")
+        while (visit(ctx?.expression()) == true) {
+            if (_break) {
+                _break = false
+                break
+            }
+            if (_continue) {
+                _continue = false
+                break
+            }
+            visit(ctx?.code_block())
+        }
+        return SpecialRetVal.Loop
     }
 
     override fun visitRepeat_while_statement(ctx: amatsukazeGrammarParser.Repeat_while_statementContext?): Any {
-        TODO("Not yet implemented")
+        do {
+            if (_break) {
+                _break = false
+                break
+            }
+            if (_continue) {
+                _continue = false
+                continue
+            }
+            visit(ctx?.code_block())
+        } while (visit(ctx?.expression()) == true)
+        return SpecialRetVal.Loop
     }
 
     override fun visitBranch_statement(ctx: amatsukazeGrammarParser.Branch_statementContext?): Any {
-        TODO("Not yet implemented")
+        return visit(ctx?.if_statement())
     }
 
     override fun visitIf_statement(ctx: amatsukazeGrammarParser.If_statementContext?): Any {
-        TODO("Not yet implemented")
+        if (visit(ctx?.expression()) == true) {
+            visit(ctx?.code_block())
+        } else {
+            if (ctx?.else_clause() != null) {
+                visit(ctx.else_clause())
+            }
+        }
+        return SpecialRetVal.Branch
     }
 
     override fun visitElse_clause(ctx: amatsukazeGrammarParser.Else_clauseContext?): Any {
-        TODO("Not yet implemented")
+        return visit(ctx?.getChild(1))
     }
 
     override fun visitControl_transfer_statement(ctx: amatsukazeGrammarParser.Control_transfer_statementContext?): Any {
-        TODO("Not yet implemented")
+        return visit(ctx?.getChild(0))
     }
 
     override fun visitBreak_statement(ctx: amatsukazeGrammarParser.Break_statementContext?): Any {
-        TODO("Not yet implemented")
+        _break = true
+        return SpecialRetVal.Interr
     }
 
     override fun visitContinue_statement(ctx: amatsukazeGrammarParser.Continue_statementContext?): Any {
-        TODO("Not yet implemented")
+        _continue = true
+        return SpecialRetVal.Interr
     }
 
     override fun visitReturn_statement(ctx: amatsukazeGrammarParser.Return_statementContext?): Any {
-        TODO("Not yet implemented")
+        val ret = ReturnedL(visit(ctx?.expression()))
+        throw ret
     }
 
     override fun visitYield_statement(ctx: amatsukazeGrammarParser.Yield_statementContext?): Any {
@@ -350,35 +790,59 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
     }
 
     override fun visitConstantDecl(ctx: amatsukazeGrammarParser.ConstantDeclContext?): Any {
-        TODO("Not yet implemented")
+        return visit(ctx?.constant_declaration())
     }
 
     override fun visitVariableDecl(ctx: amatsukazeGrammarParser.VariableDeclContext?): Any {
-        TODO("Not yet implemented")
+        return visit(ctx?.variable_declaration())
     }
 
     override fun visitFunctionDecl(ctx: amatsukazeGrammarParser.FunctionDeclContext?): Any {
-        TODO("Not yet implemented")
+        return visit(ctx?.function_declaration())
     }
 
     override fun visitEnumDecl(ctx: amatsukazeGrammarParser.EnumDeclContext?): Any {
-        TODO("Not yet implemented")
+        return visit(ctx?.enum_declaration())
     }
 
     override fun visitStructDecl(ctx: amatsukazeGrammarParser.StructDeclContext?): Any {
-        TODO("Not yet implemented")
+        return visit(ctx?.struct_declaration())
     }
 
     override fun visitCode_block(ctx: amatsukazeGrammarParser.Code_blockContext?): Any {
-        TODO("Not yet implemented")
+        return visit(ctx?.statements())
     }
 
     override fun visitConstant_declaration(ctx: amatsukazeGrammarParser.Constant_declarationContext?): Any {
-        TODO("Not yet implemented")
+        val left = visit(ctx?.pattern()) as String
+        if (!(left[0].isLetter() || left[0] == '_')) throw Exception("Illegal variable name")
+        val right = visit(ctx?.expression()) as Literal
+        val type = if (ctx?.childCount == 4) null else visit(ctx?.type()) as DataType?
+        if (ctx?.parent?.parent?.parent?.parent?.parent is amatsukazeGrammarParser.Function_bodyContext) {
+            internalVariables[internalVariables.size - 1][left] =
+                declareConstantOrVariable(type, right, constant = true) ?: throw Exception("Encountered error while declaring constant")
+            return SpecialRetVal.Declaration
+        } else {
+            variableTable[left] =
+                declareConstantOrVariable(type, right, constant = true) ?: throw Exception("Encountered error while declaring constant")
+            return SpecialRetVal.Declaration
+        }
+        throw Exception("Encountered error while declaring constant")
     }
 
     override fun visitVariable_declaration(ctx: amatsukazeGrammarParser.Variable_declarationContext?): Any {
-        TODO("Not yet implemented")
+        val left = visit(ctx?.pattern()) as String
+        if (!(left[0].isLetter() || left[0] == '_')) throw Exception("Illegal variable name")
+        val right = visit(ctx?.expression()) as Literal
+        val type = if (ctx?.childCount == 4) null else visit(ctx?.type()) as DataType?
+        if (ctx?.parent?.parent?.parent?.parent?.parent is amatsukazeGrammarParser.Function_bodyContext) {
+            internalVariables[internalVariables.size - 1][left] =
+                declareConstantOrVariable(type, right, constant = false) ?: throw Exception("Encountered error while declaring constant")
+        } else {
+            variableTable[left] =
+                declareConstantOrVariable(type, right, constant = false) ?: throw Exception("Encountered error while declaring constant")
+        }
+        throw Exception("Encountered error while declaring constant")
     }
 
     override fun visitFunction_declaration(ctx: amatsukazeGrammarParser.Function_declarationContext?): Any {
@@ -474,23 +938,15 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
     }
 
     override fun visitPattern(ctx: amatsukazeGrammarParser.PatternContext?): Any {
-        TODO("Not yet implemented")
+        return visit(ctx?.getChild(0))
     }
 
     override fun visitWildcard_pattern(ctx: amatsukazeGrammarParser.Wildcard_patternContext?): Any {
-        TODO("Not yet implemented")
+        return "_"
     }
 
     override fun visitIdentifier_pattern(ctx: amatsukazeGrammarParser.Identifier_patternContext?): Any {
-        TODO("Not yet implemented")
-    }
-
-    override fun visitMember_expression_pattern(ctx: amatsukazeGrammarParser.Member_expression_patternContext?): Any {
-        TODO("Not yet implemented")
-    }
-
-    override fun visitSubscript_expression_pattern(ctx: amatsukazeGrammarParser.Subscript_expression_patternContext?): Any {
-        TODO("Not yet implemented")
+        return ctx?.IDENTIFIER()?.text ?: throw Exception("Empty identifier encountered")
     }
 
     override fun visitNumberedExpMemberExpr(ctx: amatsukazeGrammarParser.NumberedExpMemberExprContext?): Any {
@@ -514,15 +970,48 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
     }
 
     override fun visitSimpleType(ctx: amatsukazeGrammarParser.SimpleTypeContext?): Any {
-        TODO("Not yet implemented")
+        return when (ctx?.IDENTIFIER().toString()) {
+            "Int" -> _INT
+            "Double" -> _DOUBLE
+            "Character" -> _CHARACTER
+            "String" -> _STRING
+            "Bool" -> _BOOL
+            "Void" -> _VOID
+            "Function" -> _FUNCTION
+            "Struct" -> _STRUCT
+            "Enum" -> _ENUM
+            else -> throw Exception("Unsupported type")
+        }
     }
 
     override fun visitArrayType(ctx: amatsukazeGrammarParser.ArrayTypeContext?): Any {
-        TODO("Not yet implemented")
+        return _ARRAY(visit(ctx?.type()) as DataType)
     }
 
     override fun visitArrayTypeSub(ctx: amatsukazeGrammarParser.ArrayTypeSubContext?): Any {
-        TODO("Not yet implemented")
+        return _ARRAY(visit(ctx?.type()) as DataType)
+    }
+
+    override fun visitMember_pattern(ctx: amatsukazeGrammarParser.Member_patternContext?): Any {
+        val left = visit(ctx?.getChild(0))
+        val right = ctx?.IDENTIFIER()?.text!!
+        return when (left) {
+            is String -> {
+                mutableListOf(left, right)
+            }
+            is MutableList<*> -> (left as MutableList<String>).add(right)
+            else -> throw Exception("This cannot happen")
+        }
+    }
+
+    override fun visitSubscript_pattern(ctx: amatsukazeGrammarParser.Subscript_patternContext?): Any {
+        val left = visit(ctx?.getChild(0))
+        val right = visit(ctx?.subscript())
+        if (ctx?.identifier_pattern() != null) {
+            return mutableListOf(left.toString(), "$#$right")
+        } else {
+            return (left as MutableList<String>).add("$#$right")
+        }
     }
 
 }
