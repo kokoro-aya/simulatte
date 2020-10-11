@@ -33,7 +33,7 @@ data class StringL(val variability: Variability, var content: String, override v
 data class ReturnedL(val content: Any): Throwable()
 data class StructL(val variability: Variability, var body: MutableMap<String, Literal>, override var prototype: Prototype): Literal()
 data class FunctionL(val variability: Variability, var head: FuncHead, var body: ParseTree, var closureScope: List<Scope>, override var prototype: Prototype): Literal()
-data class ArrayL(val variability: Variability, var size: Int, var content: Array<Literal?> = Array(size) { null }, override var prototype: Prototype): Literal()
+data class ArrayL(val variability: Variability, var content: MutableList<Literal> = mutableListOf<Literal>(), override var prototype: Prototype): Literal()
 data class Prototype (
     val members: MutableMap<String, Literal>,
     override var prototype: Proto? = null,
@@ -87,6 +87,12 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
         "Function" to Prototype(mutableMapOf()), "Array" to Prototype(mutableMapOf())
     )
 
+    private var inFunc = false
+    private var currentFunc = -1
+    private var externalDepth = 0
+    private var internalDepth = 0
+    private val funcEntriesDepth = mutableListOf<Int>()
+
     /*
         default: print, typeof
         Object -> toString
@@ -100,7 +106,9 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
          */
 
     private val variableTable = mutableMapOf<String, Literal>()
+    private val variableDepth = mutableMapOf<String, Int>()
     private val internalVariables = mutableListOf<Scope>()
+    private val internalVariableDepth = mutableMapOf<String, Int>()
 
     private fun queryVariableTable(of: String): Pair<Literal?, Int> {
         for (i in internalVariables.indices.reversed()) {
@@ -184,7 +192,6 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
                 if (left.variability == Variability.LET) throw Exception("Attempt modify constant")
                 when (right) {
                     is ArrayL -> {
-                        left.size = right.size
                         left.content = right.content
                     }
                     else -> throw Exception("Type of lhs and rhs of assignment don't match")
@@ -249,8 +256,8 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
                     else FunctionL(Variability.VAR, (right as FunctionL).head, right.body, right.closureScope, right.prototype)
                 }
                 is _ARRAY -> {
-                    if (constant) ArrayL(Variability.LET, (right as ArrayL).size, right.content, right.prototype)
-                    else ArrayL(Variability.VAR, (right as ArrayL).size, right.content, right.prototype)
+                    if (constant) ArrayL(Variability.LET, (right as ArrayL).content, right.prototype)
+                    else ArrayL(Variability.VAR, (right as ArrayL).content, right.prototype)
                 }
                 else -> throw Exception("This could not happen")
             }
@@ -285,8 +292,8 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
                     else FunctionL(Variability.VAR, right.head, right.body, right.closureScope, right.prototype)
                 }
                 is ArrayL -> {
-                    if (constant) ArrayL(Variability.LET, right.size, right.content, right.prototype)
-                    else ArrayL(Variability.VAR, right.size, right.content, right.prototype)
+                    if (constant) ArrayL(Variability.LET, right.content, right.prototype)
+                    else ArrayL(Variability.VAR, right.content, right.prototype)
                 }
             }
         }
@@ -400,7 +407,11 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
     override fun visitAriAssignmentExpr(ctx: amatsukazeGrammarParser.AriAssignmentExprContext?): Any {
         val left = visit(ctx?.pattern()) as String
         if (!(left[0].isLetter() || left[0] == '_')) throw Exception("Illegal variable name")
-        val right = visit(ctx?.expression())
+        var right = visit(ctx?.expression())
+        if (right is BooleanL) {
+            val newright = if (right.content) IntegerL(Variability.LET, 1, typeTable["Integer"]!!) else IntegerL(Variability.LET, 0, typeTable["Integer"]!!)
+            right = newright
+        }
         val lvar = queryVariableTable(left)
         if (lvar.first == null) throw Exception("Variable not defined!")
         if (!checkTypeOfLiteralsIdentical(lvar.first as Literal, right as Literal)) throw Exception("Type mismatch")
@@ -413,10 +424,10 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
                 else -> IntegerL(Variability.LET, old.content % (right as IntegerL).content, typeTable["Integer"]!!)
             }
             is DoubleL -> when (ctx?.op?.type) {
-                amatsukazeGrammarParser.ADDEQ -> DoubleL(Variability.LET, old.content + (right as IntegerL).content, typeTable["Double"]!!)
-                amatsukazeGrammarParser.SUBEQ -> DoubleL(Variability.LET, old.content - (right as IntegerL).content, typeTable["Double"]!!)
-                amatsukazeGrammarParser.MULEQ -> DoubleL(Variability.LET, old.content * (right as IntegerL).content, typeTable["Double"]!!)
-                amatsukazeGrammarParser.DIVEQ -> DoubleL(Variability.LET, old.content / (right as IntegerL).content, typeTable["Double"]!!)
+                amatsukazeGrammarParser.ADDEQ -> DoubleL(Variability.LET, old.content + (right as DoubleL).content, typeTable["Double"]!!)
+                amatsukazeGrammarParser.SUBEQ -> DoubleL(Variability.LET, old.content - (right as DoubleL).content, typeTable["Double"]!!)
+                amatsukazeGrammarParser.MULEQ -> DoubleL(Variability.LET, old.content * (right as DoubleL).content, typeTable["Double"]!!)
+                amatsukazeGrammarParser.DIVEQ -> DoubleL(Variability.LET, old.content / (right as DoubleL).content, typeTable["Double"]!!)
                 else -> DoubleL(Variability.LET, old.content % (right as IntegerL).content, typeTable["Double"]!!)
             }
             is StringL -> {
@@ -482,13 +493,15 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
             }
         }
         if ((left is StringL || left is CharacterL) && (right is StringL || right is CharacterL)) {
-            var leftctn: String = ""
-            var rightctn: String = ""
-            if (left is StringL) leftctn = left.content
-            if (left is CharacterL) leftctn = left.content.toString()
-            if (right is StringL) rightctn = right.content
-            if (right is CharacterL) rightctn = right.content.toString()
-            return StringL(Variability.LET, leftctn + rightctn, typeTable["String"]!!)
+            if (ctx?.op?.type == amatsukazeGrammarParser.ADD) {
+                var leftctn = ""
+                var rightctn = ""
+                if (left is StringL) leftctn = left.content
+                if (left is CharacterL) leftctn = left.content.toString()
+                if (right is StringL) rightctn = right.content
+                if (right is CharacterL) rightctn = right.content.toString()
+                return StringL(Variability.LET, leftctn + rightctn, typeTable["String"]!!)
+            }
         }
         throw Exception("AddSub: on unsupported type")
     }
@@ -741,16 +754,31 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
 
     override fun visitStatements(ctx: amatsukazeGrammarParser.StatementsContext?): Any {
         try {
+            if (inFunc) internalDepth += 1 else externalDepth += 1
             var ret: Any = SpecialRetVal.Statements
             for (child in ctx?.children!!) {
                 if (_break || _continue)
                     break
                 ret = visit(child)
             }
+            if (inFunc) {
+                internalVariableDepth.filter { it.value == internalDepth }.keys.forEach { name -> internalVariables[currentFunc].remove(name) }
+                internalVariableDepth.filter { it.value == internalDepth }.keys.forEach { name -> internalVariableDepth.remove(name) }
+                internalDepth -= 1
+            } else {
+                variableDepth.filter { it.value == externalDepth }.keys.forEach { name -> variableTable.remove(name) }
+                variableDepth.filter { it.value == externalDepth }.keys.forEach { name -> variableDepth.remove(name) }
+                externalDepth -= 1
+            }
             return ret
         } catch (e: Throwable) {
-            if (e is ReturnedLiteral)
+            if (e is ReturnedLiteral) {
+                internalDepth = funcEntriesDepth.last()
+                internalVariableDepth.filter { it.value > internalDepth }.keys.forEach { name -> internalVariables[currentFunc].remove(name) }
+                internalVariableDepth.filter { it.value > internalDepth }.keys.forEach { name -> internalVariableDepth.remove(name) }
+                funcEntriesDepth.removeAt(funcEntriesDepth.lastIndex)
                 throw e
+            }
             else
                 throw Exception("Something goes wrong while visiting statements:\n    ${e.message}")
         }
@@ -788,7 +816,8 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
     }
 
     override fun visitWhile_statement(ctx: amatsukazeGrammarParser.While_statementContext?): Any {
-        while (visit(ctx?.expression()) == true) {
+        val cond = visit(ctx?.expression()) as BooleanL
+        while (cond.content) {
             if (_break) {
                 _break = false
                 break
@@ -886,32 +915,46 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
     override fun visitConstant_declaration(ctx: amatsukazeGrammarParser.Constant_declarationContext?): Any {
         val left = visit(ctx?.pattern()) as String
         if (!(left[0].isLetter() || left[0] == '_')) throw Exception("Illegal variable name")
-        val right = visit(ctx?.expression()) as Literal
-        val type = if (ctx?.childCount == 4) null else visit(ctx?.type()) as DataType?
-        if (ctx?.parent?.parent?.parent?.parent?.parent is amatsukazeGrammarParser.Function_bodyContext) {
-            internalVariables[internalVariables.size - 1][left] =
-                declareConstantOrVariable(type, right, constant = true) ?: throw Exception("Encountered error while declaring constant")
-            return SpecialRetVal.Declaration
-        } else {
-            variableTable[left] =
-                declareConstantOrVariable(type, right, constant = true) ?: throw Exception("Encountered error while declaring constant")
-            return SpecialRetVal.Declaration
+        try {
+            val right = visit(ctx?.expression()) as Literal
+            val type = if (ctx?.childCount == 4) null else visit(ctx?.type()) as DataType?
+            if (ctx?.parent?.parent?.parent?.parent?.parent is amatsukazeGrammarParser.Function_bodyContext) {
+                internalVariables[internalVariables.size - 1][left] =
+                    declareConstantOrVariable(type, right, constant = true) ?: throw Exception("Encountered error while declaring constant")
+                internalVariableDepth[left] = internalDepth
+                return SpecialRetVal.Declaration
+            } else {
+                variableTable[left] =
+                    declareConstantOrVariable(type, right, constant = true) ?: throw Exception("Encountered error while declaring constant")
+                variableDepth[left] = externalDepth
+                return SpecialRetVal.Declaration
+            }
+        } catch (e: Exception) {
+            throw Exception("Unknown literal type on right-hand side while declaring constant")
         }
     }
 
     override fun visitVariable_declaration(ctx: amatsukazeGrammarParser.Variable_declarationContext?): Any {
         val left = visit(ctx?.pattern()) as String
         if (!(left[0].isLetter() || left[0] == '_')) throw Exception("Illegal variable name")
-        val right = visit(ctx?.expression()) as Literal
-        val type = if (ctx?.childCount == 4) null else visit(ctx?.type()) as DataType?
-        if (ctx?.parent?.parent?.parent?.parent?.parent is amatsukazeGrammarParser.Function_bodyContext) {
-            internalVariables[internalVariables.size - 1][left] =
-                declareConstantOrVariable(type, right, constant = false) ?: throw Exception("Encountered error while declaring constant")
-            return SpecialRetVal.Declaration
-        } else {
-            variableTable[left] =
-                declareConstantOrVariable(type, right, constant = false) ?: throw Exception("Encountered error while declaring constant")
-            return SpecialRetVal.Declaration
+        try {
+            val right = visit(ctx?.expression()) as Literal
+            val type = if (ctx?.childCount == 4) null else visit(ctx?.type()) as DataType?
+            if (ctx?.parent?.parent?.parent?.parent?.parent is amatsukazeGrammarParser.Function_bodyContext) {
+                internalVariables[internalVariables.size - 1][left] =
+                    declareConstantOrVariable(type, right, constant = false)
+                        ?: throw Exception("Encountered error while declaring constant")
+                internalVariableDepth[left] = internalDepth
+                return SpecialRetVal.Declaration
+            } else {
+                variableTable[left] =
+                    declareConstantOrVariable(type, right, constant = false)
+                        ?: throw Exception("Encountered error while declaring constant")
+                variableDepth[left] = externalDepth
+                return SpecialRetVal.Declaration
+            }
+        } catch (e: Exception) {
+            throw Exception("Unknown literal type on right-hand side while declaring variable")
         }
     }
 
@@ -1024,6 +1067,7 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
     }
 
     override fun visitNamedExpMemberExpr(ctx: amatsukazeGrammarParser.NamedExpMemberExprContext?): Any {
+        // Internal functions such as foo.isOnGem
         TODO("Not yet implemented")
     }
 
@@ -1036,6 +1080,7 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
     }
 
     override fun visitRecursiveExpMemberExpr(ctx: amatsukazeGrammarParser.RecursiveExpMemberExprContext?): Any {
+        // Internal functions call such as foo.bar.isOnGem
         TODO("Not yet implemented")
     }
 
