@@ -300,7 +300,12 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
     }
 
     override fun visit(tree: ParseTree?): Any {
-        return tree?.accept(this) ?: throw Exception("Encountered error while visiting AST")
+//        return tree?.accept(this) ?: Exception("Encountered error while visiting AST")
+        try {
+            return tree?.accept(this)!!
+        } catch (e: Exception) {
+            throw Exception("Encountered error while visiting AST:\n    $e")
+        }
     }
 
     override fun visitChildren(node: RuleNode?): Any {
@@ -669,17 +674,21 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
                     _CHARACTER -> CharacterL(Variability.LET, content.first as Char, typeTable["Character"]!!)
                     else -> throw Exception("This cannot happen.")
                 }
+            is Array<*> -> {
+                content as Array<Literal>
+                ArrayL(Variability.LET, content.toMutableList(), typeTable["Array"]!!)
+            }
             else -> content as Literal
         }
     }
 
     override fun visitArray_literal(ctx: amatsukazeGrammarParser.Array_literalContext?): Any {
-        val array = Array<Literal?>(ctx?.childCount!!) { null }
-        for (i in 0 until ctx.childCount) {
-            array[i] = when (val content = visit(ctx.getChild(i))) {
-                is Int -> IntegerL(Variability.LET, content, typeTable["Integer"]!!)
-                is Double -> DoubleL(Variability.LET, content, typeTable["Double"]!!)
-                is Boolean -> BooleanL(Variability.LET, content, typeTable["Bool"]!!)
+        val array = Array<Literal?>(ctx?.childCount!! / 2) { null }
+        for (i in 0 until ctx.childCount / 2) {
+            array[i] = when (val content = visit(ctx.getChild(i * 2 + 1))) {
+                is IntegerL -> content
+                is DoubleL -> content
+                is BooleanL -> content
                 is Pair<*, *> ->
                     when (content.second) {
                         _STRING -> StringL(Variability.LET, content as String, typeTable["String"]!!)
@@ -916,7 +925,8 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
         val left = visit(ctx?.pattern()) as String
         if (!(left[0].isLetter() || left[0] == '_')) throw Exception("Illegal variable name")
         try {
-            val right = visit(ctx?.expression()) as Literal
+            val right = visit(ctx?.expression())
+            right as Literal
             val type = if (ctx?.childCount == 4) null else visit(ctx?.type()) as DataType?
             if (ctx?.parent?.parent?.parent?.parent?.parent is amatsukazeGrammarParser.Function_bodyContext) {
                 internalVariables[internalVariables.size - 1][left] =
@@ -930,7 +940,7 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
                 return SpecialRetVal.Declaration
             }
         } catch (e: Exception) {
-            throw Exception("Unknown literal type on right-hand side while declaring constant")
+            throw Exception("Unknown literal type on right-hand side while declaring constant\n    $e")
         }
     }
 
