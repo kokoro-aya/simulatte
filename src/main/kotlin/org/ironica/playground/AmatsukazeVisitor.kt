@@ -23,17 +23,19 @@ data class _ARRAY(val type: DataType): DataType()
 sealed class Proto {
     abstract val prototype: Proto?
 }
-sealed class Literal(): Proto()
-data class IntegerL(val variability: Variability, var content: Int, override val prototype: Prototype): Literal()
-data class DoubleL(val variability: Variability, var content: Double, override val prototype: Prototype): Literal()
-data class BooleanL(val variability: Variability, var content: Boolean, override val prototype: Prototype): Literal()
-data class CharacterL(val variability: Variability, var content: Char, override val prototype: Prototype): Literal()
-data class StringL(val variability: Variability, var content: String, override val prototype: Prototype): Literal()
+sealed class Literal(): Proto() {
+    abstract val variability: Variability
+}
+data class IntegerL(override val variability: Variability, var content: Int, override val prototype: Prototype): Literal()
+data class DoubleL(override val variability: Variability, var content: Double, override val prototype: Prototype): Literal()
+data class BooleanL(override val variability: Variability, var content: Boolean, override val prototype: Prototype): Literal()
+data class CharacterL(override val variability: Variability, var content: Char, override val prototype: Prototype): Literal()
+data class StringL(override val variability: Variability, var content: String, override val prototype: Prototype): Literal()
 
 data class ReturnedL(val content: Any): Throwable()
-data class StructL(val variability: Variability, var body: MutableMap<String, Literal>, override var prototype: Prototype): Literal()
-data class FunctionL(val variability: Variability, var head: FuncHead, var body: ParseTree, var closureScope: List<Scope>, override var prototype: Prototype): Literal()
-data class ArrayL(val variability: Variability, var content: MutableList<Literal> = mutableListOf<Literal>(), override var prototype: Prototype): Literal()
+data class StructL(override val variability: Variability, var body: MutableMap<String, Literal>, override var prototype: Prototype): Literal()
+data class FunctionL(override val variability: Variability, var head: FuncHead, var body: ParseTree, var closureScope: List<Scope>, override var prototype: Prototype): Literal()
+data class ArrayL(override val variability: Variability, var content: MutableList<Literal> = mutableListOf<Literal>(), override var prototype: Prototype): Literal()
 data class Prototype (
     val members: MutableMap<String, Literal>,
     override var prototype: Proto? = null,
@@ -300,12 +302,12 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
     }
 
     override fun visit(tree: ParseTree?): Any {
-//        return tree?.accept(this) ?: Exception("Encountered error while visiting AST")
-        try {
-            return tree?.accept(this)!!
-        } catch (e: Exception) {
-            throw Exception("Encountered error while visiting AST:\n    $e")
-        }
+        return tree?.accept(this) ?: Exception("Encountered error while visiting AST")
+//        try {
+//            return tree?.accept(this)!!
+//        } catch (e: Exception) {
+//            throw Exception("Encountered error while visiting AST:\n    $e")
+//        }
     }
 
     override fun visitChildren(node: RuleNode?): Any {
@@ -683,22 +685,37 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
     }
 
     override fun visitArray_literal(ctx: amatsukazeGrammarParser.Array_literalContext?): Any {
-        val array = Array<Literal?>(ctx?.childCount!! / 2) { null }
-        for (i in 0 until ctx.childCount / 2) {
-            array[i] = when (val content = visit(ctx.getChild(i * 2 + 1))) {
-                is IntegerL -> content
-                is DoubleL -> content
-                is BooleanL -> content
-                is Pair<*, *> ->
-                    when (content.second) {
-                        _STRING -> StringL(Variability.LET, content as String, typeTable["String"]!!)
-                        _CHARACTER -> CharacterL(Variability.LET, content as Char, typeTable["Character"]!!)
-                        else -> throw Exception("This cannot happen.")
-                    }
-                else -> content as Literal
+        if (ctx?.childCount == 2) {
+            return Array<Literal?>(0) { null }
+        } else {
+            val array = Array<Literal?>(ctx?.childCount!! / 2) { null }
+            val variability =
+                if (visit(ctx?.parent?.parent?.parent?.getChild(0)) == "let") Variability.LET else Variability.VAR
+            for (i in 0 until ctx.childCount / 2) {
+                array[i] = when (val content = visit(ctx.getChild(i * 2 + 1))) {
+                    is IntegerL -> IntegerL(variability, content.content, content.prototype)
+                    is DoubleL -> DoubleL(variability, content.content, content.prototype)
+                    is BooleanL -> BooleanL(variability, content.content, content.prototype)
+                    is Pair<*, *> ->
+                        when (content.second) {
+                            _STRING -> StringL(variability, content as String, typeTable["String"]!!)
+                            _CHARACTER -> CharacterL(variability, content as Char, typeTable["Character"]!!)
+                            else -> throw Exception("This cannot happen.")
+                        }
+                    is StructL -> StructL(variability, content.body, content.prototype)
+                    is FunctionL -> FunctionL(
+                        variability,
+                        content.head,
+                        content.body,
+                        content.closureScope,
+                        content.prototype
+                    )
+                    is ArrayL -> ArrayL(variability, content.content, content.prototype)
+                    else -> throw Exception("This should not happen.")
+                }
             }
+            return array
         }
-        return array
     }
 
     override fun visitArray_literal_item(ctx: amatsukazeGrammarParser.Array_literal_itemContext?): Any {
@@ -710,7 +727,19 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
     }
 
     override fun visitSubscript_expression(ctx: amatsukazeGrammarParser.Subscript_expressionContext?): Any {
-        TODO("Not yet implemented")
+        val left = visit(ctx?.getChild(0))
+        val right = visit(ctx?.subscript())
+        if (ctx?.variable_expression() != null) {
+            if (right is Int) {
+                left as ArrayL
+                return left.content[right]
+            } else {
+                throw Exception("Unsupported operation on subscript expression.")
+            }
+        } else {
+            // TODO
+            return -1
+        }
     }
 
     override fun visitSubscript(ctx: amatsukazeGrammarParser.SubscriptContext?): Any {
@@ -1165,13 +1194,17 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
     }
 
     override fun visitSubscript_pattern(ctx: amatsukazeGrammarParser.Subscript_patternContext?): Any {
-        val left = visit(ctx?.getChild(0))
+        val left = queryVariableTable(visit(ctx?.getChild(0)) as String)
         val right = visit(ctx?.subscript())
-        if (ctx?.identifier_pattern() != null) {
-            return mutableListOf(left.toString(), "$#$right")
-        } else {
-            return (left as MutableList<String>).add("$#$right")
+        if (left.second != -2) {
+            if (left.first is ArrayL && right is Int) {
+                return (left.first as ArrayL).content[right]
+            }
+            if (left.first is StructL) {
+                // TODO
+            }
         }
+        throw Exception("Unsupported lhs subscript operation.")
     }
 
 }
