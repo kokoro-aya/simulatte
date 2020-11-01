@@ -74,7 +74,9 @@ explicit_member_expression: variable_expression '.' IDENTIFIER               # n
                           ;
 //implicit_member_expression: '.' IDENTIFIER;
 
-subscript_expression: (variable_expression | member_expression) '[' subscript ']';
+subscript_expression: variable_expression '[' subscript ']'
+                    | member_expression '[' subscript ']'
+                    | subscript_expression '[' subscript ']';
 subscript: IDENTIFIER | DECIMAL_LITERAL;
 
 variable_expression: IDENTIFIER;
@@ -111,6 +113,7 @@ statement: expression ';'?
          | control_transfer_statement ';'?
          | return_statement ';'?
          | yield_statement ';'?
+         | assert_statement ';'?
          ;
 
 statements: statement+;
@@ -139,6 +142,8 @@ continue_statement: 'continue';
 return_statement: 'return' expression;
 
 yield_statement: 'yield' expression;
+
+assert_statement: 'assert' expression;
 
 declaration: constant_declaration # constantDecl
            | variable_declaration # variableDecl
@@ -203,4 +208,6 @@ identifier_pattern: IDENTIFIER;
 member_pattern: identifier_pattern '.' IDENTIFIER
               | member_pattern '.' IDENTIFIER
               ;
-subscript_pattern: (identifier_pattern | member_expression) '[' subscript ']';
+subscript_pattern: identifier_pattern '[' subscript ']'
+                 | member_expression '[' subscript ']'
+                 | subscript_pattern '[' subscript ']';

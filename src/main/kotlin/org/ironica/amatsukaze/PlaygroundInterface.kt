@@ -1,4 +1,4 @@
-package org.ironica.playground
+package org.ironica.amatsukaze
 
 import kotlinx.serialization.Serializable
 import org.antlr.v4.runtime.CharStream

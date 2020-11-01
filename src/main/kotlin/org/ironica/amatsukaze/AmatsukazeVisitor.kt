@@ -1,4 +1,4 @@
-package org.ironica.playground
+package org.ironica.amatsukaze
 
 import amatsukazeGrammarVisitor
 import org.antlr.v4.runtime.tree.ErrorNode
@@ -629,6 +629,7 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
         return visit(ctx?.expression())
     }
 
+    // TODO review logic of assignment regarding struct
     override fun visitAssignment_expression(ctx: amatsukazeGrammarParser.Assignment_expressionContext?): Any {
         val left = visit(ctx?.pattern())
         if (left is String) {
@@ -684,6 +685,7 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
         }
     }
 
+    // TODO Array type check
     override fun visitArray_literal(ctx: amatsukazeGrammarParser.Array_literalContext?): Any {
         if (ctx?.childCount == 2) {
             return Array<Literal?>(0) { null }
@@ -696,12 +698,8 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
                     is IntegerL -> IntegerL(variability, content.content, content.prototype)
                     is DoubleL -> DoubleL(variability, content.content, content.prototype)
                     is BooleanL -> BooleanL(variability, content.content, content.prototype)
-                    is Pair<*, *> ->
-                        when (content.second) {
-                            _STRING -> StringL(variability, content as String, typeTable["String"]!!)
-                            _CHARACTER -> CharacterL(variability, content as Char, typeTable["Character"]!!)
-                            else -> throw Exception("This cannot happen.")
-                        }
+                    is StringL -> StringL(variability, content.content, content.prototype)
+                    is CharacterL -> CharacterL(variability, content.content, content.prototype)
                     is StructL -> StructL(variability, content.body, content.prototype)
                     is FunctionL -> FunctionL(
                         variability,
@@ -729,7 +727,7 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
     override fun visitSubscript_expression(ctx: amatsukazeGrammarParser.Subscript_expressionContext?): Any {
         val left = visit(ctx?.getChild(0))
         val right = visit(ctx?.subscript())
-        if (ctx?.variable_expression() != null) {
+        if (ctx?.variable_expression() != null || ctx?.subscript_expression() != null) {
             if (right is Int) {
                 left as ArrayL
                 return left.content[right]
@@ -737,8 +735,7 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
                 throw Exception("Unsupported operation on subscript expression.")
             }
         } else {
-            // TODO
-            return -1
+            throw Exception("Unsupported subscript operation on structures.")
         }
     }
 
@@ -1194,17 +1191,37 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
     }
 
     override fun visitSubscript_pattern(ctx: amatsukazeGrammarParser.Subscript_patternContext?): Any {
-        val left = queryVariableTable(visit(ctx?.getChild(0)) as String)
-        val right = visit(ctx?.subscript())
-        if (left.second != -2) {
-            if (left.first is ArrayL && right is Int) {
-                return (left.first as ArrayL).content[right]
+        if (ctx?.identifier_pattern() != null) {
+            val left = queryVariableTable(visit(ctx?.getChild(0)) as String)
+            val right = visit(ctx?.subscript())
+            if (left.second != -2) {
+                if (left.first is ArrayL && right is Int)
+                    return (left.first as ArrayL).content[right]
+                if (left.first is StructL)
+                    throw Exception("Unsupported subscript operation on structures.")
             }
-            if (left.first is StructL) {
-                // TODO
-            }
+            throw Exception("Unsupported lhs subscript operation.")
         }
-        throw Exception("Unsupported lhs subscript operation.")
+        if (ctx?.subscript_pattern() != null) {
+            val left = visit(ctx?.subscript_pattern())
+            val right = visit(ctx?.subscript())
+            if (left is ArrayL && right is Int) return left.content[right]
+            throw Exception("Unsupported lhs subscript operation.")
+        }
+        if (ctx?.member_expression() != null) {
+            // TODO
+        }
+        throw Exception("This cannot happen")
+    }
+
+    override fun visitAssert_statement(ctx: amatsukazeGrammarParser.Assert_statementContext?): Any {
+        when (val rhs = visit(ctx?.expression())) {
+            is IntegerL -> if (rhs.content == 0) throw Exception("AssertError\n")
+            is DoubleL -> if (rhs.content == 0.0) throw Exception("AssertError\n")
+            is BooleanL -> if (!rhs.content) throw Exception("AssertError\n")
+            else -> throw Exception("AssertError\n")
+        }
+        return SpecialRetVal.Empty
     }
 
 }

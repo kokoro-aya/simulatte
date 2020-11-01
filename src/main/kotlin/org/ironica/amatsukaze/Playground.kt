@@ -1,8 +1,7 @@
-package org.ironica.playground
+package org.ironica.amatsukaze
 
-import kotlinx.serialization.Serializable
-import org.ironica.playground.Direction.*
-import org.ironica.playground.Block.*
+import org.ironica.amatsukaze.Direction.*
+import org.ironica.amatsukaze.Block.*
 enum class Direction {
     UP, DOWN, LEFT, RIGHT
 }

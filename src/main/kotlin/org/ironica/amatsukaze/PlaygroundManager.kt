@@ -1,8 +1,4 @@
-package org.ironica.playground
-
-import com.bennyhuo.kotlin.deepcopy.compiler.deepCopy
-import java.util.*
-import java.util.function.Function
+package org.ironica.amatsukaze
 
 class PlaygroundManager(val playground: Playground) {
 
