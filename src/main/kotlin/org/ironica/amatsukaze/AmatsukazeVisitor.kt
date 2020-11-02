@@ -8,6 +8,7 @@ import org.antlr.v4.runtime.tree.TerminalNode
 import kotlin.math.pow
 
 sealed class DataType
+object _SOME: DataType() // TODO just a placeholder for complicated array type, should be fixed
 object _INT: DataType()
 object _DOUBLE: DataType()
 object _CHARACTER: DataType()
@@ -19,6 +20,11 @@ object _FUNCTION: DataType()
 object _STRUCT: DataType()
 object _ENUM: DataType()
 data class _ARRAY(val type: DataType): DataType()
+
+private fun DataType.typeEquals(other: DataType): Boolean {
+    return if (this !is _ARRAY) this == other
+    else other is _ARRAY
+}
 
 sealed class Proto {
     abstract val prototype: Proto?
@@ -35,7 +41,7 @@ data class StringL(override val variability: Variability, var content: String, o
 data class ReturnedL(val content: Any): Throwable()
 data class StructL(override val variability: Variability, var body: MutableMap<String, Literal>, override var prototype: Prototype): Literal()
 data class FunctionL(override val variability: Variability, var head: FuncHead, var body: ParseTree, var closureScope: List<Scope>, override var prototype: Prototype): Literal()
-data class ArrayL(override val variability: Variability, var content: MutableList<Literal> = mutableListOf<Literal>(), override var prototype: Prototype): Literal()
+data class ArrayL(override val variability: Variability, var subType: DataType, var content: MutableList<Literal> = mutableListOf<Literal>(), override var prototype: Prototype): Literal()
 data class Prototype (
     val members: MutableMap<String, Literal>,
     override var prototype: Proto? = null,
@@ -43,6 +49,8 @@ data class Prototype (
 ): Proto()
 
 data class FuncHead(val name: String, val params: List<String>, val types: List<DataType>, val ret: DataType) {
+    var anonymousFun = 0
+
     fun pseudoEquals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -53,6 +61,10 @@ data class FuncHead(val name: String, val params: List<String>, val types: List<
         if (types != other.types) return false
 
         return true
+    }
+
+    fun assignAnonymousOrder(): Int {
+        return anonymousFun++
     }
 
     override fun hashCode(): Int {
@@ -194,7 +206,10 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
                 if (left.variability == Variability.LET) throw Exception("Attempt modify constant")
                 when (right) {
                     is ArrayL -> {
-                        left.content = right.content
+                        if (left.subType.typeEquals(right.subType)) {
+                            left.content = right.content
+                        }
+                        else throw Exception("Array type mismatch on lhs and rhs")
                     }
                     else -> throw Exception("Type of lhs and rhs of assignment don't match")
                 }
@@ -223,6 +238,44 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
                 || left is FunctionL && right is FunctionL
                 || left is StructL && right is StructL
                 || left is ArrayL && right is ArrayL
+    }
+
+    private fun checkArrayType(type: DataType, right: ArrayL) {
+        when (type) {
+            is _INT -> if (right.content.none { it !is IntegerL }) return
+            is _DOUBLE -> if (right.content.none { it !is DoubleL }) return
+            is _BOOL -> if (right.content.none { it !is BooleanL }) return
+            is _CHARACTER -> if (right.content.none { it !is CharacterL }) return
+            is _STRING -> if (right.content.none { it !is StringL }) return
+            is _STRUCT -> if (right.content.none { it !is StructL }) return
+            is _ARRAY -> if (right.content.none { it !is ArrayL }) return
+            is _FUNCTION -> if (right.content.none { it !is FunctionL }) return
+        }
+        throw Exception("Array type check failed")
+    }
+
+    private fun inferArrayType(right: ArrayL): DataType {
+        if (right.content.all { it is IntegerL }) return _INT
+        if (right.content.all { it is DoubleL }) return _DOUBLE
+        if (right.content.all { it is BooleanL }) return _BOOL
+        if (right.content.all { it is CharacterL }) return _CHARACTER
+        if (right.content.all { it is StringL }) return _STRING
+        if (right.content.all { it is StructL }) return _STRUCT
+        if (right.content.all { it is FunctionL }) return _FUNCTION
+        if (right.content.all { it is ArrayL }) return _ARRAY(_SOME)
+        throw Exception("Array type inference failed")
+    }
+
+    private fun inferPrimaryToArrayType(right: Array<Literal>): DataType {
+        if (right.all { it is IntegerL }) return _INT
+        if (right.all { it is DoubleL }) return _DOUBLE
+        if (right.all { it is BooleanL }) return _BOOL
+        if (right.all { it is CharacterL }) return _CHARACTER
+        if (right.all { it is StringL }) return _STRING
+        if (right.all { it is StructL }) return _STRUCT
+        if (right.all { it is FunctionL }) return _FUNCTION
+        if (right.all { it is ArrayL }) return _ARRAY(_SOME)
+        throw Exception("Array type inference failed")
     }
 
     private fun declareConstantOrVariable(type: DataType?, right: Literal, constant: Boolean): Literal? {
@@ -258,8 +311,9 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
                     else FunctionL(Variability.VAR, (right as FunctionL).head, right.body, right.closureScope, right.prototype)
                 }
                 is _ARRAY -> {
-                    if (constant) ArrayL(Variability.LET, (right as ArrayL).content, right.prototype)
-                    else ArrayL(Variability.VAR, (right as ArrayL).content, right.prototype)
+                    checkArrayType(checkedType.type, (right as ArrayL));
+                    if (constant) ArrayL(Variability.LET, checkedType.type, (right as ArrayL).content, right.prototype)
+                    else ArrayL(Variability.VAR, checkedType.type, (right as ArrayL).content, right.prototype)
                 }
                 else -> throw Exception("This could not happen")
             }
@@ -294,8 +348,9 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
                     else FunctionL(Variability.VAR, right.head, right.body, right.closureScope, right.prototype)
                 }
                 is ArrayL -> {
-                    if (constant) ArrayL(Variability.LET, right.content, right.prototype)
-                    else ArrayL(Variability.VAR, right.content, right.prototype)
+                    val type = inferArrayType(right)
+                    if (constant) ArrayL(Variability.LET, type, right.content, right.prototype)
+                    else ArrayL(Variability.VAR, type, right.content, right.prototype)
                 }
             }
         }
@@ -679,7 +734,7 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
                 }
             is Array<*> -> {
                 content as Array<Literal>
-                ArrayL(Variability.LET, content.toMutableList(), typeTable["Array"]!!)
+                ArrayL(Variability.LET, inferPrimaryToArrayType(content), content.toMutableList(), typeTable["Array"]!!)
             }
             else -> content as Literal
         }
@@ -708,7 +763,7 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
                         content.closureScope,
                         content.prototype
                     )
-                    is ArrayL -> ArrayL(variability, content.content, content.prototype)
+                    is ArrayL -> ArrayL(variability, inferArrayType(content), content.content, content.prototype)
                     else -> throw Exception("This should not happen.")
                 }
             }
@@ -1131,6 +1186,7 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
             "Function" -> _FUNCTION
             "Struct" -> _STRUCT
             "Enum" -> _ENUM
+            "Array" -> _ARRAY(_SOME)
             else -> throw Exception("Unsupported type")
         }
     }
