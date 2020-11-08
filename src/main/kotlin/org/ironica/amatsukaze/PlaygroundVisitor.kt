@@ -18,7 +18,7 @@ enum class Type {
 }
 
 enum class Variability {
-    VAR, LET
+    VAR, CST
 }
 
 sealed class TypedLiteral
@@ -228,11 +228,11 @@ class PlaygroundVisitor(private val manager: PlaygroundManager): playgroundGramm
             if (constant) {
                 if (!internalVariables.containsKey(left)) {
                     internalVariables[left] = when (right) {
-                        is Int -> IntLiteral(LET, right)
-                        is Double -> DoubleLiteral(LET, right)
-                        is Boolean -> BooleanLiteral(LET, right)
-                        is Char -> CharacterLiteral(LET, right)
-                        is String -> StringLiteral(LET, right)
+                        is Int -> IntLiteral(CST, right)
+                        is Double -> DoubleLiteral(CST, right)
+                        is Boolean -> BooleanLiteral(CST, right)
+                        is Char -> CharacterLiteral(CST, right)
+                        is String -> StringLiteral(CST, right)
                         else -> throw Exception("Cannot recognize type while declaring or assigning a variable")
                     }
                     return true
@@ -266,11 +266,11 @@ class PlaygroundVisitor(private val manager: PlaygroundManager): playgroundGramm
             if (constant) {
                 if (!variableTable.containsKey(left)) {
                     variableTable[left] = when (right) {
-                        is Int -> IntLiteral(LET, right)
-                        is Double -> DoubleLiteral(LET, right)
-                        is Boolean -> BooleanLiteral(LET, right)
-                        is Char -> CharacterLiteral(LET, right)
-                        is String -> StringLiteral(LET, right)
+                        is Int -> IntLiteral(CST, right)
+                        is Double -> DoubleLiteral(CST, right)
+                        is Boolean -> BooleanLiteral(CST, right)
+                        is Char -> CharacterLiteral(CST, right)
+                        is String -> StringLiteral(CST, right)
                         else -> throw Exception("Cannot recognize type while declaring or assigning a variable")
                     }
                     return true

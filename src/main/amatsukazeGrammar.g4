@@ -154,7 +154,7 @@ declaration: constant_declaration # constantDecl
 
 code_block: '{' statements? '}';
 
-constant_declaration: 'let' pattern (':' type)? ('=' expression)?;
+constant_declaration: 'cst' pattern (':' type)? ('=' expression)?;
 
 variable_declaration: 'var' pattern (':' type)? '=' expression;
 

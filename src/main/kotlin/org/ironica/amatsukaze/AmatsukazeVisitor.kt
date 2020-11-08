@@ -41,7 +41,7 @@ data class StringL(override val variability: Variability, var content: String, o
 data class ReturnedL(val content: Any): Throwable()
 data class StructL(override val variability: Variability, var body: MutableMap<String, Literal>, override var prototype: Prototype): Literal()
 data class FunctionL(override val variability: Variability, var head: FuncHead, var body: ParseTree, var closureScope: List<Scope>, override var prototype: Prototype): Literal()
-data class ArrayL(override val variability: Variability, var subType: DataType, var content: MutableList<Literal> = mutableListOf<Literal>(), override var prototype: Prototype): Literal()
+data class ArrayL(override val variability: Variability, var subType: DataType, var content: MutableList<Literal> = mutableListOf(), override var prototype: Prototype): Literal()
 data class Prototype (
     val members: MutableMap<String, Literal>,
     override var prototype: Proto? = null,
@@ -49,7 +49,6 @@ data class Prototype (
 ): Proto()
 
 data class FuncHead(val name: String, val params: List<String>, val types: List<DataType>, val ret: DataType) {
-    var anonymousFun = 0
 
     fun pseudoEquals(other: Any?): Boolean {
         if (this === other) return true
@@ -61,10 +60,6 @@ data class FuncHead(val name: String, val params: List<String>, val types: List<
         if (types != other.types) return false
 
         return true
-    }
-
-    fun assignAnonymousOrder(): Int {
-        return anonymousFun++
     }
 
     override fun hashCode(): Int {
@@ -107,6 +102,12 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
     private var internalDepth = 0
     private val funcEntriesDepth = mutableListOf<Int>()
 
+    private val anonymousFuncIndices = mutableListOf(0)
+
+    private fun assignAnonymousFuncIndex(level: Int): Int {
+        return anonymousFuncIndices[level]++
+    }
+
     /*
         default: print, typeof
         Object -> toString
@@ -139,7 +140,7 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
     private fun assignVariable(left: Literal, right: Any): Literal {
         when (left) {
             is IntegerL -> {
-                if (left.variability == Variability.LET) throw Exception("Attempt modify constant")
+                if (left.variability == Variability.CST) throw Exception("Attempt modify constant")
                 when (right) {
                     is Int -> left.content = right
                     is IntegerL -> left.content = right.content
@@ -147,7 +148,7 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
                 }
             }
             is DoubleL -> {
-                if (left.variability == Variability.LET) throw Exception("Attempt modify constant")
+                if (left.variability == Variability.CST) throw Exception("Attempt modify constant")
                 when (right) {
                     is Double -> left.content = right
                     is DoubleL -> left.content = right.content
@@ -155,7 +156,7 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
                 }
             }
             is BooleanL -> {
-                if (left.variability == Variability.LET) throw Exception("Attempt modify constant")
+                if (left.variability == Variability.CST) throw Exception("Attempt modify constant")
                 when (right) {
                     is Boolean -> left.content = right
                     is BooleanL -> left.content = right.content
@@ -163,7 +164,7 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
                 }
             }
             is CharacterL -> {
-                if (left.variability == Variability.LET) throw Exception("Attempt modify constant")
+                if (left.variability == Variability.CST) throw Exception("Attempt modify constant")
                 when (right) {
                     is Pair<*, *>  -> {
                         if (right.second is _CHARACTER)
@@ -174,7 +175,7 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
                 }
             }
             is StringL -> {
-                if (left.variability == Variability.LET) throw Exception("Attempt modify constant")
+                if (left.variability == Variability.CST) throw Exception("Attempt modify constant")
                 when (right) {
                     is Pair<*, *>  -> {
                         if (right.second is _STRING)
@@ -185,14 +186,14 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
                 }
             }
             is StructL -> {
-                if (left.variability == Variability.LET) throw Exception("Attempt modify constant")
+                if (left.variability == Variability.CST) throw Exception("Attempt modify constant")
                 when (right) {
                     is StructL -> left.body = right.body
                     else -> throw Exception("Type of lhs and rhs of assignment don't match")
                 }
             }
             is FunctionL -> {
-                if (left.variability == Variability.LET) throw Exception("Attempt modify constant")
+                if (left.variability == Variability.CST) throw Exception("Attempt modify constant")
                 when (right) {
                     is FunctionL -> {
                         left.head = right.head
@@ -203,7 +204,7 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
                 }
             }
             is ArrayL -> {
-                if (left.variability == Variability.LET) throw Exception("Attempt modify constant")
+                if (left.variability == Variability.CST) throw Exception("Attempt modify constant")
                 when (right) {
                     is ArrayL -> {
                         if (left.subType.typeEquals(right.subType)) {
@@ -283,36 +284,36 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
             val checkedType = checkTypeEquality(type = type, right = right) ?: throw Exception("Declaration type check failed")
             return when (checkedType) {
                 _INT -> {
-                    if (constant) IntegerL(Variability.LET, (right as IntegerL).content, right.prototype)
+                    if (constant) IntegerL(Variability.CST, (right as IntegerL).content, right.prototype)
                     else IntegerL(Variability.VAR, (right as IntegerL).content, right.prototype)
                 }
                 _DOUBLE -> {
-                    if (constant) DoubleL(Variability.LET, (right as DoubleL).content, right.prototype)
+                    if (constant) DoubleL(Variability.CST, (right as DoubleL).content, right.prototype)
                     else DoubleL(Variability.VAR, (right as DoubleL).content, right.prototype)
                 }
                 _BOOL -> {
-                    if (constant) BooleanL(Variability.LET, (right as BooleanL).content, right.prototype)
+                    if (constant) BooleanL(Variability.CST, (right as BooleanL).content, right.prototype)
                     else BooleanL(Variability.VAR, (right as BooleanL).content, right.prototype)
                 }
                 _CHARACTER -> {
-                    if (constant) CharacterL(Variability.LET, (right as CharacterL).content, right.prototype)
+                    if (constant) CharacterL(Variability.CST, (right as CharacterL).content, right.prototype)
                     else CharacterL(Variability.VAR, (right as CharacterL).content, right.prototype)
                 }
                 _STRING -> {
-                    if (constant) StringL(Variability.LET, (right as StringL).content, right.prototype)
+                    if (constant) StringL(Variability.CST, (right as StringL).content, right.prototype)
                     else StringL(Variability.VAR, (right as StringL).content, right.prototype)
                 }
                 _STRUCT -> {
-                    if (constant) StructL(Variability.LET, (right as StructL).body, right.prototype)
+                    if (constant) StructL(Variability.CST, (right as StructL).body, right.prototype)
                     else StructL(Variability.VAR, (right as StructL).body, right.prototype)
                 }
                 _FUNCTION -> {
-                    if (constant) FunctionL(Variability.LET, (right as FunctionL).head, right.body, right.closureScope, right.prototype)
+                    if (constant) FunctionL(Variability.CST, (right as FunctionL).head, right.body, right.closureScope, right.prototype)
                     else FunctionL(Variability.VAR, (right as FunctionL).head, right.body, right.closureScope, right.prototype)
                 }
                 is _ARRAY -> {
-                    checkArrayType(checkedType.type, (right as ArrayL));
-                    if (constant) ArrayL(Variability.LET, checkedType.type, (right as ArrayL).content, right.prototype)
+                    checkArrayType(checkedType.type, (right as ArrayL))
+                    if (constant) ArrayL(Variability.CST, checkedType.type, (right as ArrayL).content, right.prototype)
                     else ArrayL(Variability.VAR, checkedType.type, (right as ArrayL).content, right.prototype)
                 }
                 else -> throw Exception("This could not happen")
@@ -320,37 +321,37 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
         } else {
             return when (right) {
                 is IntegerL -> {
-                    if (constant) IntegerL(Variability.LET, right.content, right.prototype)
+                    if (constant) IntegerL(Variability.CST, right.content, right.prototype)
                     else IntegerL(Variability.VAR, right.content, right.prototype)
                 }
                 is DoubleL -> {
-                    if (constant) DoubleL(Variability.LET, right.content, right.prototype)
+                    if (constant) DoubleL(Variability.CST, right.content, right.prototype)
                     else DoubleL(Variability.VAR, right.content, right.prototype)
                 }
                 is BooleanL -> {
-                    if (constant) BooleanL(Variability.LET, right.content, right.prototype)
+                    if (constant) BooleanL(Variability.CST, right.content, right.prototype)
                     else BooleanL(Variability.VAR, right.content, right.prototype)
                 }
                 is CharacterL -> {
-                    if (constant) CharacterL(Variability.LET, right.content, right.prototype)
+                    if (constant) CharacterL(Variability.CST, right.content, right.prototype)
                     else CharacterL(Variability.VAR, right.content, right.prototype)
                 }
                 is StringL -> {
-                    if (constant) StringL(Variability.LET, right.content, right.prototype)
+                    if (constant) StringL(Variability.CST, right.content, right.prototype)
                     else StringL(Variability.VAR, right.content, right.prototype)
                 }
                 is StructL -> {
-                    if (constant) StructL(Variability.LET, right.body, right.prototype)
+                    if (constant) StructL(Variability.CST, right.body, right.prototype)
                     else StructL(Variability.VAR, right.body, right.prototype)
                 }
                 is FunctionL -> {
-                    if (constant) FunctionL(Variability.LET, right.head, right.body, right.closureScope, right.prototype)
+                    if (constant) FunctionL(Variability.CST, right.head, right.body, right.closureScope, right.prototype)
                     else FunctionL(Variability.VAR, right.head, right.body, right.closureScope, right.prototype)
                 }
                 is ArrayL -> {
-                    val type = inferArrayType(right)
-                    if (constant) ArrayL(Variability.LET, type, right.content, right.prototype)
-                    else ArrayL(Variability.VAR, type, right.content, right.prototype)
+                    val inferredType = inferArrayType(right)
+                    if (constant) ArrayL(Variability.CST, inferredType, right.content, right.prototype)
+                    else ArrayL(Variability.VAR, inferredType, right.content, right.prototype)
                 }
             }
         }
@@ -449,12 +450,12 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
         if ((left is IntegerL || left is DoubleL) && (right is IntegerL || right is DoubleL)) {
             when (left) {
                 is IntegerL -> when (right) {
-                    is IntegerL -> return BooleanL(Variability.LET, if (ctx?.op?.type == amatsukazeGrammarParser.EQ) (left.content != 0) == (right.content != 0) else (left.content != 0) != (right.content != 0), typeTable["Bool"]!!)
-                    is DoubleL -> return BooleanL(Variability.LET, if (ctx?.op?.type == amatsukazeGrammarParser.EQ) (left.content != 0) == (right.content != 0.0) else (left.content != 0) != (right.content != 0.0), typeTable["Bool"]!!)
+                    is IntegerL -> return BooleanL(Variability.CST, if (ctx?.op?.type == amatsukazeGrammarParser.EQ) (left.content != 0) == (right.content != 0) else (left.content != 0) != (right.content != 0), typeTable["Bool"]!!)
+                    is DoubleL -> return BooleanL(Variability.CST, if (ctx?.op?.type == amatsukazeGrammarParser.EQ) (left.content != 0) == (right.content != 0.0) else (left.content != 0) != (right.content != 0.0), typeTable["Bool"]!!)
                 }
                 is DoubleL -> when (right) {
-                    is IntegerL -> return BooleanL(Variability.LET, if (ctx?.op?.type == amatsukazeGrammarParser.EQ) (left.content != 0.0) == (right.content != 0) else (left.content != 0.0) != (right.content != 0), typeTable["Bool"]!!)
-                    is DoubleL -> return BooleanL(Variability.LET, if (ctx?.op?.type == amatsukazeGrammarParser.EQ) (left.content != 0.0) == (right.content != 0.0) else (left.content != 0.0) != (right.content != 0.0), typeTable["Bool"]!!)
+                    is IntegerL -> return BooleanL(Variability.CST, if (ctx?.op?.type == amatsukazeGrammarParser.EQ) (left.content != 0.0) == (right.content != 0) else (left.content != 0.0) != (right.content != 0), typeTable["Bool"]!!)
+                    is DoubleL -> return BooleanL(Variability.CST, if (ctx?.op?.type == amatsukazeGrammarParser.EQ) (left.content != 0.0) == (right.content != 0.0) else (left.content != 0.0) != (right.content != 0.0), typeTable["Bool"]!!)
                 }
             }
         }
@@ -471,7 +472,7 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
         if (!(left[0].isLetter() || left[0] == '_')) throw Exception("Illegal variable name")
         var right = visit(ctx?.expression())
         if (right is BooleanL) {
-            val newright = if (right.content) IntegerL(Variability.LET, 1, typeTable["Integer"]!!) else IntegerL(Variability.LET, 0, typeTable["Integer"]!!)
+            val newright = if (right.content) IntegerL(Variability.CST, 1, typeTable["Integer"]!!) else IntegerL(Variability.CST, 0, typeTable["Integer"]!!)
             right = newright
         }
         val lvar = queryVariableTable(left)
@@ -479,22 +480,22 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
         if (!checkTypeOfLiteralsIdentical(lvar.first as Literal, right as Literal)) throw Exception("Type mismatch")
         val new: Literal = when (val old = lvar.first) {
             is IntegerL -> when (ctx?.op?.type) {
-                amatsukazeGrammarParser.ADDEQ -> IntegerL(Variability.LET, old.content + (right as IntegerL).content, typeTable["Integer"]!!)
-                amatsukazeGrammarParser.SUBEQ -> IntegerL(Variability.LET, old.content - (right as IntegerL).content, typeTable["Integer"]!!)
-                amatsukazeGrammarParser.MULEQ -> IntegerL(Variability.LET, old.content * (right as IntegerL).content, typeTable["Integer"]!!)
-                amatsukazeGrammarParser.DIVEQ -> IntegerL(Variability.LET, old.content / (right as IntegerL).content, typeTable["Integer"]!!)
-                else -> IntegerL(Variability.LET, old.content % (right as IntegerL).content, typeTable["Integer"]!!)
+                amatsukazeGrammarParser.ADDEQ -> IntegerL(Variability.CST, old.content + (right as IntegerL).content, typeTable["Integer"]!!)
+                amatsukazeGrammarParser.SUBEQ -> IntegerL(Variability.CST, old.content - (right as IntegerL).content, typeTable["Integer"]!!)
+                amatsukazeGrammarParser.MULEQ -> IntegerL(Variability.CST, old.content * (right as IntegerL).content, typeTable["Integer"]!!)
+                amatsukazeGrammarParser.DIVEQ -> IntegerL(Variability.CST, old.content / (right as IntegerL).content, typeTable["Integer"]!!)
+                else -> IntegerL(Variability.CST, old.content % (right as IntegerL).content, typeTable["Integer"]!!)
             }
             is DoubleL -> when (ctx?.op?.type) {
-                amatsukazeGrammarParser.ADDEQ -> DoubleL(Variability.LET, old.content + (right as DoubleL).content, typeTable["Double"]!!)
-                amatsukazeGrammarParser.SUBEQ -> DoubleL(Variability.LET, old.content - (right as DoubleL).content, typeTable["Double"]!!)
-                amatsukazeGrammarParser.MULEQ -> DoubleL(Variability.LET, old.content * (right as DoubleL).content, typeTable["Double"]!!)
-                amatsukazeGrammarParser.DIVEQ -> DoubleL(Variability.LET, old.content / (right as DoubleL).content, typeTable["Double"]!!)
-                else -> DoubleL(Variability.LET, old.content % (right as IntegerL).content, typeTable["Double"]!!)
+                amatsukazeGrammarParser.ADDEQ -> DoubleL(Variability.CST, old.content + (right as DoubleL).content, typeTable["Double"]!!)
+                amatsukazeGrammarParser.SUBEQ -> DoubleL(Variability.CST, old.content - (right as DoubleL).content, typeTable["Double"]!!)
+                amatsukazeGrammarParser.MULEQ -> DoubleL(Variability.CST, old.content * (right as DoubleL).content, typeTable["Double"]!!)
+                amatsukazeGrammarParser.DIVEQ -> DoubleL(Variability.CST, old.content / (right as DoubleL).content, typeTable["Double"]!!)
+                else -> DoubleL(Variability.CST, old.content % (right as IntegerL).content, typeTable["Double"]!!)
             }
             is StringL -> {
                 if (ctx?.op?.type == amatsukazeGrammarParser.ADDEQ)
-                    StringL(Variability.LET, old.content + (right as StringL).content, typeTable["String"]!!)
+                    StringL(Variability.CST, old.content + (right as StringL).content, typeTable["String"]!!)
                 else throw Exception("Arithmetic assignment: unsupported operation")
             }
             else -> throw Exception("Arithmetic assignment: unsupported type")
@@ -512,7 +513,7 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
         if (left is DoubleL) leftctn = left.content
         if (right is IntegerL) rightctn = right.content.toDouble()
         if (right is DoubleL) rightctn = right.content
-        return DoubleL(Variability.LET, leftctn.pow(rightctn), typeTable["Double"]!!)
+        return DoubleL(Variability.CST, leftctn.pow(rightctn), typeTable["Double"]!!)
     }
 
     override fun visitAddSubExpr(ctx: amatsukazeGrammarParser.AddSubExprContext?): Any {
@@ -545,13 +546,13 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
                     amatsukazeGrammarParser.ADD -> lcontentDbl + rcontentDbl + lcontentInt + rcontentInt
                     else -> lcontentDbl + lcontentInt  - rcontentDbl - rcontentInt
                 }
-                return DoubleL(Variability.LET, ans, typeTable["Double"]!!)
+                return DoubleL(Variability.CST, ans, typeTable["Double"]!!)
             } else {
                 val ans = when (ctx?.op?.type) {
                     amatsukazeGrammarParser.ADD -> lcontentInt + rcontentInt
                     else -> lcontentInt  - rcontentInt
                 }
-                return IntegerL(Variability.LET, ans, typeTable["Integer"]!!)
+                return IntegerL(Variability.CST, ans, typeTable["Integer"]!!)
             }
         }
         if ((left is StringL || left is CharacterL) && (right is StringL || right is CharacterL)) {
@@ -562,14 +563,26 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
                 if (left is CharacterL) leftctn = left.content.toString()
                 if (right is StringL) rightctn = right.content
                 if (right is CharacterL) rightctn = right.content.toString()
-                return StringL(Variability.LET, leftctn + rightctn, typeTable["String"]!!)
+                return StringL(Variability.CST, leftctn + rightctn, typeTable["String"]!!)
             }
         }
         throw Exception("AddSub: on unsupported type")
     }
 
+    private fun handleFunctionCall(
+        func: amatsukazeGrammarParser.Function_call_expressionContext,
+        vari: amatsukazeGrammarParser.Variable_expressionContext? = null
+    ): Any {
+        if (vari == null) {
+
+        } else {
+
+        }
+        TODO("Delegated Function Call Handler, not yet implemented")
+    }
+
     override fun visitFunction_call(ctx: amatsukazeGrammarParser.Function_callContext?): Any {
-        TODO("Not yet implemented")
+        return handleFunctionCall(ctx?.function_call_expression()!!)
     }
 
     override fun visitMemberExpr(ctx: amatsukazeGrammarParser.MemberExprContext?): Any {
@@ -592,7 +605,7 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
                 amatsukazeGrammarParser.GEQ -> lvalue >= rvalue
                 else -> lvalue <= rvalue
             }
-            return BooleanL(Variability.LET, ret, typeTable["Bool"]!!)
+            return BooleanL(Variability.CST, ret, typeTable["Bool"]!!)
         }
         throw Exception("Arithmetic comparable expression on unsupported type")
     }
@@ -632,14 +645,14 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
                     amatsukazeGrammarParser.DIV -> lcontentDbl * lcontentInt / rcontentDbl / rcontentInt
                     else -> (lcontentDbl * lcontentInt) % (rcontentDbl * rcontentInt)
                 }
-                return DoubleL(Variability.LET, ans, typeTable["Double"]!!)
+                return DoubleL(Variability.CST, ans, typeTable["Double"]!!)
             } else {
                 val ans = when (ctx?.op?.type) {
                     amatsukazeGrammarParser.MUL -> lcontentInt * rcontentInt
                     amatsukazeGrammarParser.DIV -> lcontentInt / rcontentInt
                     else -> lcontentInt % rcontentInt
                 }
-                return IntegerL(Variability.LET, ans, typeTable["Double"]!!)
+                return IntegerL(Variability.CST, ans, typeTable["Double"]!!)
             }
         }
         throw Exception("MulDivMod: on unsupported type")
@@ -661,7 +674,7 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
         if (right is IntegerL) rightctn = right.content != 0
         if (left is DoubleL) leftctn = left.content != 0.0
         if (right is DoubleL) rightctn = right.content != 0.0
-        return BooleanL(Variability.LET, if (ctx?.op?.type == amatsukazeGrammarParser.AND) leftctn && rightctn else leftctn || rightctn, typeTable["Bool"]!!)
+        return BooleanL(Variability.CST, if (ctx?.op?.type == amatsukazeGrammarParser.AND) leftctn && rightctn else leftctn || rightctn, typeTable["Bool"]!!)
     }
 
     override fun visitExprFuncDeclExpr(ctx: amatsukazeGrammarParser.ExprFuncDeclExprContext?): Any {
@@ -723,18 +736,18 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
 
     override fun visitLiteral_expression(ctx: amatsukazeGrammarParser.Literal_expressionContext?): Any {
         return when(val content = visit(ctx?.getChild(0))) {
-            is Int -> IntegerL(Variability.LET, content, typeTable["Integer"]!!)
-            is Double -> DoubleL(Variability.LET, content, typeTable["Double"]!!)
-            is Boolean -> BooleanL(Variability.LET, content, typeTable["Bool"]!!)
+            is Int -> IntegerL(Variability.CST, content, typeTable["Integer"]!!)
+            is Double -> DoubleL(Variability.CST, content, typeTable["Double"]!!)
+            is Boolean -> BooleanL(Variability.CST, content, typeTable["Bool"]!!)
             is Pair<*, *> ->
                 when (content.second) {
-                    _STRING -> StringL(Variability.LET, content.first as String, typeTable["String"]!!)
-                    _CHARACTER -> CharacterL(Variability.LET, content.first as Char, typeTable["Character"]!!)
+                    _STRING -> StringL(Variability.CST, content.first as String, typeTable["String"]!!)
+                    _CHARACTER -> CharacterL(Variability.CST, content.first as Char, typeTable["Character"]!!)
                     else -> throw Exception("This cannot happen.")
                 }
             is Array<*> -> {
                 content as Array<Literal>
-                ArrayL(Variability.LET, inferPrimaryToArrayType(content), content.toMutableList(), typeTable["Array"]!!)
+                ArrayL(Variability.CST, inferPrimaryToArrayType(content), content.toMutableList(), typeTable["Array"]!!)
             }
             else -> content as Literal
         }
@@ -747,7 +760,7 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
         } else {
             val array = Array<Literal?>(ctx?.childCount!! / 2) { null }
             val variability =
-                if (visit(ctx?.parent?.parent?.parent?.getChild(0)) == "let") Variability.LET else Variability.VAR
+                if (visit(ctx?.parent?.parent?.parent?.getChild(0)) == "let") Variability.CST else Variability.VAR
             for (i in 0 until ctx.childCount / 2) {
                 array[i] = when (val content = visit(ctx.getChild(i * 2 + 1))) {
                     is IntegerL -> IntegerL(variability, content.content, content.prototype)
@@ -1163,7 +1176,7 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
     }
 
     override fun visitFuncExpMemberExpr(ctx: amatsukazeGrammarParser.FuncExpMemberExprContext?): Any {
-        TODO("Not yet implemented")
+        return handleFunctionCall(ctx?.function_call_expression()!!, ctx.variable_expression())
     }
 
     override fun visitMemberOfFuncCallExpr(ctx: amatsukazeGrammarParser.MemberOfFuncCallExprContext?): Any {
