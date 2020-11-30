@@ -1062,8 +1062,19 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
         }
     }
 
-    override fun visitFunction_declaration(ctx: amatsukazeGrammarParser.Function_declarationContext?): Any {
+    private fun handleFunctionDeclaration(name: amatsukazeGrammarParser.Function_nameContext?,
+                                          signature: amatsukazeGrammarParser.Function_signatureContext,
+                                          body: amatsukazeGrammarParser.Function_bodyContext): Any {
+        if (name == null) {
+
+        } else {
+
+        }
         TODO("Not yet implemented")
+    }
+
+    override fun visitFunction_declaration(ctx: amatsukazeGrammarParser.Function_declarationContext?): Any {
+        return handleFunctionDeclaration(ctx!!.function_name(), ctx.function_signature(), ctx.function_body())
     }
 
     override fun visitFunction_name(ctx: amatsukazeGrammarParser.Function_nameContext?): Any {
@@ -1083,11 +1094,11 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
     }
 
     override fun visitExpressional_function_declaration(ctx: amatsukazeGrammarParser.Expressional_function_declarationContext?): Any {
-        TODO("Not yet implemented")
+        return if (ctx?.function_declaration() == null) visit(ctx?.arrowfun_declaration()) else visit(ctx?.function_declaration())
     }
 
     override fun visitArrowfun_declaration(ctx: amatsukazeGrammarParser.Arrowfun_declarationContext?): Any {
-        TODO("Not yet implemented")
+        return handleFunctionDeclaration(null, ctx!!.function_signature(), ctx.function_body())
     }
 
     override fun visitParameter_clause(ctx: amatsukazeGrammarParser.Parameter_clauseContext?): Any {

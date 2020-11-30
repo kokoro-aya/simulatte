@@ -62,13 +62,13 @@ assignment_expression: pattern '=' expression;
 
 literal_expression: literal | array_literal;
 
-array_literal: '{}' | '{' array_literal_item (',' array_literal_item)* '}';
+array_literal: '[]' | '[' array_literal_item (',' array_literal_item)* ']';
 array_literal_item: expression;
 
 member_expression: explicit_member_expression;
-explicit_member_expression: variable_expression '.' IDENTIFIER               # namedExpMemberExpr
+explicit_member_expression: variable_expression '.' function_call_expression # funcExpMemberExpr
+                          | variable_expression '.' IDENTIFIER               # namedExpMemberExpr
                           | variable_expression '.' DECIMAL_LITERAL          # numberedExpMemberExpr
-                          | variable_expression '.' function_call_expression # funcExpMemberExpr
                           | explicit_member_expression '.' IDENTIFIER        # recursiveExpMemberExpr
                           | function_call_expression '.' IDENTIFIER          # memberOfFuncCallExpr
                           ;
@@ -161,13 +161,13 @@ variable_declaration: 'var' pattern (':' type)? '=' expression;
 function_declaration: 'func' GENERATOR_IDENT? function_name? function_signature function_body;
 function_name: IDENTIFIER;
 function_signature: parameter_clause function_result_type?;
-function_result_type: ARROW type;
+function_result_type: ':' type;
 function_body: code_block;
 ARROW: '->';
 GENERATOR_IDENT: '**';
 
-expressional_function_declaration: function_declaration;
-arrowfun_declaration: function_signature '=>' function_body;
+expressional_function_declaration: function_declaration | arrowfun_declaration;
+arrowfun_declaration: function_signature ARROW function_body;
 
 parameter_clause: '()' | '(' parameter_list ')';
 parameter_list: '&'? parameter (',' '&'? parameter)*;
