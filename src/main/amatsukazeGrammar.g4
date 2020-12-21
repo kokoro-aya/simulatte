@@ -55,7 +55,7 @@ expression: assignment_expression                       # assignmentExpr
           | expression op=(EQ | NEQ) expression         # boolComparativeExpr
           | pattern op=(MULEQ | DIVEQ | MODEQ | ADDEQ | SUBEQ) expression # ariAssignmentExpr
           | '(' expression ')'                          # parenthesisExpr
-          | expression op=(UNTIL | THROUGH) expression  # rangeExpression
+          | expression op=(UNTIL | THROUGH | DUNTIL | DTHROUGH) expression (STEP expression)?  # rangeExpression
           ;
 
 assignment_expression: pattern '=' expression;
@@ -103,6 +103,9 @@ NOT: '!';
 
 UNTIL: '..<';
 THROUGH: '...';
+DUNTIL: '>>.';
+DTHROUGH: '>..';
+STEP: '@';
 
 dot_operator: '.' IDENTIFIER;
 
@@ -170,9 +173,11 @@ expressional_function_declaration: function_declaration | arrowfun_declaration;
 arrowfun_declaration: function_signature ARROW function_body;
 
 parameter_clause: '()' | '(' parameter_list ')';
-parameter_list: '&'? parameter (',' '&'? parameter)*;
-parameter: param_name type_annotation;
+parameter_list: parameter (',' parameter)*;
+parameter: REF? param_name type_annotation;
 param_name: IDENTIFIER;
+
+REF: '&';
 
 enum_declaration: 'enum' enum_name '{' enum_members+ '}';
 enum_name: IDENTIFIER;

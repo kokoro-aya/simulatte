@@ -9,22 +9,39 @@ import playgroundGrammarLexer
 import playgroundGrammarParser
 
 @Serializable
-data class Data(val code: String, val grid: Array<Array<String>>)
+data class PlayerData(val id: Int, val x: Int, val y: Int, val dir: String)
+
+@Serializable
+data class Data(val code: String, val grid: Array<Array<String>>, val layout: Array<Array<String>>, val players: Array<PlayerData>)
 
 fun convertJsonToGrid(array: Array<Array<String>>): Grid {
     return array.map { it.map { when (it) {
         "OPEN" -> Block.OPEN
         "BLOCKED" -> Block.BLOCKED
-        "GEM" -> Block.GEM
-        "OPENEDSWITCH" -> Block.OPENEDSWITCH
-        "CLOSEDSWITCH" -> Block.CLOSEDSWITCH
+        "WATER" -> Block.WATER
+        "TREE" -> Block.TREE
+        "DESERT" -> Block.DESERT
+        "HOME" -> Block.HOME
         else -> throw Exception("Cannot parse data to grid")
     } }.toTypedArray() }.toTypedArray()
 }
 
-fun calculateInitialGem(grid: Grid): Int = grid.flatten().filter { it == Block.GEM }.size
+fun convertJsonToLayout(array: Array<Array<String>>): Layout {
+    return array.map { it.map { when (it) {
+        "NONE" -> Item.NONE
+        "GEM" -> Item.GEM
+        "BEEPER" -> Item.BEEPER
+        "OPENEDSWITCH" -> Item.OPENEDSWITCH
+        "CLOSEDSWITCH" -> Item.CLOSEDSWITCH
+        else -> throw Exception("Cannot parse data to layout")
+    } }.toTypedArray()}.toTypedArray()
+}
 
-class PlaygroundInterface(code: String, grid: Grid) {
+fun convertJsonToPlayers(array: Array<>)
+
+fun calculateInitialGem(layout: Layout): Int = layout.flatten().filter { it == Item.GEM }.size
+
+class PlaygroundInterface(code: String, grid: Grid, layout: Layout) {
     private val input: CharStream = CharStreams.fromString(code)
     private val lexer = playgroundGrammarLexer(input)
     private val tokens = CommonTokenStream(lexer)
@@ -34,7 +51,7 @@ class PlaygroundInterface(code: String, grid: Grid) {
         Coordinate(0, 0),
         Direction.RIGHT
     )
-    val playground = Playground(grid, player, calculateInitialGem(grid))
+    val playground = Playground(grid, layout, arrayOf(player), calculateInitialGem(layout))
     private val manager = PlaygroundManager(playground)
     private val exec = PlaygroundVisitor(manager)
     fun start() {

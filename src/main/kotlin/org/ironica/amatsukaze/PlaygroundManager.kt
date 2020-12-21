@@ -2,6 +2,8 @@ package org.ironica.amatsukaze
 
 class PlaygroundManager(val playground: Playground) {
 
+
+
     private var consoleLog = ""
     private var special = ""
 

@@ -16,7 +16,7 @@ fun Route.getPlaygroundRoute() {
         post {
             val data = call.receive<Data>()
             payloadStorage.clear()
-            val playgroundInterface = PlaygroundInterface(data.code, convertJsonToGrid(data.grid))
+            val playgroundInterface = PlaygroundInterface(data.code, convertJsonToGrid(data.grid), convertJsonToLayout(data.layout))
             try {
                 playgroundInterface.start()
                 val moves = payloadStorage

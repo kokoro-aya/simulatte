@@ -48,7 +48,7 @@ data class Prototype (
     var ctor: Literal? = null
 ): Proto()
 
-data class FuncHead(val name: String, val params: List<String>, val types: List<DataType>, val ret: DataType) {
+data class FuncHead(val name: String, val params: List<String>, val types: List<DataType>, val refs: List<Boolean>, val ret: DataType) {
 
     fun pseudoEquals(other: Any?): Boolean {
         if (this === other) return true
@@ -57,6 +57,7 @@ data class FuncHead(val name: String, val params: List<String>, val types: List<
         other as FuncHead
 
         if (name != other.name) return false
+        if (refs != other.refs) return false
         if (types != other.types) return false
 
         return true
@@ -77,6 +78,7 @@ data class FuncHead(val name: String, val params: List<String>, val types: List<
         if (name != other.name) return false
         if (params != other.params) return false
         if (types != other.types) return false
+        if (refs != other.refs) return false
         if (ret != other.ret) return false
 
         return true
@@ -96,11 +98,13 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
         "Function" to Prototype(mutableMapOf()), "Array" to Prototype(mutableMapOf())
     )
 
-    private var inFunc = false
-    private var currentFunc = -1
+    private var inFunc = mutableListOf<Boolean>()
+    private var currentFunc = 0
     private var externalDepth = 0
     private var internalDepth = 0
     private val funcEntriesDepth = mutableListOf<Int>()
+
+    private val functionTable = mutableMapOf<FuncHead, Pair<ParseTree, Int>>()
 
     private val anonymousFuncIndices = mutableListOf(0)
 
@@ -109,7 +113,7 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
     }
 
     /*
-        default: print, typeof
+        default: print, typeof, isSame(a, b)
         Object -> toString
         String -> size, replace, subStr, toCharArray
         Boolean -> not, and, or, xor
@@ -426,6 +430,7 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
         return visit(ctx?.assignment_expression())
     }
 
+    // TODO need to rewrite this
     override fun visitBoolComparativeExpr(ctx: amatsukazeGrammarParser.BoolComparativeExprContext?): Any {
         val left = visit(ctx?.expression(0))
         val right = visit(ctx?.expression(1))
@@ -438,7 +443,7 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
                 is IntegerL -> right.content = if (ctx?.op?.type == amatsukazeGrammarParser.EQ) (left.content != 0) == right.content else (left.content != 0) != right
                 is DoubleL -> right.content = if (ctx?.op?.type == amatsukazeGrammarParser.EQ) (left.content != 0.0) == right.content else (left.content != 0.0) != right
             }
-            return right
+            return right // bad idea to modify right or left
         }
         if (left is BooleanL && (right is IntegerL || right is DoubleL)) {
             when (right) {
@@ -457,7 +462,7 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
                     is IntegerL -> return BooleanL(Variability.CST, if (ctx?.op?.type == amatsukazeGrammarParser.EQ) (left.content != 0.0) == (right.content != 0) else (left.content != 0.0) != (right.content != 0), typeTable["Bool"]!!)
                     is DoubleL -> return BooleanL(Variability.CST, if (ctx?.op?.type == amatsukazeGrammarParser.EQ) (left.content != 0.0) == (right.content != 0.0) else (left.content != 0.0) != (right.content != 0.0), typeTable["Bool"]!!)
                 }
-            }
+            } // Looks like a mess
         }
         TODO("Equality test for function, struct and array")
         throw Exception("Boolean comparative expression on unsupported type")
@@ -686,7 +691,53 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
     }
 
     override fun visitRangeExpression(ctx: amatsukazeGrammarParser.RangeExpressionContext?): Any {
-        TODO("Not yet implemented")
+        try {
+            val lowerLiteral = visit(ctx?.expression(0))
+            val upperLiteral = visit(ctx?.expression(1))
+            var upper: Int
+            var lower: Int
+            upper = if (upperLiteral is IntegerL) {
+                upperLiteral.content
+            } else {
+                (visit(ctx?.expression(1)) as IntegerL).content
+            }
+            lower = if (lowerLiteral is IntegerL) {
+                lowerLiteral.content
+            } else {
+                (visit(ctx?.expression(0)) as IntegerL).content
+            }
+            if (ctx?.op?.type == amatsukazeGrammarParser.UNTIL) {
+                if (ctx?.STEP() == null) {
+                    return (lower until upper)
+                }
+                val steps = (visit(ctx.expression(2)) as IntegerL).content
+                return (lower until upper step steps)
+            }
+            if (ctx?.op?.type == amatsukazeGrammarParser.THROUGH) {
+                if (ctx?.STEP() == null) {
+                    return (lower..upper)
+                }
+                val steps = (visit(ctx.expression(2)) as IntegerL).content
+                return (lower .. upper step steps)
+            }
+            if (ctx?.op?.type == amatsukazeGrammarParser.DUNTIL) {
+                if (ctx?.STEP() == null) {
+                    return (lower downTo upper + 1)
+                }
+                val steps = (visit(ctx.expression(2)) as IntegerL).content
+                return (lower downTo upper + 1 step steps)
+            }
+            if (ctx?.op?.type == amatsukazeGrammarParser.DTHROUGH) {
+                if (ctx?.STEP() == null) {
+                    return (lower downTo upper)
+                }
+                val steps = (visit(ctx.expression(2)) as IntegerL).content
+                return (lower downTo upper step steps)
+            }
+            throw Exception("Range expression on unsupported values")
+        } catch (e: Exception) {
+            throw Exception("Something goes wrong within range expression:\n    ${e.message}")
+        }
     }
 
     override fun visitSubscriExpr(ctx: amatsukazeGrammarParser.SubscriExprContext?): Any {
@@ -857,14 +908,14 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
 
     override fun visitStatements(ctx: amatsukazeGrammarParser.StatementsContext?): Any {
         try {
-            if (inFunc) internalDepth += 1 else externalDepth += 1
+            if (inFunc.isNotEmpty()) internalDepth += 1 else externalDepth += 1
             var ret: Any = SpecialRetVal.Statements
             for (child in ctx?.children!!) {
                 if (_break || _continue)
                     break
                 ret = visit(child)
             }
-            if (inFunc) {
+            if (inFunc.isNotEmpty()) {
                 internalVariableDepth.filter { it.value == internalDepth }.keys.forEach { name -> internalVariables[currentFunc].remove(name) }
                 internalVariableDepth.filter { it.value == internalDepth }.keys.forEach { name -> internalVariableDepth.remove(name) }
                 internalDepth -= 1
@@ -893,13 +944,34 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
 
     override fun visitFor_in_statement(ctx: amatsukazeGrammarParser.For_in_statementContext?): Any {
         try {
-            val range = visit(ctx?.expression()) as IntRange
+            val preRange = visit(ctx?.expression())
+            var range: Array<Any> = (0 .. 0).toList().toTypedArray()
+            when (preRange) {
+                is IntRange -> range = preRange.toList().toTypedArray()
+                is ArrayL -> {
+                    range = preRange.content.toTypedArray()
+                }
+                is String -> {
+                    val literal = queryVariableTable(preRange).first ?: throw Exception("Variable not found")
+                    if (literal is ArrayL) {
+                        range = literal.content.toTypedArray()
+                    }
+                }
+            }
+            // Future possibility: range of an object
             val pattern = visit(ctx?.pattern()) as String
             // println(range)
             for (x in range) {
                 if (pattern != "_") {
-                    variableTable[pattern] = IntegerL(Variability.VAR, x, typeTable["Integer"]!!)
-                    // TODO this might cause problem if the pattern shallows another variable in the outer scope?
+                    when (x) {
+                        is Int -> variableTable[pattern] = IntegerL(Variability.VAR, x, typeTable["Integer"]!!)
+                        is Double -> variableTable[pattern] = DoubleL(Variability.VAR, x, typeTable["Double"]!!)
+                        is String -> variableTable[pattern] = StringL(Variability.VAR, x, typeTable["String"]!!)
+                        is Char -> variableTable[pattern] = CharacterL(Variability.VAR, x, typeTable["Character"]!!)
+                        is Boolean -> variableTable[pattern] = BooleanL(Variability.VAR, x, typeTable["Bool"]!!)
+                        else -> throw Exception("Unsupported operation on for-in statement")
+                        // TODO this might cause problem if the pattern shallows another variable in the outer scope?
+                    }
                 }
                 if (_break) {
                     _break = false
@@ -1062,15 +1134,42 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
         }
     }
 
-    private fun handleFunctionDeclaration(name: amatsukazeGrammarParser.Function_nameContext?,
-                                          signature: amatsukazeGrammarParser.Function_signatureContext,
-                                          body: amatsukazeGrammarParser.Function_bodyContext): Any {
-        if (name == null) {
-
-        } else {
-
+    private fun handleFunctionDeclaration(nameNode: amatsukazeGrammarParser.Function_nameContext?,
+                                          signatureNode: amatsukazeGrammarParser.Function_signatureContext,
+                                          bodyNode: amatsukazeGrammarParser.Function_bodyContext): Any {
+        try {
+            val functionSignature = visit(signatureNode) as Pair<List<Triple<String, DataType, Boolean>>, DataType>
+            if (nameNode == null) {
+                val funcHead = FuncHead(
+                    "$#${assignAnonymousFuncIndex(currentFunc)}",
+                    functionSignature.first.map { it.first },
+                    functionSignature.first.map { it.second },
+                    functionSignature.first.map { it.third },
+                    functionSignature.second
+                )
+                for (key in functionTable.keys) {
+                    if (funcHead.pseudoEquals(key))
+                        throw Exception("Redefined function!")
+                }
+                functionTable[funcHead] = bodyNode to currentFunc
+                return funcHead
+            } else {
+                val funcHead = FuncHead(
+                    visit(nameNode) as String,
+                    functionSignature.first.map { it.first },
+                    functionSignature.first.map { it.second },
+                    functionSignature.first.map { it.third },
+                    functionSignature.second
+                )
+                for (key in functionTable.keys)
+                    if (funcHead.pseudoEquals(key))
+                        throw Exception("Redefined function!")
+                functionTable[funcHead] = bodyNode to currentFunc
+                return funcHead
+            }
+        } catch (e: Exception) {
+            throw Exception("Encountered error within function declaration: \n    ${e.message}")
         }
-        TODO("Not yet implemented")
     }
 
     override fun visitFunction_declaration(ctx: amatsukazeGrammarParser.Function_declarationContext?): Any {
@@ -1078,23 +1177,25 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
     }
 
     override fun visitFunction_name(ctx: amatsukazeGrammarParser.Function_nameContext?): Any {
-        TODO("Not yet implemented")
+        return ctx?.IDENTIFIER().toString()
     }
 
     override fun visitFunction_signature(ctx: amatsukazeGrammarParser.Function_signatureContext?): Any {
-        TODO("Not yet implemented")
+        val paramClause = visit(ctx?.parameter_clause()) as List<Triple<String, DataType, Boolean>>
+        val resultType = if (ctx?.childCount == 1) _VOID else visit(ctx?.function_result_type())
+        return paramClause to resultType as Pair<List<Triple<String, DataType, Boolean>>, DataType>
     }
 
     override fun visitFunction_result_type(ctx: amatsukazeGrammarParser.Function_result_typeContext?): Any {
-        TODO("Not yet implemented")
+        return visit(ctx?.type())
     }
 
     override fun visitFunction_body(ctx: amatsukazeGrammarParser.Function_bodyContext?): Any {
-        TODO("Not yet implemented")
+        return visit(ctx?.code_block())
     }
 
     override fun visitExpressional_function_declaration(ctx: amatsukazeGrammarParser.Expressional_function_declarationContext?): Any {
-        return if (ctx?.function_declaration() == null) visit(ctx?.arrowfun_declaration()) else visit(ctx?.function_declaration())
+        return if (ctx?.function_declaration() == null) visit(ctx?.arrowfun_declaration()) else visit(ctx.function_declaration())
     }
 
     override fun visitArrowfun_declaration(ctx: amatsukazeGrammarParser.Arrowfun_declarationContext?): Any {
@@ -1102,19 +1203,20 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
     }
 
     override fun visitParameter_clause(ctx: amatsukazeGrammarParser.Parameter_clauseContext?): Any {
-        TODO("Not yet implemented")
+        return visit(ctx?.parameter_list())
     }
 
     override fun visitParameter_list(ctx: amatsukazeGrammarParser.Parameter_listContext?): Any {
-        TODO("Not yet implemented")
+        return ctx?.children?.map { visit(it) }!!
     }
 
     override fun visitParameter(ctx: amatsukazeGrammarParser.ParameterContext?): Any {
-        TODO("Not yet implemented")
+        val ref = ctx?.REF() != null
+        return Triple(visit(ctx?.param_name()), visit(ctx?.type_annotation()), ref) as Triple<String, DataType, Boolean>
     }
 
     override fun visitParam_name(ctx: amatsukazeGrammarParser.Param_nameContext?): Any {
-        TODO("Not yet implemented")
+        return ctx?.IDENTIFIER().toString()
     }
 
     override fun visitEnum_declaration(ctx: amatsukazeGrammarParser.Enum_declarationContext?): Any {
@@ -1162,7 +1264,7 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
     }
 
     override fun visitType_annotation(ctx: amatsukazeGrammarParser.Type_annotationContext?): Any {
-        TODO("Not yet implemented")
+        return visit(ctx?.type())
     }
 
     override fun visitPattern(ctx: amatsukazeGrammarParser.PatternContext?): Any {
