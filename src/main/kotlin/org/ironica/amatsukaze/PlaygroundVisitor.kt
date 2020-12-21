@@ -461,13 +461,13 @@ class PlaygroundVisitor(private val manager: PlaygroundManager): playgroundGramm
                 if (ctx?.childCount == 2) listOf() else visit(ctx?.call_argument_clause()) as List<TypedArgum>
             val functionHead = FunctionHead(functionName, listOf(), funcArgument.map { it.second }, CALL)
             if (functionHead.name == "moveForward" && functionHead.types.isEmpty()) {
-                return manager.moveForward()
+                return manager.moveForward(0)
             } else if (functionHead.name == "turnLeft" && functionHead.types.isEmpty()) {
-                return manager.turnLeft()
+                return manager.turnLeft(0)
             } else if (functionHead.name == "toggleSwitch" && functionHead.types.isEmpty()) {
-                return manager.toggleSwitch()
+                return manager.toggleSwitch(0)
             } else if (functionHead.name == "collectGem" && functionHead.types.isEmpty()) {
-                return manager.collectGem()
+                return manager.collectGem(0)
             } else if (functionHead.name == "print") {
                 manager.print(funcArgument.map{ if (it.first is String && (it.first as String)[0] == '"') (it.first as String).substring(1, (it.first as String).length - 1) else it.first.toString() })
                 return Empty
@@ -775,13 +775,13 @@ class PlaygroundVisitor(private val manager: PlaygroundManager): playgroundGramm
 
     override fun visitVariable_expression(ctx: playgroundGrammarParser.Variable_expressionContext?): Any {
         return when (val name = visit(ctx?.IDENTIFIER()).toString()) {
-            "isOnGem" -> manager.isOnGem()
-            "isOnOpenedSwitch" -> manager.isOnOpenedSwitch()
-            "isOnClosedSwitch" -> manager.isOnClosedSwitch()
-            "isBlocked" -> manager.isBlocked()
-            "isBlockedLeft" -> manager.isBlockedLeft()
-            "isBlockedRight" -> manager.isBlockedRight()
-            "collectedGem" -> manager.collectedGem
+            "isOnGem" -> manager.isOnGem(0)
+            "isOnOpenedSwitch" -> manager.isOnOpenedSwitch(0)
+            "isOnClosedSwitch" -> manager.isOnClosedSwitch(0)
+            "isBlocked" -> manager.isBlocked(0)
+            "isBlockedLeft" -> manager.isBlockedLeft(0)
+            "isBlockedRight" -> manager.isBlockedRight(0)
+            "collectedGem" -> manager.collectedGem(0)
             else -> {
                 when {
                     internalVariables.containsKey(name) -> {

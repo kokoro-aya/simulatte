@@ -866,13 +866,13 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
     override fun visitVariable_expression(ctx: amatsukazeGrammarParser.Variable_expressionContext?): Any {
         try {
             return when (val name = visit(ctx?.IDENTIFIER()).toString()) {
-                "isOnGem" -> manager.isOnGem()
-                "isOnOpenedSwitch" -> manager.isOnOpenedSwitch()
-                "isOnClosedSwitch" -> manager.isOnClosedSwitch()
-                "isBlocked" -> manager.isBlocked()
-                "isBlockedLeft" -> manager.isBlockedLeft()
-                "isBlockedRight" -> manager.isBlockedRight()
-                "collectedGem" -> manager.collectedGem
+                "isOnGem" -> manager.isOnGem(manager.firstId)
+                "isOnOpenedSwitch" -> manager.isOnOpenedSwitch(manager.firstId)
+                "isOnClosedSwitch" -> manager.isOnClosedSwitch(manager.firstId)
+                "isBlocked" -> manager.isBlocked(manager.firstId)
+                "isBlockedLeft" -> manager.isBlockedLeft(manager.firstId)
+                "isBlockedRight" -> manager.isBlockedRight(manager.firstId)
+                "collectedGem" -> manager.collectedGem(manager.firstId)
                 else -> {
                     return queryVariableTable(name).first!!
                 }

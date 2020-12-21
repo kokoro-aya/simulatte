@@ -2,8 +2,6 @@ package org.ironica.amatsukaze
 
 class PlaygroundManager(val playground: Playground) {
 
-
-
     private var consoleLog = ""
     private var special = ""
 
@@ -11,34 +9,65 @@ class PlaygroundManager(val playground: Playground) {
         appendEntry()
     }
 
-    val isOnGem = playground.player.isOnGem
-    val isOnOpenedSwitch = playground.player.isOnOpenedSwitch
-    val isOnClosedSwitch = playground.player.isOnClosedSwitch
-    val isBlocked = playground.player.isBlocked
-    val isBlockedLeft = playground.player.isBlockedLeft
-    val isBlockedRight = playground.player.isBlockedRight
-    val collectedGem = playground.player.collectedGem
+    val firstId = playground.players.map { it.id }.sorted()[0]
 
-    fun turnLeft() {
-        playground.player.turnLeft()
+    private fun getPlayer(id: Int): Player {
+        return playground.players.filter { it.id == id }[0]
+    }
+
+    fun isOnGem(id: Int) = getPlayer(id).isOnGem
+    fun isOnOpenedSwitch(id: Int) = getPlayer(id).isOnOpenedSwitch
+    fun isOnClosedSwitch(id: Int) = getPlayer(id).isOnClosedSwitch
+    fun isOnBeeper(id: Int) = getPlayer(id).isOnBeeper
+    fun isAtHome(id: Int) = getPlayer(id).isAtHome
+    fun isInDesert(id: Int) = getPlayer(id).isInDesert
+    fun isInForest(id: Int) = getPlayer(id).isInForest
+    fun isOnPortal(id: Int) = getPlayer(id).isOnPortal
+    fun isBlocked(id: Int) = getPlayer(id).isBlocked
+    fun isBlockedLeft(id: Int) = getPlayer(id).isBlockedLeft
+    fun isBlockedRight(id: Int) = getPlayer(id).isBlockedRight
+    fun collectedGem(id: Int) = getPlayer(id).collectedGem
+
+    fun turnLeft(id: Int) {
+        getPlayer(id).turnLeft()
         printGrid()
         appendEntry()
     }
-    fun moveForward() {
-        playground.player.moveForward()
+    fun moveForward(id: Int) {
+        getPlayer(id).moveForward()
         printGrid()
         appendEntry()
     }
-    fun collectGem() {
-        playground.player.collectGem()
+    fun collectGem(id: Int) {
+        getPlayer(id).collectGem()
         printGrid()
         this.special = "GEM"
         appendEntry()
     }
-    fun toggleSwitch() {
-        playground.player.toggleSwitch()
+    fun toggleSwitch(id: Int) {
+        getPlayer(id).toggleSwitch()
         printGrid()
         this.special = "SWITCH"
+        appendEntry()
+    }
+
+    fun takeBeeper(id: Int) {
+        getPlayer(id).takeBeeper()
+        printGrid()
+        this.special = "TAKEBEEPER"
+        appendEntry()
+    }
+
+    fun dropBeeper(id: Int) {
+        getPlayer(id).dropBeeper()
+        printGrid()
+        this.special = "DROPBEEPER"
+        appendEntry()
+    }
+
+    fun changeColor(id: Int, c: Color) {
+        getPlayer(id).changeColor(c)
+        printGrid()
         appendEntry()
     }
 
@@ -70,9 +99,23 @@ class PlaygroundManager(val playground: Playground) {
         for (i in playground.grid.indices)
             for (j in playground.grid[0].indices)
                 currentGrid[i][j] = playground.grid[i][j]
+        val currentLayout = Array(playground.layout.size) { Array(playground.layout[0].size) { Item.NONE } }
+        for (i in playground.layout.indices)
+            for (j in playground.layout[0].indices)
+                currentLayout[i][j] = playground.layout[i][j]
+        val currentLayout2s = Array(playground.layout2s.size) { Array(playground.layout2s[0].size) { Tile() } }
+        for (i in playground.layout2s.indices)
+            for (j in playground.layout2s[0].indices)
+                currentLayout2s[i][j] = playground.layout2s[i][j]
+        val currentPortals = Array(playground.portals.size) { Portal() }
+        for (i in playground.portals.indices)
+            currentPortals[i] = playground.portals[i]
+        val serializedPlayers = playground.players.map {
+            SerializedPlayer(it.coo.x, it.coo.y, it.dir, if (it is Specialist) Role.SPECIALIST else Role.PLAYER) }.toTypedArray()
         val payload = Payload(
-            SerializedPlayer(playground.player.coo.x, playground.player.coo.y, playground.player.dir),
-            SerializedGrid(currentGrid),
+            serializedPlayers,
+            currentPortals,
+            SerializedPlayground(currentGrid, currentLayout, currentLayout2s),
             this.consoleLog,
             this.special
         )

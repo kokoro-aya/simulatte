@@ -18,14 +18,21 @@ fun main(args: Array<String>) {
     val tree: ParseTree = parser.top_level()
 
     val grid = arrayOf(
-        arrayOf(Block.OPEN, Block.CLOSEDSWITCH, Block.OPEN, Block.CLOSEDSWITCH, Block.OPEN, Block.CLOSEDSWITCH, Block.OPEN, Block.CLOSEDSWITCH, Block.OPEN),
-        arrayOf(Block.BLOCKED, Block.GEM, Block.BLOCKED, Block.GEM, Block.BLOCKED, Block.GEM, Block.BLOCKED, Block.GEM, Block.BLOCKED)
+        arrayOf(Block.OPEN, Block.OPEN, Block.OPEN, Block.DESERT, Block.OPEN, Block.OPEN, Block.OPEN, Block.DESERT, Block.DESERT),
+        arrayOf(Block.BLOCKED, Block.TREE, Block.BLOCKED, Block.DESERT, Block.WATER, Block.OPEN, Block.WATER, Block.OPEN, Block.BLOCKED)
     )
-    val player = Player(
+    val layout = arrayOf(
+        arrayOf(Item.NONE, Item.CLOSEDSWITCH, Item.NONE, Item.CLOSEDSWITCH, Item.NONE, Item.CLOSEDSWITCH, Item.NONE, Item.CLOSEDSWITCH, Item.NONE),
+        arrayOf(Item.NONE, Item.GEM, Item.NONE, Item.GEM, Item.NONE, Item.GEM, Item.NONE, Item.GEM, Item.NONE),
+    )
+    val layout2s = Array (2) { Array (9) { Tile() } }
+    val portals = arrayOf<Portal>()
+    val players = arrayOf(Player(
+        1,
         Coordinate(0, 0),
         Direction.RIGHT
-    )
-    val playground = Playground(grid, player, 2)
+    ))
+    val playground = Playground(grid, layout, layout2s, portals, players, 4)
     val manager = PlaygroundManager(playground)
     val exec = AmatsukazeVisitor(manager)
     exec.visit(tree)

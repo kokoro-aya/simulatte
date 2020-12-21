@@ -3,13 +3,13 @@ package org.ironica.amatsukaze
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class SerializedPlayer(val x: Int, val y: Int, val dir: Direction)
+data class SerializedPlayer(val x: Int, val y: Int, val dir: Direction, val role: Role)
 
 @Serializable
-data class SerializedGrid(val grid: Grid)
+data class SerializedPlayground(val grid: Grid, val layout: Layout, val layout2s: SecondLayout)
 
 @Serializable
-data class Payload(val player: SerializedPlayer, val grid: SerializedGrid, val consoleLog: String, val special: String)
+data class Payload(val players: Array<SerializedPlayer>, val portals: Array<Portal>, val grid: SerializedPlayground, val consoleLog: String, val special: String)
 
 
 val payloadStorage = mutableListOf<Payload>()
