@@ -1,4 +1,4 @@
-package org.ironica.playground
+package org.ironica.amatsukaze
 
 import io.ktor.application.Application
 import io.ktor.application.install
