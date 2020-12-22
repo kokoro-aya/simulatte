@@ -145,18 +145,18 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
     /*
         default: print, typeof, isSame(a, b)
         Object -> toString
-        String -> size, replace, subStr, toCharArray
-        Boolean -> not, and, or, xor
-        Character -> isDigit, isAlpha, isUpper, isLower, isEmpty, toInt
-        Struct -> varDump, count, erase, clear
-        Array -> size, clear, swap, first, last, pushBack, pushFront, popBack, popFront
-              -> (hof) foreach, map, filter, all, any (not supported)
+        String -> size, replace(), subStr(), toCharArray()
+        Boolean -> not(), and(), or(), xor()
+        Character -> isDigit, isAlpha, isUpper, isLower, isEmpty, toInt()
+        Struct -> varDump, count, erase(), clear()
+        Array -> size, clear(), swap(), first, last, pushBack(), pushFront(), popBack(), popFront()
+              -> (hof) foreach(), map(), filter(), all(), any() (not supported)
         Some functions can be done by adding extensions on prototype chain.
          */
 
     private val variableTable = mutableMapOf<String, Literal>()
     private val variableDepth = mutableMapOf<String, Int>()
-    private val internalVariables = mutableListOf<Scope>()
+    private val internalVariables = mutableListOf<Scope>(mutableMapOf())
     private val internalVariableDepth = mutableMapOf<String, Int>()
 
     private fun queryVariableTable(of: String): Pair<Literal?, Int> {
@@ -715,6 +715,13 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
         throw Exception("AddSub: on unsupported type")
     }
 
+    private fun MutableList<Literal>.swap(i: Int, j: Int) {
+        assert (i in this.indices && j in this.indices)
+        val tmp = this[i]
+        this[i] = this[j]
+        this[j] = tmp
+    }
+
     private fun handleFunctionCall(
         func: amatsukazeGrammarParser.Function_call_expressionContext,
         vari: amatsukazeGrammarParser.Variable_expressionContext? = null
@@ -722,9 +729,140 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
         if (vari == null) {
             return visit(func)
         } else {
-
+            try {
+                val obj = visit(vari) as Literal
+                val functionName = visit(func.function_name()) as String
+                val clause =
+                    if (func.childCount == 2) listOf() else visit(func.call_argument_clause()) as List<Pair<Literal, Boolean>>
+                val funcArgu = clause.map { it.first }
+                val refs = clause.map { it.second }
+                when (obj) {
+                    is Player -> {
+                        if (funcArgu.isEmpty() && providedFunctions.containsKey(functionName)) {
+                            providedFunctions.getValue(functionName)(obj.id)
+                            return SpecialRetVal.Empty
+                        }
+                        if (funcArgu.size == 1 && functionName == "changeColor") {
+                            if (funcArgu[0] is StringL) {
+                                val color = when ((funcArgu[0] as StringL).content.toLowerCase()) {
+                                    "black" -> Color.BLACK
+                                    "silver" -> Color.SILVER
+                                    "grey" -> Color.GREY
+                                    "white" -> Color.WHITE
+                                    "red" -> Color.RED
+                                    "orange" -> Color.ORANGE
+                                    "gold" -> Color.GOLD
+                                    "pink" -> Color.PINK
+                                    "yellow" -> Color.YELLOW
+                                    "beige" -> Color.BEIGE
+                                    "brown" -> Color.BROWN
+                                    "green" -> Color.GREEN
+                                    "azure" -> Color.AZURE
+                                    "cyan" -> Color.CYAN
+                                    "aliceblue" -> Color.ALICEBLUE
+                                    "purple" -> Color.PURPLE
+                                    else -> throw Exception("Unsupported color")
+                                }
+                                manager.changeColor(obj.id, color)
+                                return SpecialRetVal.Empty
+                            } else {
+                                throw Exception("Wrong argument type in color function.")
+                            }
+                        }
+                    }
+                    is StringL -> {
+                        if (funcArgu.size == 2 && functionName == "replace") {
+                            val old = (funcArgu[0] as StringL).content
+                            val new = (funcArgu[1] as StringL).content
+                            return StringL(Variability.CST, obj.content.replace(old, new), obj.prototype)
+                        }
+                        if (funcArgu.size == 2 && functionName == "subStr") {
+                            val begin = (funcArgu[0] as IntegerL).content
+                            val end = (funcArgu[1] as IntegerL).content
+                            return StringL(Variability.CST, obj.content.substring(begin, end), obj.prototype)
+                        }
+                        if (funcArgu.isEmpty() && functionName == "toCharArray") {
+                            val content: MutableList<Literal> = obj.content.toCharArray()
+                                .map { CharacterL(Variability.CST, it, typeTable["Character"]!!) }.toMutableList()
+                            return ArrayL(Variability.CST, _CHARACTER, content, typeTable["Array"]!!)
+                        }
+                    }
+                    is BooleanL -> {
+                        if (funcArgu.isEmpty() && functionName == "not")
+                            return BooleanL(Variability.CST, !obj.content, obj.prototype)
+                        if (funcArgu.size == 1 && functionName == "and") {
+                            val other = (funcArgu[0] as BooleanL).content
+                            return BooleanL(Variability.CST, obj.content.and(other), obj.prototype)
+                        }
+                        if (funcArgu.size == 1 && functionName == "or") {
+                            val other = (funcArgu[0] as BooleanL).content
+                            return BooleanL(Variability.CST, obj.content.or(other), obj.prototype)
+                        }
+                        if (funcArgu.size == 1 && functionName == "xor") {
+                            val other = (funcArgu[0] as BooleanL).content
+                            return BooleanL(Variability.CST, obj.content.xor(other), obj.prototype)
+                        }
+                    }
+                    is CharacterL -> {
+                        if (funcArgu.isEmpty() && functionName == "toInt")
+                            return IntegerL(Variability.CST, obj.content.toInt(), typeTable["Integer"]!!)
+                    }
+                    is ArrayL -> {
+                        if (funcArgu.isEmpty() && functionName == "clear") {
+                            obj.content.clear()
+                            return obj
+                        }
+                        if (funcArgu.size == 2 && functionName == "swap") {
+                            val pos1 = (funcArgu[0] as IntegerL).content
+                            val pos2 = (funcArgu[1] as IntegerL).content
+                            obj.content.swap(pos1, pos2)
+                            return obj
+                        }
+                        if (funcArgu.size == 1 && functionName == "pushBack") {
+                            val elem = funcArgu[0]
+                            val type = checkTypeEquality(elem, obj.subType)
+                            if (type != null) {
+                                obj.content.add(elem)
+                                return obj
+                            } else throw Exception("Attempt to add incoherent type object into array")
+                        }
+                        if (funcArgu.size == 1 && functionName == "pushFront") {
+                            val elem = funcArgu[0]
+                            val type = checkTypeEquality(elem, obj.subType)
+                            if (type != null) {
+                                obj.content.add(0, elem)
+                                return obj
+                            } else throw Exception("Attempt to add incoherent type object into array")
+                        }
+                        if (funcArgu.isEmpty() && functionName == "popBack") {
+                            val ret = obj.content.last()
+                            obj.content.removeAt(obj.content.lastIndex)
+                            return ret
+                        }
+                        if (funcArgu.isEmpty() && functionName == "popFront") {
+                            val ret = obj.content.last()
+                            obj.content.removeAt(0)
+                            return ret
+                        }
+                        if (funcArgu.size == 2 && functionName == "insert") {
+                            val elem = funcArgu[0]
+                            val pos = (funcArgu[1] as IntegerL).content
+                            obj.content.add(pos, elem)
+                            return obj
+                        }
+                        if (funcArgu.size == 1 && functionName == "drop") {
+                            val pos = (funcArgu[1] as IntegerL).content
+                            obj.content.removeAt(pos)
+                            return obj
+                        }
+                    }
+                    else -> throw Exception("Not implemented methods for object")
+                }
+                throw Exception("Unsupported methods for object")
+            } catch (e: Exception) {
+                throw Exception("Something went wrong while passing method call: \n    ${e.message}")
+            }
         }
-        TODO("Delegated Function Call Handler, not yet implemented")
     }
 
     override fun visitFunction_call(ctx: amatsukazeGrammarParser.Function_callContext?): Any {
@@ -948,11 +1086,12 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
     // TODO Array type check
     override fun visitArray_literal(ctx: amatsukazeGrammarParser.Array_literalContext?): Any {
         if (ctx?.childCount == 2) {
-            return Array<Literal?>(0) { null }
+            return Array<Literal?>(0) { IntegerL(Variability.CST, 0, typeTable["Integer"]!!) }
         } else {
-            val array = Array<Literal?>(ctx?.childCount!! / 2) { null }
+            val array = Array<Literal?>(ctx?.childCount!! / 2) { IntegerL(Variability.CST, 0, typeTable["Integer"]!!) }
             val variability =
-                if (visit(ctx?.parent?.parent?.parent?.getChild(0)) == "let") Variability.CST else Variability.VAR
+                if (ctx.parent?.parent?.parent is amatsukazeGrammarParser.Array_literal_itemContext
+                    || visit(ctx.parent?.parent?.parent?.getChild(0)) == "cst") Variability.CST else Variability.VAR
             for (i in 0 until ctx.childCount / 2) {
                 array[i] = when (val content = visit(ctx.getChild(i * 2 + 1))) {
                     is IntegerL -> IntegerL(variability, content.content, content.prototype)
@@ -1021,8 +1160,11 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
             is IntegerL -> argument.content.toString()
             is DoubleL -> argument.content.toString()
             is CharacterL -> argument.content.toString()
-            is StringL -> if (argument.content[0] == '"' && argument.content[argument.content.length - 1] == '"') argument.content.substring(1, argument.content.length - 1)
-            else argument.content
+            is StringL -> {
+                if (argument.content[0] == '"' && argument.content[argument.content.length - 1] == '"')
+                    argument.content.substring(1, argument.content.length - 1)
+                else argument.content
+            }
             is StructL -> "Struct #"
             is FunctionL -> "Function #${argument.head.name}@${argument.head.params.joinToString(",")}"
             is ArrayL -> argument.content.toString()
@@ -1032,21 +1174,72 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
         }
     }
 
+    private fun copyOnFunctionCall(l: Literal): Literal {
+        return when (l) {
+            is IntegerL -> IntegerL(Variability.VAR, l.content, l.prototype)
+            is DoubleL -> DoubleL(Variability.VAR, l.content, l.prototype)
+            is StringL -> StringL(Variability.VAR, l.content, l.prototype)
+            is CharacterL -> CharacterL(Variability.VAR, l.content, l.prototype)
+            is BooleanL -> BooleanL(Variability.VAR, l.content, l.prototype)
+            is PlayerL -> PlayerL(Variability.VAR, l.id, l.prototype)
+            is SpecialistL -> SpecialistL(Variability.VAR, l.id, l.prototype)
+            else -> l
+        }
+    }
+
+    private fun handleFunctionCallVisit(realHead: FuncHead, funcArgu: List<Literal>, func: ParseTree, closure: List<Scope>? = null): Any {
+        try {
+            funcEntriesDepth.add(++internalDepth)
+            currentFunc += 1
+            anonymousFuncIndices.add(0)
+            internalVariables.add(mutableMapOf())
+            if (funcArgu.isNotEmpty()) {
+                val newVariables = realHead.params.zip(funcArgu)
+                newVariables.forEach { internalVariables[currentFunc][it.first] = it.second }
+            }
+            val ret = visit(func)
+            anonymousFuncIndices.removeAt(anonymousFuncIndices.size - 1)
+            functionTable.filter { it.value.second >= currentFunc }.keys.forEach { name -> functionTable.remove(name) }
+            internalVariables.removeAt(internalVariables.size - 1)
+            internalVariableDepth.filter { it.value == internalDepth }.keys.forEach { name ->
+                internalVariableDepth.remove(name)
+            }
+            funcEntriesDepth.remove(funcEntriesDepth.lastIndex)
+            currentFunc -= 1
+            return ret
+        } catch (e: Throwable) {
+            if (e is ReturnedL) {
+//                    internalDepth = funcEntriesDepth.last()
+//                    internalVariableDepth.filter { it.value > internalDepth }.keys.forEach { name -> internalVariables[currentFunc].remove(name) }
+//                    internalVariableDepth.filter { it.value > internalDepth }.keys.forEach { name -> internalVariableDepth.remove(name) }
+                anonymousFuncIndices.removeAt(anonymousFuncIndices.size - 1)
+                functionTable.filter { it.value.second >= currentFunc }.keys.forEach { name -> functionTable.remove(name) }
+                internalVariables.removeAt(internalVariables.size - 1)
+                internalVariableDepth.filter { it.value == internalDepth }.keys.forEach { name ->
+                    internalVariableDepth.remove(name)
+                }
+                funcEntriesDepth.removeAt(funcEntriesDepth.lastIndex)
+                currentFunc -= 1
+                return e.content
+            } else throw e
+        }
+    }
+
     override fun visitFunction_call_expression(ctx: amatsukazeGrammarParser.Function_call_expressionContext?): Any {
         try {
             val functionName = visit(ctx?.function_name()) as String
-            val funcArgument =
-                if (ctx?.childCount == 2) listOf() else visit(ctx?.call_argument_clause()) as List<Literal>
-            val funcHead = FuncHead(
-                functionName, listOf(), literalsToDataType(funcArgument.toTypedArray()), mutableListOf(), _CALL)
-            if (functionName == "Player" && funcHead.types.isEmpty()) {
+            val clause =
+                if (ctx?.childCount == 2) listOf() else visit(ctx?.call_argument_clause()) as List<Pair<Literal, Boolean>>
+            val funcArgument = clause.map { it.first }
+            val refs = clause.map { it.second }
+            if (functionName == "Player" && funcArgument.isEmpty()) {
                 return declareNewPlaygroundObject("PLAYER")
-            } else if (functionName == "Specialist" && funcHead.types.isEmpty()) {
+            } else if (functionName == "Specialist" && funcArgument.isEmpty()) {
                 return declareNewPlaygroundObject("SPECIALIST")
-            } else if (funcHead.types.isEmpty() && providedFunctions.containsKey(functionName)) {
+            } else if (funcArgument.isEmpty() && providedFunctions.containsKey(functionName)) {
                 providedFunctions.getValue(functionName)(manager.firstId)
                 return SpecialRetVal.Empty
-            } else if (functionName == "changeColor" && funcHead.types.size == 1) {
+            } else if (functionName == "changeColor" && funcArgument.size == 1) {
                 if (funcArgument[0] is StringL) {
                     val color = when ((funcArgument[0] as StringL).content.toLowerCase()) {
                         "black" -> Color.BLACK
@@ -1080,8 +1273,27 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
                 manager.print(funcArgument.map{ preprocessPrintRule(it) })
                 return SpecialRetVal.Empty
             } else {
+                funcArgument.mapIndexed { i, l -> if (!refs[i]) copyOnFunctionCall(l) else l }
+                val funcHead = FuncHead(
+                    functionName, listOf(), literalsToDataType(funcArgument.toTypedArray()), refs, _CALL)
+                for (key in functionTable.keys)
+                    if (funcHead.pseudoEquals(key))
+                        return handleFunctionCallVisit(key, funcArgument, functionTable[key]!!.first)
+                for (i in internalVariables.size - 1 downTo 0)
+                    for (entry in internalVariables[i].entries)
+                        if (entry.key == functionName && entry.value is FunctionL) {
+                            val value = entry.value as FunctionL
+                            if (funcHead.pseudoEquals(value.head))
+                                return handleFunctionCallVisit(value.head, funcArgument, value.body, value.closureScope)
+                        }
+                for (entry in variableTable.entries) {
+                    if (entry.key == functionName && entry.value is FunctionL) {
+                        val value = entry.value as FunctionL
+                        if (funcHead.pseudoEquals(value.head))
+                            return handleFunctionCallVisit(value.head, funcArgument, value.body, value.closureScope)
+                    }
+                }
                 return SpecialRetVal.NotDef
-                // TODO("Not yet implemented")
             }
         } catch (e: Exception) {
             throw Exception("Something went wrong while passing function call: \n    ${e.message}")
@@ -1089,11 +1301,11 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
     }
 
     override fun visitCall_argument_clause(ctx: amatsukazeGrammarParser.Call_argument_clauseContext?): Any {
-        return ctx?.call_argument()?.map { visit(it) }!! as List<Literal>
+        return ctx?.call_argument()?.map { visit(it) }!! as List<Pair<Literal, Boolean>>
     }
 
     override fun visitCall_argument(ctx: amatsukazeGrammarParser.Call_argumentContext?): Any {
-        return visit(ctx?.expression())
+        return visit(ctx?.expression()) to (null != ctx?.REF())
     }
 
     override fun visitStruct_call_expression(ctx: amatsukazeGrammarParser.Struct_call_expressionContext?): Any {
@@ -1129,10 +1341,9 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
             return ret
         } catch (e: Throwable) {
             if (e is ReturnedL) {
-                internalDepth = funcEntriesDepth.last()
-                internalVariableDepth.filter { it.value > internalDepth }.keys.forEach { name -> internalVariables[currentFunc].remove(name) }
-                internalVariableDepth.filter { it.value > internalDepth }.keys.forEach { name -> internalVariableDepth.remove(name) }
-                funcEntriesDepth.removeAt(funcEntriesDepth.lastIndex)
+                internalVariableDepth.filter { it.value == internalDepth }.keys.forEach { name -> internalVariables[currentFunc].remove(name) }
+                internalVariableDepth.filter { it.value == internalDepth }.keys.forEach { name -> internalVariableDepth.remove(name) }
+                internalDepth -= 1
                 throw e
             }
             else

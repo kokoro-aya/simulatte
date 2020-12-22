@@ -83,7 +83,7 @@ variable_expression: IDENTIFIER;
 
 function_call_expression: function_name ('()' | '(' call_argument_clause ')');
 call_argument_clause:  call_argument (',' call_argument)*;
-call_argument: expression;
+call_argument: REF? expression;
 
 struct_call_expression: 'new' struct_name ('()' | '(' call_argument_clause ')');
 
