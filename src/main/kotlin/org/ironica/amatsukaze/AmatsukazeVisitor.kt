@@ -53,7 +53,7 @@ data class Prototype (
 data class PlayerL(override val variability: Variability, var id: Int, override val prototype: Prototype): Literal()
 data class SpecialistL(override val variability: Variability, var id: Int, override val prototype: Prototype): Literal()
 
-data class FuncHead(val name: String, val params: List<String>, val types: List<DataType>, val refs: List<Boolean>, val ret: DataType) {
+data class FuncHead(var name: String, val params: List<String>, val types: List<DataType>, val refs: List<Boolean>, val ret: DataType) {
 
     fun pseudoEquals(other: Any?): Boolean {
         if (this === other) return true
@@ -870,7 +870,7 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
     }
 
     override fun visitMemberExpr(ctx: amatsukazeGrammarParser.MemberExprContext?): Any {
-        TODO("Not yet implemented")
+        return visit(ctx?.member_expression())
     }
 
     override fun visitAriComparativeExpr(ctx: amatsukazeGrammarParser.AriComparativeExprContext?): Any {
@@ -1120,7 +1120,7 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
     }
 
     override fun visitMember_expression(ctx: amatsukazeGrammarParser.Member_expressionContext?): Any {
-        TODO("Not yet implemented")
+        return visit(ctx?.explicit_member_expression())
     }
 
     override fun visitSubscript_expression(ctx: amatsukazeGrammarParser.Subscript_expressionContext?): Any {
@@ -1528,16 +1528,24 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
         if (!(left[0].isLetter() || left[0] == '_')) throw Exception("Illegal variable name")
         try {
             val right = visit(ctx?.expression())
-            right as Literal
+            var trueRight: Literal
+            if (right is Triple<*, *, *>) {
+                right as Triple<FuncHead, ParseTree, MutableList<Scope>>
+                right.first.name = left
+                trueRight = FunctionL(Variability.CST, right.first, right.second, right.third, typeTable["Function"]!!)
+            }
+            else {
+                trueRight = right as Literal
+            }
             val type = if (ctx?.childCount == 4) null else visit(ctx?.type()) as DataType?
             if (ctx?.parent?.parent?.parent?.parent?.parent is amatsukazeGrammarParser.Function_bodyContext) {
                 internalVariables[internalVariables.size - 1][left] =
-                    declareConstantOrVariable(type, right, constant = true) ?: throw Exception("Encountered error while declaring constant")
+                    declareConstantOrVariable(type, trueRight, constant = true) ?: throw Exception("Encountered error while declaring constant")
                 internalVariableDepth[left] = internalDepth
                 return SpecialRetVal.Declaration
             } else {
                 variableTable[left] =
-                    declareConstantOrVariable(type, right, constant = true) ?: throw Exception("Encountered error while declaring constant")
+                    declareConstantOrVariable(type, trueRight, constant = true) ?: throw Exception("Encountered error while declaring constant")
                 variableDepth[left] = externalDepth
                 return SpecialRetVal.Declaration
             }
@@ -1550,17 +1558,26 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
         val left = visit(ctx?.pattern()) as String
         if (!(left[0].isLetter() || left[0] == '_')) throw Exception("Illegal variable name")
         try {
-            val right = visit(ctx?.expression()) as Literal
+            val right = visit(ctx?.expression())
+            var trueRight: Literal
+            if (right is Triple<*, *, *>) {
+                right as Triple<FuncHead, ParseTree, MutableList<Scope>>
+                right.first.name = left
+                trueRight = FunctionL(Variability.CST, right.first, right.second, right.third, typeTable["Function"]!!)
+            }
+            else {
+                trueRight = right as Literal
+            }
             val type = if (ctx?.childCount == 4) null else visit(ctx?.type()) as DataType?
             if (ctx?.parent?.parent?.parent?.parent?.parent is amatsukazeGrammarParser.Function_bodyContext) {
                 internalVariables[internalVariables.size - 1][left] =
-                    declareConstantOrVariable(type, right, constant = false)
+                    declareConstantOrVariable(type, trueRight, constant = false)
                         ?: throw Exception("Encountered error while declaring constant")
                 internalVariableDepth[left] = internalDepth
                 return SpecialRetVal.Declaration
             } else {
                 variableTable[left] =
-                    declareConstantOrVariable(type, right, constant = false)
+                    declareConstantOrVariable(type, trueRight, constant = false)
                         ?: throw Exception("Encountered error while declaring constant")
                 variableDepth[left] = externalDepth
                 return SpecialRetVal.Declaration
@@ -1583,12 +1600,7 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
                     functionSignature.first.map { it.third },
                     functionSignature.second
                 )
-                for (key in functionTable.keys) {
-                    if (funcHead.pseudoEquals(key))
-                        throw Exception("Redefined function!")
-                }
-                functionTable[funcHead] = bodyNode to currentFunc
-                return funcHead
+                return Triple(funcHead, bodyNode, mutableListOf<Scope>().addAll(internalVariables))
             } else {
                 val funcHead = FuncHead(
                     visit(nameNode) as String,
@@ -1601,7 +1613,7 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
                     if (funcHead.pseudoEquals(key))
                         throw Exception("Redefined function!")
                 functionTable[funcHead] = bodyNode to currentFunc
-                return funcHead
+                return Triple(funcHead, bodyNode, mutableListOf<Scope>().addAll(internalVariables))
             }
         } catch (e: Exception) {
             throw Exception("Encountered error within function declaration: \n    ${e.message}")
@@ -1617,9 +1629,10 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
     }
 
     override fun visitFunction_signature(ctx: amatsukazeGrammarParser.Function_signatureContext?): Any {
-        val paramClause = visit(ctx?.parameter_clause()) as List<Triple<String, DataType, Boolean>>
+        val paramClause = visit(ctx?.parameter_clause())
+        paramClause as List<Triple<String, DataType, Boolean>>
         val resultType = if (ctx?.childCount == 1) _VOID else visit(ctx?.function_result_type())
-        return paramClause to resultType as Pair<List<Triple<String, DataType, Boolean>>, DataType>
+        return (paramClause to resultType) as Pair<List<Triple<String, DataType, Boolean>>, DataType>
     }
 
     override fun visitFunction_result_type(ctx: amatsukazeGrammarParser.Function_result_typeContext?): Any {
@@ -1639,11 +1652,11 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
     }
 
     override fun visitParameter_clause(ctx: amatsukazeGrammarParser.Parameter_clauseContext?): Any {
-        return visit(ctx?.parameter_list())
+        return if (ctx?.childCount == 1) listOf<Triple<String, DataType, Boolean>>() else visit(ctx?.parameter_list())
     }
 
     override fun visitParameter_list(ctx: amatsukazeGrammarParser.Parameter_listContext?): Any {
-        return ctx?.children?.map { visit(it) }!!
+        return ctx?.children?.filterIndexed { index, _ -> index % 2 == 0 }?.map { visit(it) }!!
     }
 
     override fun visitParameter(ctx: amatsukazeGrammarParser.ParameterContext?): Any {
