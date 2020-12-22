@@ -23,7 +23,7 @@ fun main(args: Array<String>) {
     )
     val layout = arrayOf(
         arrayOf(Item.NONE, Item.CLOSEDSWITCH, Item.NONE, Item.CLOSEDSWITCH, Item.NONE, Item.CLOSEDSWITCH, Item.NONE, Item.CLOSEDSWITCH, Item.NONE),
-        arrayOf(Item.NONE, Item.GEM, Item.NONE, Item.GEM, Item.NONE, Item.GEM, Item.NONE, Item.GEM, Item.NONE),
+        arrayOf(Item.NONE, Item.GEM, Item.NONE, Item.GEM, Item.NONE, Item.GEM, Item.NONE, Item.GEM, Item.NONE)
     )
     val layout2s = Array (2) { Array (9) { Tile() } }
     val portals = arrayOf<Portal>()

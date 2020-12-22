@@ -19,6 +19,8 @@ object _CALL: DataType()
 object _FUNCTION: DataType()
 object _STRUCT: DataType()
 object _ENUM: DataType()
+object _PLAYER: DataType()
+object _SPECIALIST: DataType()
 data class _ARRAY(val type: DataType): DataType()
 
 private fun DataType.typeEquals(other: DataType): Boolean {
@@ -47,6 +49,9 @@ data class Prototype (
     override var prototype: Proto? = null,
     var ctor: Literal? = null
 ): Proto()
+
+data class PlayerL(override val variability: Variability, var id: Int, override val prototype: Prototype): Literal()
+data class SpecialistL(override val variability: Variability, var id: Int, override val prototype: Prototype): Literal()
 
 data class FuncHead(val name: String, val params: List<String>, val types: List<DataType>, val refs: List<Boolean>, val ret: DataType) {
 
@@ -89,13 +94,36 @@ typealias Scope = MutableMap<String, Literal>
 
 class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGrammarVisitor<Any> {
 
+    private val providedFunctions = mapOf(
+        "moveForward" to {e: Int -> manager.moveForward(e)},
+        "turnLeft" to {e: Int -> manager.turnLeft(e)},
+        "toggleSwitch" to {e: Int -> manager.toggleSwitch(e)},
+        "collectGem" to {e: Int -> manager.collectGem(e)},
+        "takeBeeper" to {e: Int -> manager.takeBeeper(e)},
+        "dropBeeper" to {e: Int -> manager.dropBeeper(e)},
+
+        "isOnGem" to {e: Int -> manager.isOnGem(e)},
+        "isOnOpenedSwitch" to {e: Int -> manager.isOnOpenedSwitch(e)},
+        "isOnClosedSwitch" to {e: Int -> manager.isOnClosedSwitch(e)},
+        "isOnBeeper" to {e: Int -> manager.isOnBeeper(e)},
+        "isAtHome" to {e: Int -> manager.isAtHome(e)},
+        "isInDesert" to {e: Int -> manager.isInDesert(e)},
+        "isInForest" to {e: Int -> manager.isInForest(e)},
+        "isOnPortal" to {e: Int -> manager.isOnPortal(e)},
+        "isBlocked" to {e: Int -> manager.isBlocked(e)},
+        "isBlockedLeft" to {e: Int -> manager.isBlockedLeft(e)},
+        "isBlockedRight" to {e: Int -> manager.isBlockedRight(e)},
+        "collectedGem" to {e: Int -> manager.collectedGem(e)}
+    )
+
     private var _break = false
     private var _continue = false
 
     private val typeTable = mutableMapOf(
         "Integer" to Prototype(mutableMapOf()), "Double" to Prototype(mutableMapOf()), "Bool" to Prototype(mutableMapOf()),
         "Character" to Prototype(mutableMapOf()), "String" to Prototype(mutableMapOf()), "Struct" to Prototype(mutableMapOf()),
-        "Function" to Prototype(mutableMapOf()), "Array" to Prototype(mutableMapOf())
+        "Function" to Prototype(mutableMapOf()), "Array" to Prototype(mutableMapOf()),
+        "Player" to Prototype(mutableMapOf()), "Specialist" to Prototype(mutableMapOf())
     )
 
     private var inFunc = mutableListOf<Boolean>()
@@ -111,6 +139,8 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
     private fun assignAnonymousFuncIndex(level: Int): Int {
         return anonymousFuncIndices[level]++
     }
+
+    var playerList = manager.playground.players.toMutableList()
 
     /*
         default: print, typeof, isSame(a, b)
@@ -219,6 +249,21 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
                     else -> throw Exception("Type of lhs and rhs of assignment don't match")
                 }
             }
+
+            is PlayerL -> {
+                if (left.variability == Variability.CST) throw Exception("Attempt modify constant")
+                when (right) {
+                    is PlayerL -> left.id = right.id
+                    else -> throw Exception("Type of lhs and rhs of assignment don't match")
+                }
+            }
+            is SpecialistL -> {
+                if (left.variability == Variability.CST) throw Exception("Attempt modify constant")
+                when (right) {
+                    is SpecialistL -> left.id = right.id
+                    else -> throw Exception("Type of lhs and rhs of assignment don't match")
+                }
+            }
         }
         return left
     }
@@ -231,7 +276,10 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
                 || right is StringL && type is _STRING
                 || right is FunctionL && type is _FUNCTION
                 || right is StructL && type is _STRUCT
-                || right is ArrayL && type is _ARRAY) type else null
+                || right is ArrayL && type is _ARRAY
+
+                || right is PlayerL && type is _PLAYER
+                || right is SpecialistL && type is _SPECIALIST) type else null
     }
 
     private fun checkTypeOfLiteralsIdentical(left: Literal, right: Literal): Boolean {
@@ -243,6 +291,9 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
                 || left is FunctionL && right is FunctionL
                 || left is StructL && right is StructL
                 || left is ArrayL && right is ArrayL
+
+                || left is PlayerL && right is PlayerL
+                || left is SpecialistL && right is SpecialistL
     }
 
     private fun checkArrayType(type: DataType, right: ArrayL) {
@@ -255,6 +306,9 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
             is _STRUCT -> if (right.content.none { it !is StructL }) return
             is _ARRAY -> if (right.content.none { it !is ArrayL }) return
             is _FUNCTION -> if (right.content.none { it !is FunctionL }) return
+
+            is _PLAYER -> if (right.content.none { it !is PlayerL }) return
+            is _SPECIALIST -> if (right.content.none { it !is SpecialistL }) return
         }
         throw Exception("Array type check failed")
     }
@@ -268,6 +322,9 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
         if (right.content.all { it is StructL }) return _STRUCT
         if (right.content.all { it is FunctionL }) return _FUNCTION
         if (right.content.all { it is ArrayL }) return _ARRAY(_SOME)
+
+        if (right.content.all { it is PlayerL }) return _PLAYER
+        if (right.content.all { it is SpecialistL }) return _SPECIALIST
         throw Exception("Array type inference failed")
     }
 
@@ -280,6 +337,9 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
         if (right.all { it is StructL }) return _STRUCT
         if (right.all { it is FunctionL }) return _FUNCTION
         if (right.all { it is ArrayL }) return _ARRAY(_SOME)
+
+        if (right.all { it is PlayerL }) return _PLAYER
+        if (right.all { it is SpecialistL }) return _SPECIALIST
         throw Exception("Array type inference failed")
     }
 
@@ -320,8 +380,18 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
                     if (constant) ArrayL(Variability.CST, checkedType.type, (right as ArrayL).content, right.prototype)
                     else ArrayL(Variability.VAR, checkedType.type, (right as ArrayL).content, right.prototype)
                 }
+
+                _PLAYER -> {
+                    if (constant) PlayerL(Variability.CST, (right as PlayerL).id, right.prototype)
+                    else PlayerL(Variability.VAR, (right as PlayerL).id, right.prototype)
+                }
+                _SPECIALIST -> {
+                    if (constant) SpecialistL(Variability.CST, (right as PlayerL).id, right.prototype)
+                    else SpecialistL(Variability.VAR, (right as PlayerL).id, right.prototype)
+                }
                 else -> throw Exception("This could not happen")
             }
+
         } else {
             return when (right) {
                 is IntegerL -> {
@@ -357,7 +427,57 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
                     if (constant) ArrayL(Variability.CST, inferredType, right.content, right.prototype)
                     else ArrayL(Variability.VAR, inferredType, right.content, right.prototype)
                 }
+
+                is PlayerL -> {
+                    if (constant) PlayerL(Variability.CST, right.id, right.prototype)
+                    else PlayerL(Variability.VAR, right.id, right.prototype)
+                }
+                is SpecialistL -> {
+                    if (constant) SpecialistL(Variability.CST, right.id, right.prototype)
+                    else SpecialistL(Variability.VAR, right.id, right.prototype)
+                }
             }
+        }
+    }
+
+    private fun literalsToDataType(l: Array<Literal>): List<DataType> {
+        return l.map { when (it) {
+            is IntegerL -> _INT
+            is DoubleL -> _DOUBLE
+            is CharacterL -> _CHARACTER
+            is StringL -> _STRING
+            is BooleanL -> _BOOL
+            is FunctionL -> _FUNCTION
+            is StructL -> _STRUCT
+            is ArrayL -> _ARRAY(inferArrayType(it))
+            is PlayerL -> _PLAYER
+            is SpecialistL -> _SPECIALIST
+        } }
+    }
+
+    private fun declareNewPlaygroundObject(type: String): Literal {
+        when (type) {
+            "PLAYER" -> {
+                if (playerList.any { it !is Specialist }) {
+                    val pp = playerList.filter { it !is Specialist }[0]
+                    val p = PlayerL(Variability.CST, pp.id, typeTable["Player"]!!)
+                    playerList.remove(pp)
+                    return p
+                } else {
+                    throw Exception("Declared a player but there is no available slot")
+                }
+            }
+            "SPECIALIST" -> {
+                if (playerList.filterIsInstance<Specialist>().isNotEmpty()) {
+                    val pp = playerList.filterIsInstance<Specialist>()[0]
+                    val p = SpecialistL(Variability.CST, pp.id, typeTable["Specialist"]!!)
+                    playerList.remove(pp)
+                    return p
+                } else {
+                    throw Exception("Declared a player but there is no available slot")
+                }
+            }
+            else -> throw Exception("Unsupported playground object type declaration")
         }
     }
 
@@ -430,7 +550,7 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
         return visit(ctx?.assignment_expression())
     }
 
-    // TODO need to rewrite this
+    // TODO need to rewrite this, add comparable to players
     override fun visitBoolComparativeExpr(ctx: amatsukazeGrammarParser.BoolComparativeExprContext?): Any {
         val left = visit(ctx?.expression(0))
         val right = visit(ctx?.expression(1))
@@ -579,7 +699,7 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
         vari: amatsukazeGrammarParser.Variable_expressionContext? = null
     ): Any {
         if (vari == null) {
-
+            return visit(func)
         } else {
 
         }
@@ -865,33 +985,88 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
 
     override fun visitVariable_expression(ctx: amatsukazeGrammarParser.Variable_expressionContext?): Any {
         try {
-            return when (val name = visit(ctx?.IDENTIFIER()).toString()) {
-                "isOnGem" -> manager.isOnGem(manager.firstId)
-                "isOnOpenedSwitch" -> manager.isOnOpenedSwitch(manager.firstId)
-                "isOnClosedSwitch" -> manager.isOnClosedSwitch(manager.firstId)
-                "isBlocked" -> manager.isBlocked(manager.firstId)
-                "isBlockedLeft" -> manager.isBlockedLeft(manager.firstId)
-                "isBlockedRight" -> manager.isBlockedRight(manager.firstId)
-                "collectedGem" -> manager.collectedGem(manager.firstId)
-                else -> {
-                    return queryVariableTable(name).first!!
-                }
-            }
+            val name = visit(ctx?.IDENTIFIER()).toString()
+            return if (providedFunctions.containsKey(name))
+                providedFunctions.getValue(name)(manager.firstId)
+            else
+                queryVariableTable(name).first!!
         } catch (e: Exception) {
             throw Exception("The variable looking for doesn't exist!")
         }
     }
 
+    private fun preprocessPrintRule(argument: Literal): String {
+        return when (argument) {
+            is IntegerL -> argument.content.toString()
+            is DoubleL -> argument.content.toString()
+            is CharacterL -> argument.content.toString()
+            is StringL -> if (argument.content[0] == '"' && argument.content[argument.content.length - 1] == '"') argument.content.substring(1, argument.content.length - 1)
+            else argument.content
+            is StructL -> "Struct #"
+            is FunctionL -> "Function #${argument.head.name}@${argument.head.params.joinToString(",")}"
+            is ArrayL -> argument.content.toString()
+            is PlayerL -> "Player #id${argument.id}"
+            is SpecialistL -> "Specialist #id${argument.id}"
+            else -> throw Exception("Unsupported print operation on type")
+        }
+    }
+
     override fun visitFunction_call_expression(ctx: amatsukazeGrammarParser.Function_call_expressionContext?): Any {
-        TODO("Not yet implemented")
+        try {
+            val functionName = visit(ctx?.function_name()) as String
+            val funcArgument =
+                if (ctx?.childCount == 2) listOf() else visit(ctx?.call_argument_clause()) as List<Literal>
+            val funcHead = FuncHead(
+                functionName, listOf(), literalsToDataType(funcArgument.toTypedArray()), mutableListOf(), _CALL)
+            if (functionName == "Player" && funcHead.types.isEmpty()) {
+                return declareNewPlaygroundObject("PLAYER")
+            } else if (functionName == "Specialist" && funcHead.types.isEmpty()) {
+                return declareNewPlaygroundObject("SPECIALIST")
+            } else if (funcHead.types.isEmpty() && providedFunctions.containsKey(functionName)) {
+                return providedFunctions.getValue(functionName)(manager.firstId)
+            } else if (functionName == "changeColor" && funcHead.types.size == 1) {
+                if (funcArgument[0] is StringL) {
+                    val color =  when ((funcArgument[0] as StringL).content.toLowerCase()) {
+                        "black" -> Color.BLACK
+                        "silver" -> Color.SILVER
+                        "grey" -> Color.GREY
+                        "white" -> Color.WHITE
+                        "red" -> Color.RED
+                        "orange" -> Color.ORANGE
+                        "gold" -> Color.GOLD
+                        "pink" -> Color.PINK
+                        "yellow" -> Color.YELLOW
+                        "beige" -> Color.BEIGE
+                        "brown" -> Color.BROWN
+                        "green" -> Color.GREEN
+                        "azure" -> Color.AZURE
+                        "cyan" -> Color.CYAN
+                        "aliceblue" -> Color.ALICEBLUE
+                        "purple" -> Color.PURPLE
+                        else -> throw Exception("Unsupported color")
+                    }
+                    return manager.changeColor(manager.firstId, color)
+                } else {
+                    throw Exception("Wrong argument type in color function.")
+                }
+            } else if (functionName == "print") {
+                manager.print(funcArgument.map{ preprocessPrintRule(it) })
+                return SpecialRetVal.Empty
+            } else {
+                return SpecialRetVal.NotDef
+                // TODO("Not yet implemented")
+            }
+        } catch (e: Exception) {
+            throw Exception("Something went wrong while passing function call: \n    ${e.message}")
+        }
     }
 
     override fun visitCall_argument_clause(ctx: amatsukazeGrammarParser.Call_argument_clauseContext?): Any {
-        TODO("Not yet implemented")
+        return ctx?.call_argument()?.map { visit(it) }!! as List<Literal>
     }
 
     override fun visitCall_argument(ctx: amatsukazeGrammarParser.Call_argumentContext?): Any {
-        TODO("Not yet implemented")
+        return visit(ctx?.expression())
     }
 
     override fun visitStruct_call_expression(ctx: amatsukazeGrammarParser.Struct_call_expressionContext?): Any {
@@ -926,7 +1101,7 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
             }
             return ret
         } catch (e: Throwable) {
-            if (e is ReturnedLiteral) {
+            if (e is ReturnedL) {
                 internalDepth = funcEntriesDepth.last()
                 internalVariableDepth.filter { it.value > internalDepth }.keys.forEach { name -> internalVariables[currentFunc].remove(name) }
                 internalVariableDepth.filter { it.value > internalDepth }.keys.forEach { name -> internalVariableDepth.remove(name) }
@@ -1313,6 +1488,9 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
             "Struct" -> _STRUCT
             "Enum" -> _ENUM
             "Array" -> _ARRAY(_SOME)
+
+            "Player" -> _PLAYER
+            "Specialist" -> _SPECIALIST
             else -> throw Exception("Unsupported type")
         }
     }
