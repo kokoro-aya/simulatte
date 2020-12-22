@@ -481,6 +481,27 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
         }
     }
 
+    private fun internal_typeOf(l: Literal): StringL {
+        val type = when (l) {
+            is IntegerL -> "Integer"
+            is DoubleL -> "Double"
+            is StringL -> "String"
+            is CharacterL -> "Character"
+            is BooleanL -> "Bool"
+            is FunctionL -> "Function"
+            is StructL -> "Struct"
+            is ArrayL -> "Array"
+            is PlayerL -> "Player"
+            is SpecialistL -> "Specialist"
+            // TODO test array internal content
+        }
+        return StringL(Variability.CST, type, typeTable["String"]!!)
+    }
+
+    private fun internal_isSame(l: Literal, o: Literal): BooleanL {
+        return BooleanL(Variability.CST, internal_typeOf(l) == internal_typeOf(o), typeTable["Bool"]!!)
+    }
+
     override fun visit(tree: ParseTree?): Any {
         return tree?.accept(this) ?: Exception("Encountered error while visiting AST")
 //        try {
@@ -827,28 +848,28 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
                 (visit(ctx?.expression(0)) as IntegerL).content
             }
             if (ctx?.op?.type == amatsukazeGrammarParser.UNTIL) {
-                if (ctx?.STEP() == null) {
+                if (ctx.STEP() == null) {
                     return (lower until upper)
                 }
                 val steps = (visit(ctx.expression(2)) as IntegerL).content
                 return (lower until upper step steps)
             }
             if (ctx?.op?.type == amatsukazeGrammarParser.THROUGH) {
-                if (ctx?.STEP() == null) {
+                if (ctx.STEP() == null) {
                     return (lower..upper)
                 }
                 val steps = (visit(ctx.expression(2)) as IntegerL).content
                 return (lower .. upper step steps)
             }
             if (ctx?.op?.type == amatsukazeGrammarParser.DUNTIL) {
-                if (ctx?.STEP() == null) {
+                if (ctx.STEP() == null) {
                     return (lower downTo upper + 1)
                 }
                 val steps = (visit(ctx.expression(2)) as IntegerL).content
                 return (lower downTo upper + 1 step steps)
             }
             if (ctx?.op?.type == amatsukazeGrammarParser.DTHROUGH) {
-                if (ctx?.STEP() == null) {
+                if (ctx.STEP() == null) {
                     return (lower downTo upper)
                 }
                 val steps = (visit(ctx.expression(2)) as IntegerL).content
@@ -1023,10 +1044,11 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
             } else if (functionName == "Specialist" && funcHead.types.isEmpty()) {
                 return declareNewPlaygroundObject("SPECIALIST")
             } else if (funcHead.types.isEmpty() && providedFunctions.containsKey(functionName)) {
-                return providedFunctions.getValue(functionName)(manager.firstId)
+                providedFunctions.getValue(functionName)(manager.firstId)
+                return SpecialRetVal.Empty
             } else if (functionName == "changeColor" && funcHead.types.size == 1) {
                 if (funcArgument[0] is StringL) {
-                    val color =  when ((funcArgument[0] as StringL).content.toLowerCase()) {
+                    val color = when ((funcArgument[0] as StringL).content.toLowerCase()) {
                         "black" -> Color.BLACK
                         "silver" -> Color.SILVER
                         "grey" -> Color.GREY
@@ -1045,10 +1067,15 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
                         "purple" -> Color.PURPLE
                         else -> throw Exception("Unsupported color")
                     }
-                    return manager.changeColor(manager.firstId, color)
+                    manager.changeColor(manager.firstId, color)
+                    return SpecialRetVal.Empty
                 } else {
                     throw Exception("Wrong argument type in color function.")
                 }
+            } else if (functionName == "typeOf" && funcArgument.size == 1) {
+                return internal_typeOf(funcArgument[0])
+            } else if (functionName == "isSame" && funcArgument.size == 2) {
+                return internal_isSame(funcArgument[0], funcArgument[1])
             } else if (functionName == "print") {
                 manager.print(funcArgument.map{ preprocessPrintRule(it) })
                 return SpecialRetVal.Empty
@@ -1120,30 +1147,53 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
     override fun visitFor_in_statement(ctx: amatsukazeGrammarParser.For_in_statementContext?): Any {
         try {
             val preRange = visit(ctx?.expression())
-            var range: Array<Any> = (0 .. 0).toList().toTypedArray()
+            val range = mutableListOf<Any>()
             when (preRange) {
-                is IntRange -> range = preRange.toList().toTypedArray()
+                is IntRange -> {
+                    preRange.forEach { range.add(it) }
+                }
                 is ArrayL -> {
-                    range = preRange.content.toTypedArray()
+                    range.addAll(preRange.content.map { when (it) {
+                        is IntegerL -> it.content
+                        is DoubleL -> it.content
+                        is StringL -> it.content
+                        is CharacterL -> it.content
+                        is BooleanL -> it.content
+                        else -> it
+                    } })
                 }
                 is String -> {
                     val literal = queryVariableTable(preRange).first ?: throw Exception("Variable not found")
                     if (literal is ArrayL) {
-                        range = literal.content.toTypedArray()
+                        range.addAll(literal.content.map { when (it) {
+                            is IntegerL -> it.content
+                            is DoubleL -> it.content
+                            is StringL -> it.content
+                            is CharacterL -> it.content
+                            is BooleanL -> it.content
+                            else -> it
+                        } })
                     }
                 }
             }
             // Future possibility: range of an object
             val pattern = visit(ctx?.pattern()) as String
+            val vTable = if (ctx?.parent?.parent?.parent?.parent?.parent is amatsukazeGrammarParser.Function_bodyContext)
+                internalVariables[internalVariables.size - 1] else variableTable
             // println(range)
             for (x in range) {
                 if (pattern != "_") {
                     when (x) {
-                        is Int -> variableTable[pattern] = IntegerL(Variability.VAR, x, typeTable["Integer"]!!)
-                        is Double -> variableTable[pattern] = DoubleL(Variability.VAR, x, typeTable["Double"]!!)
-                        is String -> variableTable[pattern] = StringL(Variability.VAR, x, typeTable["String"]!!)
-                        is Char -> variableTable[pattern] = CharacterL(Variability.VAR, x, typeTable["Character"]!!)
-                        is Boolean -> variableTable[pattern] = BooleanL(Variability.VAR, x, typeTable["Bool"]!!)
+                        is Int -> vTable[pattern] = IntegerL(Variability.CST, x, typeTable["Integer"]!!)
+                        is Double -> vTable[pattern] = DoubleL(Variability.CST, x, typeTable["Double"]!!)
+                        is String -> vTable[pattern] = StringL(Variability.CST, x, typeTable["String"]!!)
+                        is Char -> vTable[pattern] = CharacterL(Variability.CST, x, typeTable["Character"]!!)
+                        is Boolean -> vTable[pattern] = BooleanL(Variability.CST, x, typeTable["Bool"]!!)
+                        is FunctionL -> vTable[pattern] = FunctionL(Variability.CST, x.head, x.body, x.closureScope, x.prototype)
+                        is StructL -> vTable[pattern] = StructL(Variability.CST, x.body, x.prototype)
+                        is ArrayL -> vTable[pattern] = ArrayL(Variability.CST, x.subType, x.content, x.prototype)
+                        is PlayerL -> vTable[pattern] = PlayerL(Variability.CST, x.id, x.prototype)
+                        is SpecialistL -> vTable[pattern] = SpecialistL(Variability.CST, x.id, x.prototype)
                         else -> throw Exception("Unsupported operation on for-in statement")
                         // TODO this might cause problem if the pattern shallows another variable in the outer scope?
                     }
@@ -1158,7 +1208,7 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
                 }
                 visit(ctx?.code_block())
             }
-            variableTable.remove(pattern)
+            vTable.remove(pattern)
         } catch (e: Exception) {
             throw Exception("Something goes wrong while visiting for-in expression:\n    ${e.message}")
         }
