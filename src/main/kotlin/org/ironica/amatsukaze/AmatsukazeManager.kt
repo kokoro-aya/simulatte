@@ -1,6 +1,6 @@
 package org.ironica.amatsukaze
 
-class PlaygroundManager(val playground: Playground) {
+class AmatsukazeManager(val playground: Playground) {
 
     private var consoleLog = ""
     private var special = ""
@@ -80,7 +80,18 @@ class PlaygroundManager(val playground: Playground) {
     }
 
     fun win(): Boolean {
-        return playground.win()
+        return if (playground.win()) {
+            this.special = "WIN"
+            appendEntry()
+            true
+        } else false
+    }
+    fun dead(): Boolean {
+        return if (playground.players.isEmpty()) {
+            this.special = "GAMEOVER"
+            appendEntry()
+            true
+        } else false
     }
     fun gemCount(): Int {
         return playground.gemCount()

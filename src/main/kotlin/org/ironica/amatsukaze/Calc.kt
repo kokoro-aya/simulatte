@@ -33,7 +33,7 @@ fun main(args: Array<String>) {
         Direction.RIGHT
     ))
     val playground = Playground(grid, layout, layout2s, portals, players, 4)
-    val manager = PlaygroundManager(playground)
+    val manager = AmatsukazeManager(playground)
     val exec = AmatsukazeVisitor(manager)
     exec.visit(tree)
     playground.printGrid()

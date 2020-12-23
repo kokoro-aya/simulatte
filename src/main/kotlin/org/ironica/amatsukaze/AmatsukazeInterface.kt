@@ -1,12 +1,12 @@
 package org.ironica.amatsukaze
 
+import amatsukazeGrammarLexer
+import amatsukazeGrammarParser
 import kotlinx.serialization.Serializable
 import org.antlr.v4.runtime.CharStream
 import org.antlr.v4.runtime.CharStreams
 import org.antlr.v4.runtime.CommonTokenStream
 import org.antlr.v4.runtime.tree.ParseTree
-import playgroundGrammarLexer
-import playgroundGrammarParser
 
 @Serializable
 data class PlayerData(val id: Int, val x: Int, val y: Int, val dir: String, val role: String)
@@ -91,15 +91,15 @@ private fun convertDataToTile(ti: TileInfo): Tile {
 
 fun calculateInitialGem(layout: Layout): Int = layout.flatten().filter { it == Item.GEM }.size
 
-class PlaygroundInterface(code: String, grid: Grid, layout: Layout, layout2s: SecondLayout, portals: Array<Portal>, players: Array<Player>) {
+class AmatsukazeInterface(code: String, grid: Grid, layout: Layout, layout2s: SecondLayout, portals: Array<Portal>, players: Array<Player>) {
     private val input: CharStream = CharStreams.fromString(code)
-    private val lexer = playgroundGrammarLexer(input)
+    private val lexer = amatsukazeGrammarLexer(input)
     private val tokens = CommonTokenStream(lexer)
-    private val parser = playgroundGrammarParser(tokens)
+    private val parser = amatsukazeGrammarParser(tokens)
     private val tree: ParseTree = parser.top_level()
     val playground = Playground(grid, layout, layout2s, portals, players, calculateInitialGem(layout))
-    private val manager = PlaygroundManager(playground)
-    private val exec = PlaygroundVisitor(manager)
+    private val manager = AmatsukazeManager(playground)
+    private val exec = AmatsukazeVisitor(manager)
     fun start() {
         exec.visit(tree)
     }

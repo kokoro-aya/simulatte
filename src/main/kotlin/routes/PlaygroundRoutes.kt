@@ -16,7 +16,7 @@ fun Route.getPlaygroundRoute() {
         post {
             val data = call.receive<Data>()
             payloadStorage.clear()
-            val playgroundInterface = PlaygroundInterface(
+            val playgroundInterface = AmatsukazeInterface(
                 data.code,
                 convertJsonToGrid(data.grid),
                 convertJsonToLayout(data.layout),
