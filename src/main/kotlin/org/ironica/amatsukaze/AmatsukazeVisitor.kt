@@ -134,6 +134,8 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
 
     private val functionTable = mutableMapOf<FuncHead, Pair<ParseTree, Int>>()
 
+    private val closures = mutableListOf<Scope>()
+
     private val anonymousFuncIndices = mutableListOf(0)
 
     private fun assignAnonymousFuncIndex(level: Int): Int {
@@ -160,6 +162,11 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
     private val internalVariableDepth = mutableMapOf<String, Int>()
 
     private fun queryVariableTable(of: String): Pair<Literal?, Int> {
+        for (i in closures.indices.reversed()) {
+            if (closures[i].containsKey(of)) {
+                return closures[i][of] to i
+            }
+        }
         for (i in internalVariables.indices.reversed()) {
             if (internalVariables[i].containsKey(of)) {
                 return internalVariables[i][of] to i
@@ -1193,6 +1200,9 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
             currentFunc += 1
             anonymousFuncIndices.add(0)
             internalVariables.add(mutableMapOf())
+            if (closure != null) {
+                closures.addAll(closure)
+            }
             if (funcArgu.isNotEmpty()) {
                 val newVariables = realHead.params.zip(funcArgu)
                 newVariables.forEach { internalVariables[currentFunc][it.first] = it.second }
@@ -1203,6 +1213,9 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
             internalVariables.removeAt(internalVariables.size - 1)
             internalVariableDepth.filter { it.value == internalDepth }.keys.forEach { name ->
                 internalVariableDepth.remove(name)
+            }
+            if (closure != null) {
+                for (x in 1 .. closure.size) closures.removeAt(closures.lastIndex)
             }
             funcEntriesDepth.remove(funcEntriesDepth.lastIndex)
             currentFunc -= 1
@@ -1217,6 +1230,9 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
                 internalVariables.removeAt(internalVariables.size - 1)
                 internalVariableDepth.filter { it.value == internalDepth }.keys.forEach { name ->
                     internalVariableDepth.remove(name)
+                }
+                if (closure != null) {
+                    for (x in 1..closure.size) closures.removeAt(closures.lastIndex)
                 }
                 funcEntriesDepth.removeAt(funcEntriesDepth.lastIndex)
                 currentFunc -= 1
@@ -1600,7 +1616,9 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
                     functionSignature.first.map { it.third },
                     functionSignature.second
                 )
-                return Triple(funcHead, bodyNode, mutableListOf<Scope>().addAll(internalVariables))
+                val newScope = mutableListOf<Scope>()
+                newScope.addAll(internalVariables)
+                return Triple(funcHead, bodyNode, newScope)
             } else {
                 val funcHead = FuncHead(
                     visit(nameNode) as String,
@@ -1613,7 +1631,9 @@ class AmatsukazeVisitor(private val manager: PlaygroundManager): amatsukazeGramm
                     if (funcHead.pseudoEquals(key))
                         throw Exception("Redefined function!")
                 functionTable[funcHead] = bodyNode to currentFunc
-                return Triple(funcHead, bodyNode, mutableListOf<Scope>().addAll(internalVariables))
+                val newScope = mutableListOf<Scope>()
+                newScope.addAll(internalVariables)
+                return Triple(funcHead, bodyNode, newScope)
             }
         } catch (e: Exception) {
             throw Exception("Encountered error within function declaration: \n    ${e.message}")
