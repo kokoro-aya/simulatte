@@ -64,7 +64,7 @@ data class Prototype (
 ): Proto()
 
 data class PlayerLiteral(override val variability: Variability, var id: Int, override val prototype: Prototype): Literal()
-data class SpecialistL(override val variability: Variability, var id: Int, override val prototype: Prototype): Literal()
+data class SpecialistLiteral(override val variability: Variability, var id: Int, override val prototype: Prototype): Literal()
 
 data class FuncHead(var name: String, val params: List<String>, val types: List<DataType>, val refs: List<Boolean>, val ret: DataType) {
 
@@ -113,8 +113,10 @@ class AmatsukazeVisitor(private val manager: AmatsukazeManager): amatsukazeGramm
         "toggleSwitch" to {e: Int -> manager.toggleSwitch(e)},
         "collectGem" to {e: Int -> manager.collectGem(e)},
         "takeBeeper" to {e: Int -> manager.takeBeeper(e)},
-        "dropBeeper" to {e: Int -> manager.dropBeeper(e)},
+        "dropBeeper" to {e: Int -> manager.dropBeeper(e)}
+    )
 
+    private val providedProperties = mapOf(
         "isOnGem" to {e: Int -> manager.isOnGem(e)},
         "isOnOpenedSwitch" to {e: Int -> manager.isOnOpenedSwitch(e)},
         "isOnClosedSwitch" to {e: Int -> manager.isOnClosedSwitch(e)},
@@ -125,8 +127,7 @@ class AmatsukazeVisitor(private val manager: AmatsukazeManager): amatsukazeGramm
         "isOnPortal" to {e: Int -> manager.isOnPortal(e)},
         "isBlocked" to {e: Int -> manager.isBlocked(e)},
         "isBlockedLeft" to {e: Int -> manager.isBlockedLeft(e)},
-        "isBlockedRight" to {e: Int -> manager.isBlockedRight(e)},
-        "collectedGem" to {e: Int -> manager.collectedGem(e)}
+        "isBlockedRight" to {e: Int -> manager.isBlockedRight(e)}
     )
 
     private var _break = false
@@ -277,10 +278,10 @@ class AmatsukazeVisitor(private val manager: AmatsukazeManager): amatsukazeGramm
                     else -> throw Exception("Type of lhs and rhs of assignment don't match")
                 }
             }
-            is SpecialistL -> {
+            is SpecialistLiteral -> {
                 if (left.variability == Variability.CST) throw Exception("Attempt modify constant")
                 when (right) {
-                    is SpecialistL -> left.id = right.id
+                    is SpecialistLiteral -> left.id = right.id
                     else -> throw Exception("Type of lhs and rhs of assignment don't match")
                 }
             }
@@ -299,7 +300,7 @@ class AmatsukazeVisitor(private val manager: AmatsukazeManager): amatsukazeGramm
                 || right is ArrayLiteral && type is _ARRAY
 
                 || right is PlayerLiteral && type is _PLAYER
-                || right is SpecialistL && type is _SPECIALIST) type else null
+                || right is SpecialistLiteral && type is _SPECIALIST) type else null
     }
 
     private fun checkTypeOfLiteralsIdentical(left: Literal, right: Literal): Boolean {
@@ -313,7 +314,7 @@ class AmatsukazeVisitor(private val manager: AmatsukazeManager): amatsukazeGramm
                 || left is ArrayLiteral && right is ArrayLiteral
 
                 || left is PlayerLiteral && right is PlayerLiteral
-                || left is SpecialistL && right is SpecialistL
+                || left is SpecialistLiteral && right is SpecialistLiteral
     }
 
     private fun checkArrayType(type: DataType, right: ArrayLiteral) {
@@ -328,7 +329,7 @@ class AmatsukazeVisitor(private val manager: AmatsukazeManager): amatsukazeGramm
             is _FUNCTION -> if (right.content.none { it !is FunctionLiteral }) return
 
             is _PLAYER -> if (right.content.none { it !is PlayerLiteral }) return
-            is _SPECIALIST -> if (right.content.none { it !is SpecialistL }) return
+            is _SPECIALIST -> if (right.content.none { it !is SpecialistLiteral }) return
         }
         throw Exception("Array type check failed")
     }
@@ -345,7 +346,7 @@ class AmatsukazeVisitor(private val manager: AmatsukazeManager): amatsukazeGramm
         if (right.content.all { it is ArrayLiteral }) return _ARRAY(_SOME)
 
         if (right.content.all { it is PlayerLiteral }) return _PLAYER
-        if (right.content.all { it is SpecialistL }) return _SPECIALIST
+        if (right.content.all { it is SpecialistLiteral }) return _SPECIALIST
         throw Exception("Array type inference failed")
     }
 
@@ -361,7 +362,7 @@ class AmatsukazeVisitor(private val manager: AmatsukazeManager): amatsukazeGramm
         if (right.all { it is ArrayLiteral }) return _ARRAY(_SOME) // TODO Fix this
 
         if (right.all { it is PlayerLiteral }) return _PLAYER
-        if (right.all { it is SpecialistL }) return _SPECIALIST
+        if (right.all { it is SpecialistLiteral }) return _SPECIALIST
         throw Exception("Array type inference failed")
     }
 
@@ -408,8 +409,8 @@ class AmatsukazeVisitor(private val manager: AmatsukazeManager): amatsukazeGramm
                     else PlayerLiteral(Variability.VAR, (right as PlayerLiteral).id, right.prototype)
                 }
                 _SPECIALIST -> {
-                    if (constant) SpecialistL(Variability.CST, (right as PlayerLiteral).id, right.prototype)
-                    else SpecialistL(Variability.VAR, (right as PlayerLiteral).id, right.prototype)
+                    if (constant) SpecialistLiteral(Variability.CST, (right as PlayerLiteral).id, right.prototype)
+                    else SpecialistLiteral(Variability.VAR, (right as PlayerLiteral).id, right.prototype)
                 }
                 else -> throw Exception("This could not happen")
             }
@@ -454,9 +455,9 @@ class AmatsukazeVisitor(private val manager: AmatsukazeManager): amatsukazeGramm
                     if (constant) PlayerLiteral(Variability.CST, right.id, right.prototype)
                     else PlayerLiteral(Variability.VAR, right.id, right.prototype)
                 }
-                is SpecialistL -> {
-                    if (constant) SpecialistL(Variability.CST, right.id, right.prototype)
-                    else SpecialistL(Variability.VAR, right.id, right.prototype)
+                is SpecialistLiteral -> {
+                    if (constant) SpecialistLiteral(Variability.CST, right.id, right.prototype)
+                    else SpecialistLiteral(Variability.VAR, right.id, right.prototype)
                 }
             }
         }
@@ -473,7 +474,7 @@ class AmatsukazeVisitor(private val manager: AmatsukazeManager): amatsukazeGramm
             is StructLiteral -> _STRUCT
             is ArrayLiteral -> _ARRAY(inferArrayType(it))
             is PlayerLiteral -> _PLAYER
-            is SpecialistL -> _SPECIALIST
+            is SpecialistLiteral -> _SPECIALIST
         } }
     }
 
@@ -492,7 +493,7 @@ class AmatsukazeVisitor(private val manager: AmatsukazeManager): amatsukazeGramm
             "SPECIALIST" -> {
                 if (playerList.filterIsInstance<Specialist>().isNotEmpty()) {
                     val pp = playerList.filterIsInstance<Specialist>()[0]
-                    val p = SpecialistL(Variability.CST, pp.id, typeTable["Specialist"]!!)
+                    val p = SpecialistLiteral(Variability.CST, pp.id, typeTable["Specialist"]!!)
                     playerList.remove(pp)
                     return p
                 } else {
@@ -514,7 +515,7 @@ class AmatsukazeVisitor(private val manager: AmatsukazeManager): amatsukazeGramm
             is StructLiteral -> "Struct"
             is ArrayLiteral -> "Array"
             is PlayerLiteral -> "Player"
-            is SpecialistL -> "Specialist"
+            is SpecialistLiteral -> "Specialist"
             // TODO test array internal content
         }
         return StringLiteral(Variability.CST, type, typeTable["String"]!!)
@@ -772,6 +773,47 @@ class AmatsukazeVisitor(private val manager: AmatsukazeManager): amatsukazeGramm
                     is PlayerLiteral -> {
                         if (funcArgu.isEmpty() && providedFunctions.containsKey(functionName)) {
                             providedFunctions.getValue(functionName)(obj.id)
+                            if (manager.dead())
+                                throw TerminatedReturn("GAMEOVER")
+                            if (manager.win())
+                                throw TerminatedReturn("WIN")
+                            return SpecialRetVal.Empty
+                        }
+                        if (funcArgu.size == 1 && functionName == "changeColor") {
+                            if (funcArgu[0] is StringLiteral) {
+                                val color = when ((funcArgu[0] as StringLiteral).content.toLowerCase()) {
+                                    "black" -> Color.BLACK
+                                    "silver" -> Color.SILVER
+                                    "grey" -> Color.GREY
+                                    "white" -> Color.WHITE
+                                    "red" -> Color.RED
+                                    "orange" -> Color.ORANGE
+                                    "gold" -> Color.GOLD
+                                    "pink" -> Color.PINK
+                                    "yellow" -> Color.YELLOW
+                                    "beige" -> Color.BEIGE
+                                    "brown" -> Color.BROWN
+                                    "green" -> Color.GREEN
+                                    "azure" -> Color.AZURE
+                                    "cyan" -> Color.CYAN
+                                    "aliceblue" -> Color.ALICEBLUE
+                                    "purple" -> Color.PURPLE
+                                    else -> throw Exception("Unsupported color")
+                                }
+                                manager.changeColor(obj.id, color)
+                                return SpecialRetVal.Empty
+                            } else {
+                                throw Exception("Wrong argument type in color function.")
+                            }
+                        }
+                    }
+                    is SpecialistLiteral -> {
+                        if (funcArgu.isEmpty() && providedFunctions.containsKey(functionName)) {
+                            providedFunctions.getValue(functionName)(obj.id)
+                            if (manager.dead())
+                                throw TerminatedReturn("GAMEOVER")
+                            if (manager.win())
+                                throw TerminatedReturn("WIN")
                             return SpecialRetVal.Empty
                         }
                         if (funcArgu.size == 1 && functionName == "changeColor") {
@@ -1198,14 +1240,16 @@ class AmatsukazeVisitor(private val manager: AmatsukazeManager): amatsukazeGramm
     }
 
     override fun visitVariable_expression(ctx: amatsukazeGrammarParser.Variable_expressionContext?): Any {
+        var name: String = ""
         try {
-            val name = visit(ctx?.IDENTIFIER()).toString()
-            return if (providedFunctions.containsKey(name))
-                providedFunctions.getValue(name)(manager.firstId)
-            else
+            name = visit(ctx?.IDENTIFIER()).toString()
+            return if (providedProperties.containsKey(name)) {
+                val ans = providedProperties.getValue(name)(manager.firstId)
+                return BooleanLiteral(Variability.CST, ans.invoke(), typeTable["Bool"]!!)
+            } else
                 queryVariableTable(name).first!!
         } catch (e: Exception) {
-            throw Exception("The variable looking for doesn't exist!")
+            throw Exception("The variable $name looking for doesn't exist!")
         }
     }
 
@@ -1220,7 +1264,7 @@ class AmatsukazeVisitor(private val manager: AmatsukazeManager): amatsukazeGramm
             is FunctionLiteral -> "Function #${argument.head.name}@${argument.head.params.joinToString(",")}"
             is ArrayLiteral -> argument.content.toString()
             is PlayerLiteral -> "Player #id${argument.id}"
-            is SpecialistL -> "Specialist #id${argument.id}"
+            is SpecialistLiteral -> "Specialist #id${argument.id}"
             else -> throw Exception("Unsupported print operation on type")
         }
     }
@@ -1233,7 +1277,7 @@ class AmatsukazeVisitor(private val manager: AmatsukazeManager): amatsukazeGramm
             is CharacterLiteral -> CharacterLiteral(Variability.VAR, l.content, l.prototype)
             is BooleanLiteral -> BooleanLiteral(Variability.VAR, l.content, l.prototype)
             is PlayerLiteral -> PlayerLiteral(Variability.VAR, l.id, l.prototype)
-            is SpecialistL -> SpecialistL(Variability.VAR, l.id, l.prototype)
+            is SpecialistLiteral -> SpecialistLiteral(Variability.VAR, l.id, l.prototype)
             else -> l
         }
     }
@@ -1281,7 +1325,9 @@ class AmatsukazeVisitor(private val manager: AmatsukazeManager): amatsukazeGramm
                 funcEntriesDepth.removeAt(funcEntriesDepth.lastIndex)
                 currentFunc -= 1
                 return e.content
-            } else throw e
+            } else if (e is TerminatedReturn) {
+                throw e
+            } else throw Exception("Something went wrong in function call visit\n    ${e.message}")
         }
     }
 
@@ -1409,8 +1455,9 @@ class AmatsukazeVisitor(private val manager: AmatsukazeManager): amatsukazeGramm
                 internalVariableDepth.filter { it.value == internalDepth }.keys.forEach { name -> internalVariableDepth.remove(name) }
                 internalDepth -= 1
                 throw e
-            }
-            else
+            } else if (e is TerminatedReturn) {
+                throw e
+            } else
                 throw Exception("Something goes wrong while visiting statements:\n    ${e.message}")
         }
     }
@@ -1471,7 +1518,7 @@ class AmatsukazeVisitor(private val manager: AmatsukazeManager): amatsukazeGramm
                         is StructLiteral -> vTable[pattern] = StructLiteral(Variability.CST, x.body, x.prototype)
                         is ArrayLiteral -> vTable[pattern] = ArrayLiteral(Variability.CST, x.subType, x.content, x.prototype)
                         is PlayerLiteral -> vTable[pattern] = PlayerLiteral(Variability.CST, x.id, x.prototype)
-                        is SpecialistL -> vTable[pattern] = SpecialistL(Variability.CST, x.id, x.prototype)
+                        is SpecialistLiteral -> vTable[pattern] = SpecialistLiteral(Variability.CST, x.id, x.prototype)
                         else -> throw Exception("Unsupported operation on for-in statement")
                         // TODO this might cause problem if the pattern shallows another variable in the outer scope?
                     }
@@ -1617,7 +1664,7 @@ class AmatsukazeVisitor(private val manager: AmatsukazeManager): amatsukazeGramm
                 return SpecialRetVal.Declaration
             }
         } catch (e: Exception) {
-            throw Exception("Unknown literal type on right-hand side while declaring constant\n    $e")
+            throw Exception("Unknown literal type on right-hand side while declaring constant ${left}\n    $e")
         }
     }
 
@@ -1668,6 +1715,7 @@ class AmatsukazeVisitor(private val manager: AmatsukazeManager): amatsukazeGramm
                     functionSignature.second
                 )
                 val newScope = mutableListOf<Scope>()
+                newScope.addAll(closures)
                 newScope.addAll(internalVariables)
                 return Triple(funcHead, bodyNode, newScope)
             } else {
@@ -1811,8 +1859,13 @@ class AmatsukazeVisitor(private val manager: AmatsukazeManager): amatsukazeGramm
             val name = ctx?.IDENTIFIER()!!.toString()
             when (obj) {
                 is PlayerLiteral -> {
-                    if (providedFunctions.containsKey(name)) {
-                        return providedFunctions.getValue(name)(obj.id)
+                    if (name == "collectedGem") {
+                        val ans = manager.collectedGem(obj.id)
+                        return IntegerLiteral(Variability.CST, ans, typeTable["Integer"]!!)
+                    }
+                    if (providedProperties.containsKey(name)) {
+                        val ans = providedProperties.getValue(name)(obj.id)
+                        return BooleanLiteral(Variability.CST, ans.invoke(), typeTable["Bool"]!!)
                     }
                 }
                 is StringLiteral -> {

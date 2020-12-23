@@ -9,7 +9,7 @@ enum class Direction {
 }
 
 enum class Block {
-    OPEN, BLOCKED, WATER, TREE, DESERT, HOME,
+    OPEN, BLOCKED, WATER, TREE, DESERT, HOME, MOUNTAIN, STONE, PLATFORM
 }
 
 enum class Item {
@@ -25,7 +25,7 @@ enum class Role {
 }
 
 @Serializable
-data class Tile(var color: Color = Color.WHITE, var level: Int = 0, val liftable: Boolean = false)
+data class Tile(var color: Color = Color.WHITE, var level: Int = 0)
 
 typealias Grid = Array<Array<Block>>
 typealias Layout = Array<Array<Item>>
@@ -40,7 +40,10 @@ data class Coordinate(var x: Int, var y: Int) {
 }
 
 @Serializable
-class Portal(val coo: Coordinate = Coordinate(0, 0), val dest: Coordinate = Coordinate(0, 0), var isActive: Boolean = false)
+data class Portal(val coo: Coordinate = Coordinate(0, 0), val dest: Coordinate = Coordinate(0, 0), var isActive: Boolean = false)
+
+@Serializable
+data class Lock(val coo: Coordinate, val controlled: Array<Coordinate>)
 
 open class Player(val id: Int, val coo: Coordinate, var dir: Direction) {
 
@@ -48,6 +51,7 @@ open class Player(val id: Int, val coo: Coordinate, var dir: Direction) {
     lateinit var layout: Layout
     lateinit var layout2s: SecondLayout
     lateinit var portals: Array<Portal>
+    lateinit var playground: Playground
 
     var stamina = 90
 
@@ -126,6 +130,9 @@ open class Player(val id: Int, val coo: Coordinate, var dir: Direction) {
             }
             return true
         }
+        if (stamina <= 0) {
+            playground.kill(this)
+        }
         return false
     }
     fun collectGem(): Boolean {
@@ -136,6 +143,9 @@ open class Player(val id: Int, val coo: Coordinate, var dir: Direction) {
             layout[coo.y][coo.x] = NONE
             stamina -= 1
             return true
+        }
+        if (stamina <= 0) {
+            playground.kill(this)
         }
         return false
     }
@@ -152,6 +162,9 @@ open class Player(val id: Int, val coo: Coordinate, var dir: Direction) {
             stamina -= 1
             return true
         }
+        if (stamina <= 0) {
+            playground.kill(this)
+        }
         return false
     }
 
@@ -163,6 +176,9 @@ open class Player(val id: Int, val coo: Coordinate, var dir: Direction) {
             beeperInBag += 1
             stamina -= 1
             return true
+        }
+        if (stamina <= 0) {
+            playground.kill(this)
         }
         return false
     }
@@ -176,6 +192,9 @@ open class Player(val id: Int, val coo: Coordinate, var dir: Direction) {
             stamina -= 1
             return true
         }
+        if (stamina <= 0) {
+            playground.kill(this)
+        }
         return false
     }
 
@@ -185,6 +204,9 @@ open class Player(val id: Int, val coo: Coordinate, var dir: Direction) {
 }
 
 class Specialist(id: Int, coo: Coordinate, dir: Direction): Player(id, coo, dir) {
+
+    lateinit var locks: Array<Lock>
+
     val isBeforeLock = {
         when (dir) {
             UP -> coo.y >= 1 && layout[coo.y - 1][coo.x] == LOCK
@@ -194,9 +216,20 @@ class Specialist(id: Int, coo: Coordinate, dir: Direction): Player(id, coo, dir)
         }
     }
 
+    val lockCoo = {
+        assert(isBeforeLock())
+        when (dir) {
+            UP -> Coordinate(coo.x, coo.y - 1)
+            DOWN -> Coordinate(coo.x, coo.y + 1)
+            LEFT -> Coordinate(coo.x - 1, coo.y)
+            RIGHT -> Coordinate(coo.x + 1, coo.y)
+        }
+    }
+
     fun turnLockUp(): Boolean {
         if (isBeforeLock()) {
-            this.layout2s.forEach { it.forEach { if (it.liftable && it.level < 10) it.level += 1 } }
+            val lock = locks.filter { it.coo == lockCoo() }[0]
+            lock.controlled.forEach { c -> if (layout2s[c.y][c.x].level < 15) layout2s[c.y][c.x].level += 1 }
             stamina -= 1
             return true
         }
@@ -205,7 +238,8 @@ class Specialist(id: Int, coo: Coordinate, dir: Direction): Player(id, coo, dir)
 
     fun turnLockDown(): Boolean {
         if (isBeforeLock()) {
-            this.layout2s.forEach { it.forEach { if (it.liftable && it.level > 0) it.level -= 1 } }
+            val lock = locks.filter { it.coo == lockCoo() }[0]
+            lock.controlled.forEach { c -> if (layout2s[c.y][c.x].level > 0) layout2s[c.y][c.x].level -= 1 }
             stamina -= 1
             return true
         }
@@ -213,13 +247,19 @@ class Specialist(id: Int, coo: Coordinate, dir: Direction): Player(id, coo, dir)
     }
 }
 
-class Playground(val grid: Grid, val layout: Layout, val layout2s: SecondLayout, val portals: Array<Portal>, val players: Array<Player>, private val initialGem: Int) {
+class Playground(val grid: Grid, val layout: Layout, val layout2s: SecondLayout, val portals: Array<Portal>, val locks: Array<Lock>, val players: MutableList<Player>, private val initialGem: Int) {
 
     init {
         players.map { it.grid = grid }
         players.map { it.layout = layout }
         players.map { it.layout2s = layout2s }
         players.map { it.portals = portals }
+        players.filterIsInstance<Specialist>().map { it.locks = locks }
+        players.map { it.playground = this }
+    }
+
+    fun kill(player: Player) {
+        players.remove(player)
     }
 
     fun win(): Boolean {
@@ -232,7 +272,7 @@ class Playground(val grid: Grid, val layout: Layout, val layout2s: SecondLayout,
         return layout.flatMap { it.filter { it == OPENEDSWITCH } }.size
     }
 
-    private fun printTile(x: Int, y: Int): String {
+    private fun prePrintTile(x: Int, y: Int): String {
         var ret = ""
         players.forEach { if (it.coo.x == x && it.coo.y == y) {
             ret += when (it.dir) {
@@ -252,6 +292,7 @@ class Playground(val grid: Grid, val layout: Layout, val layout2s: SecondLayout,
                     TREE -> "T"
                     DESERT -> "S"
                     HOME -> "H"
+                    else -> throw Exception("Not implemented yet")
                 }
             }
             else -> {
@@ -270,7 +311,7 @@ class Playground(val grid: Grid, val layout: Layout, val layout2s: SecondLayout,
 
     fun printGrid() {
         grid.forEachIndexed { i, row -> row.forEachIndexed { j, _ ->
-                printTile(j, i)
+                print(prePrintTile(j, i))
             }
             println()
         }

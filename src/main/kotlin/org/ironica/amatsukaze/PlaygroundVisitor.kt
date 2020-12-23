@@ -75,3 +75,17 @@ cst a: Array<Array<Int>> = []
 cst b: [Int] = []
 a.pushFront(b)
  */
+/*
+cst foo = (a: Int) -> {
+	(b: Int) -> {
+		(c: Int) -> {
+			a + b + c
+		}
+	}
+}
+
+cst bar = foo(1)
+cst barr = bar(2)
+cst barrr = barr(3)
+print(barrr)
+ */

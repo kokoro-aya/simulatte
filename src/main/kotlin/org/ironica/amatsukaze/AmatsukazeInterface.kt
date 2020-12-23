@@ -12,10 +12,10 @@ import org.antlr.v4.runtime.tree.ParseTree
 data class PlayerData(val id: Int, val x: Int, val y: Int, val dir: String, val role: String)
 
 @Serializable
-data class TileInfo(val x: Int, val y: Int, val color: String, val level: Int, val liftable: Boolean)
+data class TileInfo(val x: Int, val y: Int, val color: String, val level: Int)
 
 @Serializable
-data class Data(val code: String, val grid: Array<Array<String>>, val layout: Array<Array<String>>, val layout2s: Array<TileInfo>, val portals: Array<Portal>, val players: Array<PlayerData>)
+data class Data(val code: String, val grid: Array<Array<String>>, val layout: Array<Array<String>>, val layout2s: Array<TileInfo>, val portals: Array<Portal>, val locks: Array<Lock>, val players: Array<PlayerData>)
 
 fun convertJsonToGrid(array: Array<Array<String>>): Grid {
     return array.map { it.map { when (it) {
@@ -36,6 +36,8 @@ fun convertJsonToLayout(array: Array<Array<String>>): Layout {
         "BEEPER" -> Item.BEEPER
         "OPENEDSWITCH" -> Item.OPENEDSWITCH
         "CLOSEDSWITCH" -> Item.CLOSEDSWITCH
+        "LOCK" -> Item.LOCK
+        "PORTAL" -> Item.PORTAL
         else -> throw Exception("Cannot parse data to layout")
     } }.toTypedArray()}.toTypedArray()
 }
@@ -86,18 +88,18 @@ private fun convertDataToTile(ti: TileInfo): Tile {
         "PURPLE" -> Color.PURPLE
         else -> throw Exception("Cannot parse data to color")
     }
-    return Tile(color, ti.level, ti.liftable)
+    return Tile(color, ti.level)
 }
 
 fun calculateInitialGem(layout: Layout): Int = layout.flatten().filter { it == Item.GEM }.size
 
-class AmatsukazeInterface(code: String, grid: Grid, layout: Layout, layout2s: SecondLayout, portals: Array<Portal>, players: Array<Player>) {
+class AmatsukazeInterface(code: String, grid: Grid, layout: Layout, layout2s: SecondLayout, portals: Array<Portal>, locks: Array<Lock>, players: Array<Player>) {
     private val input: CharStream = CharStreams.fromString(code)
     private val lexer = amatsukazeGrammarLexer(input)
     private val tokens = CommonTokenStream(lexer)
     private val parser = amatsukazeGrammarParser(tokens)
     private val tree: ParseTree = parser.top_level()
-    val playground = Playground(grid, layout, layout2s, portals, players, calculateInitialGem(layout))
+    val playground = Playground(grid, layout, layout2s, portals, locks, players.toMutableList(), calculateInitialGem(layout))
     private val manager = AmatsukazeManager(playground)
     private val exec = AmatsukazeVisitor(manager)
     fun start() {

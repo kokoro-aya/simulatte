@@ -22,6 +22,7 @@ fun Route.getPlaygroundRoute() {
                 convertJsonToLayout(data.layout),
                 convertJsonToLayout2s(data.layout2s, data.grid.size, data.grid[0].size),
                 data.portals,
+                data.locks,
                 convertJsonToPlayers(data.players)
             )
             try {
