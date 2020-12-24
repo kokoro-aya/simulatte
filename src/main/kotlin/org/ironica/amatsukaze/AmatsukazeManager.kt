@@ -39,6 +39,11 @@ class AmatsukazeManager(val playground: Playground) {
         getPlayer(id).moveForward()
         printGrid()
         appendEntry()
+        if (getPlayer(id).isOnPortal()) {
+            getPlayer(id).stepIntoPortal()
+            printGrid()
+            appendEntry()
+        }
     }
     fun collectGem(id: Int) {
         getPlayer(id).collectGem()
@@ -132,13 +137,15 @@ class AmatsukazeManager(val playground: Playground) {
                 currentLayout[i][j] = playground.layout[i][j]
         val currentLayout2s = Array(playground.layout2s.size) { Array(playground.layout2s[0].size) { Tile() } }
         for (i in playground.layout2s.indices)
-            for (j in playground.layout2s[0].indices)
-                currentLayout2s[i][j] = playground.layout2s[i][j]
+            for (j in playground.layout2s[0].indices) {
+                currentLayout2s[i][j].color = playground.layout2s[i][j].color
+                currentLayout2s[i][j].level = playground.layout2s[i][j].level
+            }
         val currentPortals = Array(playground.portals.size) { Portal() }
         for (i in playground.portals.indices)
             currentPortals[i] = playground.portals[i]
         val serializedPlayers = playground.players.map {
-            SerializedPlayer(it.coo.x, it.coo.y, it.dir, if (it is Specialist) Role.SPECIALIST else Role.PLAYER) }.toTypedArray()
+            SerializedPlayer(it.id, it.coo.x, it.coo.y, it.dir, if (it is Specialist) Role.SPECIALIST else Role.PLAYER) }.toTypedArray()
         val payload = Payload(
             serializedPlayers,
             currentPortals,

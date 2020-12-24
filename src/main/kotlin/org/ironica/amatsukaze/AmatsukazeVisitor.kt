@@ -1064,7 +1064,7 @@ class AmatsukazeVisitor(private val manager: AmatsukazeManager): amatsukazeGramm
     }
 
     override fun visitIsNegativeCondition(ctx: amatsukazeGrammarParser.IsNegativeConditionContext?): Any {
-        return !(visit(ctx?.getChild(1)) as Boolean)
+        return BooleanLiteral(Variability.CST, !(visit(ctx?.getChild(1)) as BooleanLiteral).content, typeTable["Bool"]!!)
     }
 
     override fun visitRangeExpression(ctx: amatsukazeGrammarParser.RangeExpressionContext?): Any {
@@ -1543,8 +1543,7 @@ class AmatsukazeVisitor(private val manager: AmatsukazeManager): amatsukazeGramm
     }
 
     override fun visitWhile_statement(ctx: amatsukazeGrammarParser.While_statementContext?): Any {
-        val cond = visit(ctx?.expression()) as BooleanLiteral
-        while (cond.content) {
+        while ((visit(ctx?.expression()) as BooleanLiteral).content) {
             if (_break) {
                 _break = false
                 break
@@ -1578,7 +1577,7 @@ class AmatsukazeVisitor(private val manager: AmatsukazeManager): amatsukazeGramm
     }
 
     override fun visitIf_statement(ctx: amatsukazeGrammarParser.If_statementContext?): Any {
-        if (visit(ctx?.expression()) == true) {
+        if ((visit(ctx?.expression()) as BooleanLiteral).content) {
             visit(ctx?.code_block())
         } else {
             if (ctx?.else_clause() != null) {

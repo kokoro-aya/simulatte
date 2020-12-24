@@ -68,11 +68,11 @@ open class Player(val id: Int, val coo: Coordinate, var dir: Direction) {
                 || layout2s[coo.y + 1][coo.x].level != layout2s[coo.y][coo.x].level
     private fun isBlockedXMinus() =
         coo.x < 1 || grid[coo.y][coo.x - 1] == BLOCKED || grid[coo.y][coo.x - 1] == WATER
-                || grid[coo.y + 1][coo.x] == MOUNTAIN || grid[coo.y + 1][coo.x] == STONE
+                || grid[coo.y][coo.x - 1] == MOUNTAIN || grid[coo.y][coo.x - 1] == STONE
                 || layout2s[coo.y][coo.x - 1].level != layout2s[coo.y][coo.x].level
     private fun isBlockedXPlus() =
         coo.x > grid[0].size - 2 || grid[coo.y][coo.x + 1] == BLOCKED || grid[coo.y][coo.x + 1] == WATER
-                || grid[coo.y + 1][coo.x] == MOUNTAIN || grid[coo.y + 1][coo.x] == STONE
+                || grid[coo.y][coo.x + 1] == MOUNTAIN || grid[coo.y][coo.x + 1] == STONE
                 || layout2s[coo.y][coo.x + 1].level != layout2s[coo.y][coo.x].level
 
     val isOnGem = { layout[coo.y][coo.x] == GEM }
@@ -125,17 +125,20 @@ open class Player(val id: Int, val coo: Coordinate, var dir: Direction) {
             if (isAtHome()) {
                 stamina += 25
             }
-            if (isOnPortal()) {
-                val p = portals.filter { it.coo.x == coo.x && it.coo.y == coo.y }[0]
-                if (p.isActive) {
-                    coo.x = p.dest.x
-                    coo.y = p.dest.y
-                }
-            }
             return true
         }
         if (stamina <= 0) {
             playground.kill(this)
+        }
+        return false
+    }
+    fun stepIntoPortal(): Boolean {
+        assert(isOnPortal())
+        val p = portals.filter { it.coo.x == coo.x && it.coo.y == coo.y}[0]
+        if (p.isActive) {
+            coo.x = p.dest.x
+            coo.y = p.dest.y
+            return true
         }
         return false
     }
