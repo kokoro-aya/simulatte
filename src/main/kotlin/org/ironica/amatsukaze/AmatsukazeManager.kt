@@ -1,6 +1,6 @@
 package org.ironica.amatsukaze
 
-class PlaygroundManager(val playground: Playground) {
+class AmatsukazeManager(val playground: Playground) {
 
     private var consoleLog = ""
     private var special = ""
@@ -12,7 +12,9 @@ class PlaygroundManager(val playground: Playground) {
     val firstId = playground.players.map { it.id }.sorted()[0]
 
     private fun getPlayer(id: Int): Player {
-        return playground.players.filter { it.id == id }[0]
+        val player = playground.players.filter { it.id == id }
+        if (player.isEmpty()) throw Exception("No player with given id found")
+        return player[0]
     }
 
     fun isOnGem(id: Int) = getPlayer(id).isOnGem
@@ -37,6 +39,11 @@ class PlaygroundManager(val playground: Playground) {
         getPlayer(id).moveForward()
         printGrid()
         appendEntry()
+        if (getPlayer(id).isOnPortal()) {
+            getPlayer(id).stepIntoPortal()
+            printGrid()
+            appendEntry()
+        }
     }
     fun collectGem(id: Int) {
         getPlayer(id).collectGem()
@@ -71,6 +78,20 @@ class PlaygroundManager(val playground: Playground) {
         appendEntry()
     }
 
+    fun turnLockUp(id: Int) {
+        if (getPlayer(id) !is Specialist) throw Exception("Only specialist could turn locks up")
+        (getPlayer(id) as Specialist).turnLockUp()
+        printGrid()
+        appendEntry()
+    }
+
+    fun turnLockDown(id: Int) {
+        if (getPlayer(id) !is Specialist) throw Exception("Only specialist could turn locks down")
+        (getPlayer(id) as Specialist).turnLockDown()
+        printGrid()
+        appendEntry()
+    }
+
     fun print(lmsg: List<String>) {
         lmsg.forEach { print("$it ") }
         println()
@@ -80,7 +101,18 @@ class PlaygroundManager(val playground: Playground) {
     }
 
     fun win(): Boolean {
-        return playground.win()
+        return if (playground.win()) {
+            this.special = "WIN"
+            appendEntry()
+            true
+        } else false
+    }
+    fun dead(): Boolean {
+        return if (playground.players.isEmpty()) {
+            this.special = "GAMEOVER"
+            appendEntry()
+            true
+        } else false
     }
     fun gemCount(): Int {
         return playground.gemCount()
@@ -105,13 +137,15 @@ class PlaygroundManager(val playground: Playground) {
                 currentLayout[i][j] = playground.layout[i][j]
         val currentLayout2s = Array(playground.layout2s.size) { Array(playground.layout2s[0].size) { Tile() } }
         for (i in playground.layout2s.indices)
-            for (j in playground.layout2s[0].indices)
-                currentLayout2s[i][j] = playground.layout2s[i][j]
+            for (j in playground.layout2s[0].indices) {
+                currentLayout2s[i][j].color = playground.layout2s[i][j].color
+                currentLayout2s[i][j].level = playground.layout2s[i][j].level
+            }
         val currentPortals = Array(playground.portals.size) { Portal() }
         for (i in playground.portals.indices)
             currentPortals[i] = playground.portals[i]
         val serializedPlayers = playground.players.map {
-            SerializedPlayer(it.coo.x, it.coo.y, it.dir, if (it is Specialist) Role.SPECIALIST else Role.PLAYER) }.toTypedArray()
+            SerializedPlayer(it.id, it.coo.x, it.coo.y, it.dir, if (it is Specialist) Role.SPECIALIST else Role.PLAYER) }.toTypedArray()
         val payload = Payload(
             serializedPlayers,
             currentPortals,

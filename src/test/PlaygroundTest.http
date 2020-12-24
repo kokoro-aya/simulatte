@@ -1,35 +1,465 @@
-POST http://127.0.0.1:8080/playground
+POST http://127.0.0.1:8080/paidiki-xara
 Content-Type: application/json
 
 {
-  "value": "let a = 4\nprint(a)"
+  "code": "cst p = Player()\ncst s = Specialist()\nfor _ in 1 ... 3 {\ns.moveForward()\n}\nfor _ in 1 ... 3 {\ns.moveForward()\n}\ns.collectGem()\nfor _ in 1 ... 3 {\nif p.isOnBeeper {\np.takeBeeper()\n}\nmoveForward()\n}\nfor _ in 1 ..< 3 {\np.moveForward()\n}\np.collectGem()\np.dropBeeper()",
+  "grid": [
+    [
+      "OPEN",
+      "OPEN",
+      "OPEN",
+      "OPEN",
+      "BLOCKED",
+      "OPEN",
+      "BLOCKED",
+      "OPEN"
+    ],
+    [
+      "OPEN",
+      "WATER",
+      "TREE",
+      "BLOCKED",
+      "TREE",
+      "OPEN",
+      "BLOCKED",
+      "OPEN"
+    ],
+    [
+      "OPEN",
+      "WATER",
+      "BLOCKED",
+      "DESERT",
+      "BLOCKED",
+      "OPEN",
+      "BLOCKED",
+      "OPEN"
+    ],
+    [
+      "OPEN",
+      "DESERT",
+      "OPEN",
+      "OPEN",
+      "BLOCKED",
+      "OPEN",
+      "BLOCKED",
+      "OPEN"
+    ]
+  ],
+  "layout": [
+    [
+      "NONE",
+      "BEEPER",
+      "NONE",
+      "PORTAL",
+      "NONE",
+      "GEM",
+      "NONE",
+      "PORTAL"
+    ],
+    [
+      "NONE",
+      "NONE",
+      "NONE",
+      "NONE",
+      "NONE",
+      "NONE",
+      "NONE",
+      "NONE"
+    ],
+    [
+      "NONE",
+      "NONE",
+      "NONE",
+      "NONE",
+      "NONE",
+      "NONE",
+      "NONE",
+      "NONE"
+    ],
+    [
+      "PORTAL",
+      "NONE",
+      "GEM",
+      "NONE",
+      "NONE",
+      "PORTAL",
+      "NONE",
+      "NONE"
+    ]
+  ],
+  "layout2s": [
+    {
+      "x": 4,
+      "y": 3,
+      "color": "YELLOW",
+      "level": 0
+    }
+  ],
+  "portals": [
+    {
+      "coo": {
+        "x": 7,
+        "y": 0
+      },
+      "dest": {
+        "x": 5,
+        "y": 3
+      },
+      "isActive": true
+    },
+    {
+      "coo": {
+        "x": 5,
+        "y": 3
+      },
+      "dest": {
+        "x": 7,
+        "y": 0
+      },
+      "isActive": true
+    },
+    {
+      "coo": {
+        "x": 3,
+        "y": 0
+      },
+      "dest": {
+        "x": 0,
+        "y": 3
+      },
+      "isActive": true
+    },
+    {
+      "coo": {
+        "x": 3,
+        "y": 0
+      },
+      "dest": {
+        "x": 0,
+        "y": 3
+      },
+      "isActive": true
+    }
+  ],
+  "locks": [
+  ],
+  "players": [
+    {
+      "id": 1,
+      "x": 0,
+      "y": 0,
+      "dir": "RIGHT",
+      "role": "PLAYER"
+    },
+    {
+      "id": 2,
+      "x": 7,
+      "y": 3,
+      "dir": "UP",
+      "role": "SPECIALIST"
+    }
+  ]
 }
 
 ###
 
-POST http://127.0.0.1:8080/playground
+POST http://127.0.0.1:8080/paidiki-xara
 Content-Type: application/json
 
 {
-  "value": "for i in 1 ... 4 {\n  print(i)\n}"
+  "code": "cst p = Player()\np.moveForward()\np.takeBeeper()\np.moveForward()",
+  "grid": [
+    [
+      "OPEN",
+      "OPEN",
+      "OPEN",
+      "OPEN",
+      "BLOCKED",
+      "OPEN",
+      "BLOCKED",
+      "OPEN"
+    ],
+    [
+      "OPEN",
+      "WATER",
+      "TREE",
+      "BLOCKED",
+      "TREE",
+      "OPEN",
+      "BLOCKED",
+      "OPEN"
+    ],
+    [
+      "OPEN",
+      "WATER",
+      "BLOCKED",
+      "DESERT",
+      "BLOCKED",
+      "OPEN",
+      "BLOCKED",
+      "OPEN"
+    ],
+    [
+      "OPEN",
+      "DESERT",
+      "OPEN",
+      "OPEN",
+      "BLOCKED",
+      "OPEN",
+      "BLOCKED",
+      "OPEN"
+    ]
+  ],
+  "layout": [
+    [
+      "NONE",
+      "BEEPER",
+      "NONE",
+      "PORTAL",
+      "NONE",
+      "GEM",
+      "NONE",
+      "PORTAL"
+    ],
+    [
+      "NONE",
+      "NONE",
+      "NONE",
+      "NONE",
+      "NONE",
+      "NONE",
+      "NONE",
+      "NONE"
+    ],
+    [
+      "NONE",
+      "NONE",
+      "NONE",
+      "NONE",
+      "NONE",
+      "NONE",
+      "NONE",
+      "NONE"
+    ],
+    [
+      "PORTAL",
+      "NONE",
+      "GEM",
+      "NONE",
+      "NONE",
+      "PORTAL",
+      "NONE",
+      "NONE"
+    ]
+  ],
+  "layout2s": [
+    {
+      "x": 4,
+      "y": 3,
+      "color": "YELLOW",
+      "level": 0
+    }
+  ],
+  "portals": [
+    {
+      "coo": {
+        "x": 7,
+        "y": 0
+      },
+      "dest": {
+        "x": 5,
+        "y": 3
+      },
+      "isActive": true
+    },
+    {
+      "coo": {
+        "x": 5,
+        "y": 3
+      },
+      "dest": {
+        "x": 7,
+        "y": 0
+      },
+      "isActive": true
+    },
+    {
+      "coo": {
+        "x": 3,
+        "y": 0
+      },
+      "dest": {
+        "x": 0,
+        "y": 3
+      },
+      "isActive": true
+    },
+    {
+      "coo": {
+        "x": 3,
+        "y": 0
+      },
+      "dest": {
+        "x": 0,
+        "y": 3
+      },
+      "isActive": true
+    }
+  ],
+  "locks": [
+  ],
+  "players": [
+    {
+      "id": 1,
+      "x": 0,
+      "y": 0,
+      "dir": "RIGHT",
+      "role": "PLAYER"
+    },
+    {
+      "id": 2,
+      "x": 7,
+      "y": 3,
+      "dir": "UP",
+      "role": "SPECIALIST"
+    }
+  ]
 }
 
 ###
 
-POST http://127.0.0.1:8080/playground
+POST http://127.0.0.1:8080/paidiki-xara
 Content-Type: application/json
 
 {
-  "value": "let totalGem = 4\nvar collected = 0\n\nfunc turnRight() {\n    turnLeft()\n    turnLeft()\n    turnLeft()\n}\n\nwhile collected < totalGem {\n    if isOnGem {\n        collectGem()\n        collected += 1\n    }\n    if isOnClosedSwitch {\n        toggleSwitch()\n    }\n    if !isBlockedRight {\n        turnRight()\n        moveForward()\n    } else {\n        if isBlocked {\n            while isBlocked {\n                turnLeft()\n            }\n        }\n        moveForward()\n    }\n}"
+  "code": "func specialistTurnRight() {\n    s.turnLeft()\n    s.turnLeft()\n    s.turnLeft()\n}\nfunc specialistMove(distance: Int) {\n    for i in 1 ... distance {\n        s.moveForward()\n    }\n}\ncst s = Specialist()\ns.changeColor(\"ALICEBLUE\")\nspecialistTurnRight()\ns.turnLockUp()\ns.turnLeft()\ns.moveForward()\ns.takeBeeper()\nspecialistMove(3)\nspecialistTurnRight()\ns.turnLockDown()\ns.turnLockDown()\ns.turnLeft()\ns.dropBeeper()\nspecialistMove(2)\ns.collectGem()",
+  "grid": [
+    ["OPEN", "OPEN", "OPEN", "OPEN", "MOUNTAIN"],
+    ["OPEN", "OPEN", "OPEN", "OPEN", "STONE"],
+    ["OPEN", "OPEN", "OPEN", "OPEN", "MOUNTAIN"],
+    ["OPEN", "OPEN", "OPEN", "OPEN", "STONE"]
+  ],
+  "layout": [
+    ["NONE", "BEEPER", "PLATFORM", "PORTAL", "NONE"],
+    ["LOCK", "NONE", "NONE", "NONE", "NONE"],
+    ["PORTAL", "NONE", "PLATFORM", "GEM", "NONE"],
+    ["NONE", "LOCK", "NONE", "NONE", "NONE"]
+  ],
+  "layout2s": [
+    { "x": 0, "y": 0, "color": "GREY", "level": 2 },
+    { "x": 1, "y": 0, "color": "ALICEBLUE", "level": 2 },
+    { "x": 2, "y": 0, "color": "YELLOW", "level": 1 },
+    { "x": 3, "y": 0, "color": "ORANGE", "level": 2 },
+    { "x": 4, "y": 0, "color": "GREEN", "level": 2 },
+    { "x": 0, "y": 2, "color": "SILVER", "level": 2 },
+    { "x": 1, "y": 2, "color": "GOLD", "level": 2 },
+    { "x": 2, "y": 2, "color": "BEIGE", "level": 3 },
+    { "x": 3, "y": 2, "color": "PINK", "level": 2 },
+    { "x": 4, "y": 2, "color": "CYAN", "level": 2 }
+  ],
+  "portals": [
+    {
+      "coo": { "x": 3, "y": 0 }, "dest": { "x": 0, "y": 2 },
+      "isActive": true
+    },
+    {
+      "coo": { "x": 0, "y": 2 }, "dest": { "x": 3, "y": 0 },
+      "isActive": true
+    }
+  ],
+  "locks": [
+    {
+      "coo": { "x": 0, "y": 1 },
+      "controlled": [
+        { "x": 2, "y": 0},
+        { "x": 2, "y": 2}
+      ]
+    },
+    {
+      "coo": { "x": 1, "y": 3 },
+      "controlled": [
+        { "x": 2, "y": 0},
+        { "x": 2, "y": 2}
+      ]
+    }
+  ],
+  "players": [
+    {
+      "id": 0,
+      "x": 0,
+      "y": 0,
+      "dir": "RIGHT",
+      "role": "SPECIALIST"
+    }
+  ]
 }
 
 ###
 
-POST http://127.0.0.1:8080/playground
+POST http://127.0.0.1:8080/paidiki-xara
 Content-Type: application/json
 
 {
-  "value": "func foo(a: Int, b: String) -> Int {\n    print(b)\n   a += 1\n   return a}\n\nlet b = 3\nlet c = foo(b, \"bar\")\nprint(c)"
+  "code": "cst s = Specialist()\ns.moveForward()\ns.moveForward()\ns.moveForward()\ns.moveForward()\ns.moveForward()",
+  "grid": [
+    ["OPEN", "OPEN", "OPEN", "OPEN", "MOUNTAIN"],
+    ["OPEN", "OPEN", "OPEN", "OPEN", "STONE"],
+    ["OPEN", "OPEN", "OPEN", "OPEN", "MOUNTAIN"],
+    ["OPEN", "OPEN", "OPEN", "OPEN", "STONE"]
+  ],
+  "layout": [
+    ["NONE", "BEEPER", "PLATFORM", "PORTAL", "NONE"],
+    ["LOCK", "NONE", "NONE", "NONE", "NONE"],
+    ["PORTAL", "NONE", "PLATFORM", "GEM", "NONE"],
+    ["NONE", "LOCK", "NONE", "NONE", "NONE"]
+  ],
+  "layout2s": [
+    { "x": 0, "y": 0, "color": "GREY", "level": 2 },
+    { "x": 1, "y": 0, "color": "ALICEBLUE", "level": 2 },
+    { "x": 2, "y": 0, "color": "YELLOW", "level": 1 },
+    { "x": 3, "y": 0, "color": "ORANGE", "level": 2 },
+    { "x": 4, "y": 0, "color": "GREEN", "level": 2 },
+    { "x": 0, "y": 2, "color": "SILVER", "level": 2 },
+    { "x": 1, "y": 2, "color": "GOLD", "level": 2 },
+    { "x": 2, "y": 2, "color": "BEIGE", "level": 3 },
+    { "x": 3, "y": 2, "color": "PINK", "level": 2 },
+    { "x": 4, "y": 2, "color": "CYAN", "level": 2 }
+  ],
+  "portals": [
+    {
+      "coo": { "x": 3, "y": 0 }, "dest": { "x": 0, "y": 2 },
+      "isActive": true
+    },
+    {
+      "coo": { "x": 0, "y": 2 }, "dest": { "x": 3, "y": 0 },
+      "isActive": true
+    }
+  ],
+  "locks": [
+    {
+      "coo": { "x": 0, "y": 1 },
+      "controlled": [
+        { "x": 2, "y": 0},
+        { "x": 2, "y": 2}
+      ]
+    },
+    {
+      "coo": { "x": 1, "y": 3 },
+      "controlled": [
+        { "x": 2, "y": 0},
+        { "x": 2, "y": 2}
+      ]
+    }
+  ],
+  "players": [
+    {
+      "id": 0,
+      "x": 0,
+      "y": 0,
+      "dir": "RIGHT",
+      "role": "SPECIALIST"
+    }
+  ]
 }
 
 ###

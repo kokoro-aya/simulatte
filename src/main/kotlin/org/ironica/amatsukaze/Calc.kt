@@ -26,14 +26,15 @@ fun main(args: Array<String>) {
         arrayOf(Item.NONE, Item.GEM, Item.NONE, Item.GEM, Item.NONE, Item.GEM, Item.NONE, Item.GEM, Item.NONE)
     )
     val layout2s = Array (2) { Array (9) { Tile() } }
+    val locks = arrayOf<Lock>()
     val portals = arrayOf<Portal>()
     val players = arrayOf(Player(
         1,
         Coordinate(0, 0),
         Direction.RIGHT
     ))
-    val playground = Playground(grid, layout, layout2s, portals, players, 4)
-    val manager = PlaygroundManager(playground)
+    val playground = Playground(grid, layout, layout2s, portals, locks, players.toMutableList(), 4)
+    val manager = AmatsukazeManager(playground)
     val exec = AmatsukazeVisitor(manager)
     exec.visit(tree)
     playground.printGrid()
