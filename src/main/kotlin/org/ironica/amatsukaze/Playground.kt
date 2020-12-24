@@ -9,11 +9,11 @@ enum class Direction {
 }
 
 enum class Block {
-    OPEN, BLOCKED, WATER, TREE, DESERT, HOME, MOUNTAIN, STONE, PLATFORM
+    OPEN, BLOCKED, WATER, TREE, DESERT, HOME, MOUNTAIN, STONE
 }
 
 enum class Item {
-    NONE, GEM, CLOSEDSWITCH, OPENEDSWITCH, BEEPER, LOCK, PORTAL,
+    NONE, GEM, CLOSEDSWITCH, OPENEDSWITCH, BEEPER, LOCK, PORTAL, PLATFORM
 }
 
 enum class Color {
@@ -60,16 +60,20 @@ open class Player(val id: Int, val coo: Coordinate, var dir: Direction) {
 
     private fun isBlockedYPlus() =
         coo.y < 1 || grid[coo.y - 1][coo.x] == BLOCKED || grid[coo.y - 1][coo.x] == WATER
+                || grid[coo.y - 1][coo.x] == MOUNTAIN || grid[coo.y - 1][coo.x] == STONE
                 || layout2s[coo.y - 1][coo.x].level != layout2s[coo.y][coo.x].level
     private fun isBlockedYMinus() =
         coo.y > grid.size - 2 || grid[coo.y + 1][coo.x] == BLOCKED || grid[coo.y + 1][coo.x] == WATER
+                || grid[coo.y + 1][coo.x] == MOUNTAIN || grid[coo.y + 1][coo.x] == STONE
                 || layout2s[coo.y + 1][coo.x].level != layout2s[coo.y][coo.x].level
     private fun isBlockedXMinus() =
         coo.x < 1 || grid[coo.y][coo.x - 1] == BLOCKED || grid[coo.y][coo.x - 1] == WATER
-                || layout2s[coo.y][coo.x - 1].level != layout2s[coo.y][coo.x - 1].level
+                || grid[coo.y + 1][coo.x] == MOUNTAIN || grid[coo.y + 1][coo.x] == STONE
+                || layout2s[coo.y][coo.x - 1].level != layout2s[coo.y][coo.x].level
     private fun isBlockedXPlus() =
         coo.x > grid[0].size - 2 || grid[coo.y][coo.x + 1] == BLOCKED || grid[coo.y][coo.x + 1] == WATER
-                || layout2s[coo.y][coo.x + 1].level != layout2s[coo.y][coo.x + 1].level
+                || grid[coo.y + 1][coo.x] == MOUNTAIN || grid[coo.y + 1][coo.x] == STONE
+                || layout2s[coo.y][coo.x + 1].level != layout2s[coo.y][coo.x].level
 
     val isOnGem = { layout[coo.y][coo.x] == GEM }
     val isOnOpenedSwitch = { layout[coo.y][coo.x] == OPENEDSWITCH }
@@ -208,7 +212,7 @@ class Specialist(id: Int, coo: Coordinate, dir: Direction): Player(id, coo, dir)
     lateinit var locks: Array<Lock>
 
     val isBeforeLock = {
-        when (dir) {
+        when (this.dir) {
             UP -> coo.y >= 1 && layout[coo.y - 1][coo.x] == LOCK
             DOWN -> coo.y <= grid.size - 2 && layout[coo.y + 1][coo.x] == LOCK
             LEFT -> coo.x >= 1 && layout[coo.y][coo.x - 1] == LOCK
@@ -218,7 +222,7 @@ class Specialist(id: Int, coo: Coordinate, dir: Direction): Player(id, coo, dir)
 
     val lockCoo = {
         assert(isBeforeLock())
-        when (dir) {
+        when (this.dir) {
             UP -> Coordinate(coo.x, coo.y - 1)
             DOWN -> Coordinate(coo.x, coo.y + 1)
             LEFT -> Coordinate(coo.x - 1, coo.y)
@@ -226,21 +230,29 @@ class Specialist(id: Int, coo: Coordinate, dir: Direction): Player(id, coo, dir)
         }
     }
 
-    fun turnLockUp(): Boolean {
+    private fun turnLock(up: Boolean): Boolean {
         if (isBeforeLock()) {
-            val lock = locks.filter { it.coo == lockCoo() }[0]
-            lock.controlled.forEach { c -> if (layout2s[c.y][c.x].level < 15) layout2s[c.y][c.x].level += 1 }
-            stamina -= 1
+            locks.filter { it.coo == lockCoo() }[0].controlled.forEach { c ->
+                val grid = layout2s[c.y][c.x]; if (grid.level in 0..15) {
+                if (up) grid.level += 1
+                else grid.level -= 1
+            } }
+            return true
+        }
+        return false
+    }
+
+    fun turnLockUp(): Boolean {
+        if (turnLock(up = true)) {
+            if (stamina < 0) playground.kill(this)
             return true
         }
         return false
     }
 
     fun turnLockDown(): Boolean {
-        if (isBeforeLock()) {
-            val lock = locks.filter { it.coo == lockCoo() }[0]
-            lock.controlled.forEach { c -> if (layout2s[c.y][c.x].level > 0) layout2s[c.y][c.x].level -= 1 }
-            stamina -= 1
+        if (turnLock(up = false)) {
+            if (stamina < 0) playground.kill(this)
             return true
         }
         return false
@@ -276,33 +288,35 @@ class Playground(val grid: Grid, val layout: Layout, val layout2s: SecondLayout,
         var ret = ""
         players.forEach { if (it.coo.x == x && it.coo.y == y) {
             ret += when (it.dir) {
-                UP -> "U"
-                DOWN -> "D"
-                LEFT -> "L"
-                RIGHT -> "R"
+                UP -> "上"
+                DOWN -> "下"
+                LEFT -> "左"
+                RIGHT -> "右"
             }
         } }
         return when {
             ret != "" -> ret
             layout[y][x] == NONE -> {
                 when (grid[y][x]) {
-                    OPEN -> "_"
-                    BLOCKED -> "B"
-                    WATER -> "W"
-                    TREE -> "T"
-                    DESERT -> "S"
-                    HOME -> "H"
-                    else -> throw Exception("Not implemented yet")
+                    OPEN -> "空"
+                    BLOCKED -> "障"
+                    WATER -> "水"
+                    TREE -> "林"
+                    DESERT -> "漠"
+                    HOME -> "屋"
+                    MOUNTAIN -> "山"
+                    STONE -> "石"
                 }
             }
             else -> {
                 when (layout[y][x]) {
-                    GEM -> "G"
-                    CLOSEDSWITCH -> "C"
-                    OPENEDSWITCH -> "O"
-                    BEEPER -> "V"
-                    LOCK -> "A"
-                    PORTAL -> "P"
+                    GEM -> "钻"
+                    CLOSEDSWITCH -> "关"
+                    OPENEDSWITCH -> "开"
+                    BEEPER -> "器"
+                    LOCK -> "锁"
+                    PORTAL -> "门"
+                    PLATFORM -> "台"
                     NONE -> throw Exception("This is impossible")
                 }
             }
@@ -320,6 +334,8 @@ class Playground(val grid: Grid, val layout: Layout, val layout2s: SecondLayout,
 }
 
 fun main() {
+    // Deprecated old code, do not test from here
+    // Use http request test instead
 //    val grid = arrayOf(
 //            arrayOf(OPEN, OPEN, BLOCKED, BLOCKED, BLOCKED),
 //            arrayOf(OPEN, OPEN, OPEN, TREE, BLOCKED),

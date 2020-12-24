@@ -12,7 +12,9 @@ class AmatsukazeManager(val playground: Playground) {
     val firstId = playground.players.map { it.id }.sorted()[0]
 
     private fun getPlayer(id: Int): Player {
-        return playground.players.filter { it.id == id }[0]
+        val player = playground.players.filter { it.id == id }
+        if (player.isEmpty()) throw Exception("No player with given id found")
+        return player[0]
     }
 
     fun isOnGem(id: Int) = getPlayer(id).isOnGem
@@ -67,6 +69,20 @@ class AmatsukazeManager(val playground: Playground) {
 
     fun changeColor(id: Int, c: Color) {
         getPlayer(id).changeColor(c)
+        printGrid()
+        appendEntry()
+    }
+
+    fun turnLockUp(id: Int) {
+        if (getPlayer(id) !is Specialist) throw Exception("Only specialist could turn locks up")
+        (getPlayer(id) as Specialist).turnLockUp()
+        printGrid()
+        appendEntry()
+    }
+
+    fun turnLockDown(id: Int) {
+        if (getPlayer(id) !is Specialist) throw Exception("Only specialist could turn locks down")
+        (getPlayer(id) as Specialist).turnLockDown()
         printGrid()
         appendEntry()
     }

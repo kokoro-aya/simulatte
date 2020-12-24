@@ -113,7 +113,9 @@ class AmatsukazeVisitor(private val manager: AmatsukazeManager): amatsukazeGramm
         "toggleSwitch" to {e: Int -> manager.toggleSwitch(e)},
         "collectGem" to {e: Int -> manager.collectGem(e)},
         "takeBeeper" to {e: Int -> manager.takeBeeper(e)},
-        "dropBeeper" to {e: Int -> manager.dropBeeper(e)}
+        "dropBeeper" to {e: Int -> manager.dropBeeper(e)},
+        "turnLockUp" to {e: Int -> manager.turnLockUp(e)},
+        "turnLockDown" to {e: Int -> manager.turnLockDown(e)}
     )
 
     private val providedProperties = mapOf(

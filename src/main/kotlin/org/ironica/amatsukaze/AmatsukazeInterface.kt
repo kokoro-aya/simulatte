@@ -25,6 +25,8 @@ fun convertJsonToGrid(array: Array<Array<String>>): Grid {
         "TREE" -> Block.TREE
         "DESERT" -> Block.DESERT
         "HOME" -> Block.HOME
+        "MOUNTAIN" -> Block.MOUNTAIN
+        "STONE" -> Block.STONE
         else -> throw Exception("Cannot parse data to grid")
     } }.toTypedArray() }.toTypedArray()
 }
@@ -38,6 +40,7 @@ fun convertJsonToLayout(array: Array<Array<String>>): Layout {
         "CLOSEDSWITCH" -> Item.CLOSEDSWITCH
         "LOCK" -> Item.LOCK
         "PORTAL" -> Item.PORTAL
+        "PLATFORM" -> Item.PLATFORM
         else -> throw Exception("Cannot parse data to layout")
     } }.toTypedArray()}.toTypedArray()
 }
