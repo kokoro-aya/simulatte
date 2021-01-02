@@ -9,11 +9,11 @@ enum class Direction {
 }
 
 enum class Block {
-    OPEN, BLOCKED, WATER, TREE, DESERT, HOME, MOUNTAIN, STONE
+    OPEN, BLOCKED, WATER, TREE, DESERT, HOME, MOUNTAIN, STONE, LOCK
 }
 
 enum class Item {
-    NONE, GEM, CLOSEDSWITCH, OPENEDSWITCH, BEEPER, LOCK, PORTAL, PLATFORM
+    NONE, GEM, CLOSEDSWITCH, OPENEDSWITCH, BEEPER, PORTAL, PLATFORM
 }
 
 enum class Color {
@@ -61,18 +61,22 @@ open class Player(val id: Int, val coo: Coordinate, var dir: Direction) {
     private fun isBlockedYPlus() =
         coo.y < 1 || grid[coo.y - 1][coo.x] == BLOCKED || grid[coo.y - 1][coo.x] == WATER
                 || grid[coo.y - 1][coo.x] == MOUNTAIN || grid[coo.y - 1][coo.x] == STONE
+                || grid[coo.y - 1][coo.x] == LOCK
                 || layout2s[coo.y - 1][coo.x].level != layout2s[coo.y][coo.x].level
     private fun isBlockedYMinus() =
         coo.y > grid.size - 2 || grid[coo.y + 1][coo.x] == BLOCKED || grid[coo.y + 1][coo.x] == WATER
                 || grid[coo.y + 1][coo.x] == MOUNTAIN || grid[coo.y + 1][coo.x] == STONE
+                || grid[coo.y + 1][coo.x] == LOCK
                 || layout2s[coo.y + 1][coo.x].level != layout2s[coo.y][coo.x].level
     private fun isBlockedXMinus() =
         coo.x < 1 || grid[coo.y][coo.x - 1] == BLOCKED || grid[coo.y][coo.x - 1] == WATER
                 || grid[coo.y][coo.x - 1] == MOUNTAIN || grid[coo.y][coo.x - 1] == STONE
+                || grid[coo.y][coo.x - 1] == LOCK
                 || layout2s[coo.y][coo.x - 1].level != layout2s[coo.y][coo.x].level
     private fun isBlockedXPlus() =
         coo.x > grid[0].size - 2 || grid[coo.y][coo.x + 1] == BLOCKED || grid[coo.y][coo.x + 1] == WATER
                 || grid[coo.y][coo.x + 1] == MOUNTAIN || grid[coo.y][coo.x + 1] == STONE
+                || grid[coo.y][coo.x + 1] == LOCK
                 || layout2s[coo.y][coo.x + 1].level != layout2s[coo.y][coo.x].level
 
     val isOnGem = { layout[coo.y][coo.x] == GEM }
@@ -216,10 +220,10 @@ class Specialist(id: Int, coo: Coordinate, dir: Direction): Player(id, coo, dir)
 
     val isBeforeLock = {
         when (this.dir) {
-            UP -> coo.y >= 1 && layout[coo.y - 1][coo.x] == LOCK
-            DOWN -> coo.y <= grid.size - 2 && layout[coo.y + 1][coo.x] == LOCK
-            LEFT -> coo.x >= 1 && layout[coo.y][coo.x - 1] == LOCK
-            RIGHT -> coo.x <= grid[0].size - 2 && layout[coo.y][coo.x + 1] == LOCK
+            UP -> coo.y >= 1 && grid[coo.y - 1][coo.x] == LOCK
+            DOWN -> coo.y <= grid.size - 2 && grid[coo.y + 1][coo.x] == LOCK
+            LEFT -> coo.x >= 1 && grid[coo.y][coo.x - 1] == LOCK
+            RIGHT -> coo.x <= grid[0].size - 2 && grid[coo.y][coo.x + 1] == LOCK
         }
     }
 
@@ -309,6 +313,7 @@ class Playground(val grid: Grid, val layout: Layout, val layout2s: SecondLayout,
                     HOME -> "屋"
                     MOUNTAIN -> "山"
                     STONE -> "石"
+                    LOCK -> "锁"
                 }
             }
             else -> {
@@ -317,7 +322,6 @@ class Playground(val grid: Grid, val layout: Layout, val layout2s: SecondLayout,
                     CLOSEDSWITCH -> "关"
                     OPENEDSWITCH -> "开"
                     BEEPER -> "器"
-                    LOCK -> "锁"
                     PORTAL -> "门"
                     PLATFORM -> "台"
                     NONE -> throw Exception("This is impossible")

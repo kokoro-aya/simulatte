@@ -949,9 +949,13 @@ class AmatsukazeVisitor(private val manager: AmatsukazeManager): amatsukazeGramm
                             return obj
                         }
                         if (funcArgu.size == 1 && functionName == "drop") {
-                            val pos = (funcArgu[1] as IntegerLiteral).content
+                            val pos = (funcArgu[0] as IntegerLiteral).content
                             obj.content.removeAt(pos)
                             return obj
+                        }
+                        if (funcArgu.size == 1 && functionName == "at") {
+                            val pos = (funcArgu[0] as IntegerLiteral).content
+                            return obj.content[pos]
                         }
                     }
                     else -> throw Exception("Not implemented methods for object")
@@ -972,15 +976,21 @@ class AmatsukazeVisitor(private val manager: AmatsukazeManager): amatsukazeGramm
     }
 
     override fun visitAriComparativeExpr(ctx: amatsukazeGrammarParser.AriComparativeExprContext?): Any {
+        var trueLeft: Literal
+        var trueRight: Literal
         val left = visit(ctx?.expression(0))
         val right = visit(ctx?.expression(1))
-        if ((left is IntegerLiteral || left is DoubleLiteral) && (right is IntegerLiteral || right is DoubleLiteral)) {
+        trueLeft = if (left is String) queryVariableTable(left).first ?: throw Exception("Variable $left not found in ariComparativeExpr")
+        else left as Literal
+        trueRight = if (right is String) queryVariableTable(right).first ?: throw Exception("Variable $left not found in ariComparativeExpr")
+        else right as Literal
+        if ((trueLeft is IntegerLiteral || trueLeft is DoubleLiteral) && (trueRight is IntegerLiteral || trueRight is DoubleLiteral)) {
             var lvalue = 0.0
             var rvalue = 0.0
-            if (left is IntegerLiteral) lvalue = left.content.toDouble()
-            if (left is DoubleLiteral) lvalue = left.content
-            if (right is IntegerLiteral) rvalue = right.content.toDouble()
-            if (right is DoubleLiteral) rvalue = right.content
+            if (trueLeft is IntegerLiteral) lvalue = trueLeft.content.toDouble()
+            if (trueLeft is DoubleLiteral) lvalue = trueLeft.content
+            if (trueRight is IntegerLiteral) rvalue = trueRight.content.toDouble()
+            if (trueRight is DoubleLiteral) rvalue = trueRight.content
             val ret = when (ctx?.op?.type) {
                 amatsukazeGrammarParser.GT -> lvalue > rvalue
                 amatsukazeGrammarParser.LT -> lvalue < rvalue
@@ -1189,7 +1199,7 @@ class AmatsukazeVisitor(private val manager: AmatsukazeManager): amatsukazeGramm
             val array = Array<Literal?>(ctx?.childCount!! / 2) { IntegerLiteral(Variability.CST, 0, typeTable["Integer"]!!) }
             val variability =
                 if (ctx.parent?.parent?.parent is amatsukazeGrammarParser.Array_literal_itemContext
-                    || visit(ctx.parent?.parent?.parent?.getChild(0)) == "cst") Variability.CST else Variability.VAR
+                    || ctx.parent?.parent?.parent?.getChild(0).toString() == "cst") Variability.CST else Variability.VAR
             for (i in 0 until ctx.childCount / 2) {
                 array[i] = when (val content = visit(ctx.getChild(i * 2 + 1))) {
                     is IntegerLiteral -> IntegerLiteral(variability, content.content, content.prototype)
@@ -1228,6 +1238,16 @@ class AmatsukazeVisitor(private val manager: AmatsukazeManager): amatsukazeGramm
             if (right is Int) {
                 left as ArrayLiteral
                 return left.content[right]
+            } else if (right is String) {
+                val trueRight = queryVariableTable(right).first ?: throw Exception("Variable $right not found on subscript expression")
+                if (trueRight is IntegerLiteral) {
+                    left as ArrayLiteral
+                    return left.content[trueRight.content]
+                }
+                else throw Exception("Unsupported operation on subscript expression")
+            } else if (right is IntegerLiteral) {
+                left as ArrayLiteral
+                return left.content[right.content]
             } else {
                 throw Exception("Unsupported operation on subscript expression.")
             }
@@ -1297,7 +1317,9 @@ class AmatsukazeVisitor(private val manager: AmatsukazeManager): amatsukazeGramm
                 val newVariables = realHead.params.zip(funcArgu)
                 newVariables.forEach { internalVariables[currentFunc][it.first] = it.second }
             }
+            inFunc.add(true)
             val ret = visit(func)
+            inFunc.removeAt(inFunc.size - 1)
             anonymousFuncIndices.removeAt(anonymousFuncIndices.size - 1)
             functionTable.filter { it.value.second >= currentFunc }.keys.forEach { name -> functionTable.remove(name) }
             internalVariables.removeAt(internalVariables.size - 1)
@@ -1606,8 +1628,8 @@ class AmatsukazeVisitor(private val manager: AmatsukazeManager): amatsukazeGramm
     }
 
     override fun visitReturn_statement(ctx: amatsukazeGrammarParser.Return_statementContext?): Any {
-        val ret = ReturnedLiteral(visit(ctx?.expression()))
-        throw ret
+        val ret = visit(ctx?.expression())
+        throw ReturnedLiteral(ret) // Proto or Triple<FuncHead, amatsukazeGrammarParser.Function_bodyContext, List<Scope>>
     }
 
     override fun visitYield_statement(ctx: amatsukazeGrammarParser.Yield_statementContext?): Any {

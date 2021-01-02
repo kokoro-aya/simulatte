@@ -463,3 +463,85 @@ Content-Type: application/json
 }
 
 ###
+
+POST http://127.0.0.1:8080/paidiki-xara
+Content-Type: application/json
+
+{
+  "code": "cst a = Player()\nfor _ in 1 ... 3 {\n  a.moveForward()\n  a.changeColor(\"ORANGE\")\n}",
+  "grid": [
+    ["OPEN", "OPEN", "OPEN", "OPEN", "OPEN"],
+    ["OPEN", "OPEN", "OPEN", "OPEN", "OPEN"],
+    ["OPEN", "OPEN", "OPEN", "OPEN", "OPEN"],
+    ["OPEN", "OPEN", "OPEN", "OPEN", "OPEN"]
+  ],
+  "layout": [
+    ["NONE", "NONE", "NONE", "NONE", "NONE"],
+    ["NONE", "NONE", "NONE", "NONE", "NONE"],
+    ["NONE", "NONE", "NONE", "NONE", "NONE"],
+    ["NONE", "NONE", "NONE", "NONE", "GEM"]
+  ],
+  "layout2s": [],
+  "portals": [],
+  "locks": [],
+  "players": [
+    {
+      "id": 1,
+      "x": 0,
+      "y": 0,
+      "dir": "DOWN",
+      "role": "PLAYER"
+    },
+    {
+      "id": 2,
+      "x": 1,
+      "y": 0,
+      "dir": "DOWN",
+      "role": "PLAYER"
+    },
+    {
+      "id": 3,
+      "x": 2,
+      "y": 0,
+      "dir": "DOWN",
+      "role": "PLAYER"
+    }
+  ]
+}
+
+###
+
+POST http://127.0.0.1:8080/paidiki-xara
+Content-Type: application/json
+
+{
+  "code": "cst totalGem = 7\nvar collected = 0\n\nfunc turnRight() {\nturnLeft()\nturnLeft()\nturnLeft()\n}\n\nwhile collected < totalGem {\nif isOnGem {\nprint(\"Collected gem!\")\ncollectGem()\ncollected += 1\n}\nif isOnClosedSwitch {\nprint(\"Toggled switch!\")\ntoggleSwitch()\n}\nif !isBlockedRight {\nturnRight()\nmoveForward()\n} else {\nif isBlocked {\nwhile isBlocked {\nturnLeft()\n}\n}\nmoveForward()\n}\n}",
+  "grid": [
+    [ "OPEN", "OPEN", "BLOCKED", "OPEN", "OPEN", "BLOCKED", "BLOCKED", "BLOCKED", "OPEN" ],
+    [ "BLOCKED", "OPEN", "OPEN", "OPEN", "OPEN", "OPEN", "OPEN", "OPEN", "OPEN" ],
+    [ "OPEN", "OPEN", "BLOCKED", "BLOCKED", "OPEN", "BLOCKED", "OPEN", "BLOCKED", "OPEN"],
+    [ "BLOCKED", "OPEN", "OPEN", "BLOCKED", "BLOCKED", "OPEN", "OPEN", "BLOCKED", "BLOCKED"],
+    [ "BLOCKED", "OPEN", "BLOCKED", "BLOCKED", "BLOCKED", "BLOCKED", "OPEN", "BLOCKED", "BLOCKED"]
+  ],
+  "layout": [
+    [ "NONE", "NONE", "NONE", "OPENEDSWITCH", "NONE", "NONE", "NONE", "NONE", "NONE" ],
+    [ "NONE", "CLOSEDSWITCH", "NONE", "CLOSEDSWITCH", "NONE", "CLOSEDSWITCH", "NONE", "CLOSEDSWITCH", "NONE" ],
+    [ "GEM", "NONE", "NONE", "NONE", "GEM", "NONE", "NONE", "NONE", "GEM"],
+    [ "NONE", "OPENEDSWITCH", "GEM", "NONE", "NONE", "GEM", "CLOSEDSWITCH", "NONE", "NONE"],
+    [ "NONE", "GEM", "NONE", "NONE", "NONE", "NONE", "GEM", "NONE", "NONE"]
+  ],
+  "layout2s": [],
+  "portals": [],
+  "locks": [],
+  "players": [
+    {
+      "id": 1,
+      "x": 0,
+      "y": 0,
+      "dir": "RIGHT",
+      "role": "PLAYER"
+    }
+  ]
+}
+
+###

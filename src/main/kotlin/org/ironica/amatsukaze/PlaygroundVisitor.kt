@@ -89,3 +89,51 @@ cst barr = bar(2)
 cst barrr = barr(3)
 print(barrr)
  */
+// Bubblesort
+/*
+func bubble(a: Array<Int>): [Int] {
+  for i in 1 ..< a.size {
+    for j in 0 ..< a.size - i {
+      if a.at(j) > a.at(j+1) {
+        a.swap(j, j + 1)
+      }
+    }
+  }
+  return a
+}
+
+cst a = [9,4,6,13,2,19,7,5,7,1,22,8,6]
+for x in bubble(a) {
+  print(x)
+}
+ */
+// QuickSort
+/*
+func quickSort(a: [Int], left: Int, right: Int): [Int] {
+  if left < right {
+    cst index = partition(a, left, right)
+    quickSort(a, left, index - 1)
+    quickSort(a, index + 1, right)
+  }
+  return a
+}
+
+func partition(a: [Int], left: Int, right: Int): Int {
+  cst pivot = left
+  var index = pivot + 1
+  for i in index ... right {
+    if a.at(i) < a.at(pivot) {
+      a.swap(i, index)
+      index += 1
+    }
+  }
+  a.swap(pivot, index - 1)
+  return index - 1
+}
+
+cst a = [9,4,6,13,2,19,7,5,7,1,22,8,6]
+quickSort(a, 0, a.size - 1)
+for x in a {
+  print(x)
+}
+ */
