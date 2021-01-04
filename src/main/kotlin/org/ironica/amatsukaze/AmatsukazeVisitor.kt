@@ -1,6 +1,7 @@
 package org.ironica.amatsukaze
 
 import amatsukazeGrammarVisitor
+import com.bennyhuo.kotlin.deepcopy.compiler.deepCopy
 import org.antlr.v4.runtime.tree.ErrorNode
 import org.antlr.v4.runtime.tree.ParseTree
 import org.antlr.v4.runtime.tree.RuleNode
@@ -1738,8 +1739,21 @@ class AmatsukazeVisitor(private val manager: AmatsukazeManager): amatsukazeGramm
                     functionSignature.second
                 )
                 val newScope = mutableListOf<Scope>()
-                newScope.addAll(closures)
-                newScope.addAll(internalVariables)
+                // Deep copy the closure so that it won't be erased when the upper level erase its environment
+                for (i in closures.indices) {
+                    newScope.add(mutableMapOf())
+                    for (key in closures[i].keys) {
+                        val value = closures[i].getValue(key)
+                        newScope.last()[key] = value
+                    }
+                }
+                for (i in internalVariables.indices) {
+                    newScope.add(mutableMapOf())
+                    for (key in internalVariables[i].keys) {
+                        val value = internalVariables[i].getValue(key)
+                        newScope.last()[key] = value
+                    }
+                }
                 return Triple(funcHead, bodyNode, newScope)
             } else {
                 val funcHead = FuncHead(
@@ -1754,8 +1768,21 @@ class AmatsukazeVisitor(private val manager: AmatsukazeManager): amatsukazeGramm
                         throw Exception("Redefined function!")
                 functionTable[funcHead] = bodyNode to currentFunc
                 val newScope = mutableListOf<Scope>()
-                newScope.addAll(closures)
-                newScope.addAll(internalVariables)
+                // The same as above
+                for (i in closures.indices) {
+                    newScope.add(mutableMapOf())
+                    for (key in closures[i].keys) {
+                        val value = closures[i].getValue(key)
+                        newScope.last()[key] = value
+                    }
+                }
+                for (i in internalVariables.indices) {
+                    newScope.add(mutableMapOf())
+                    for (key in internalVariables[i].keys) {
+                        val value = internalVariables[i].getValue(key)
+                        newScope.last()[key] = value
+                    }
+                }
                 return Triple(funcHead, bodyNode, newScope)
             }
         } catch (e: Exception) {
