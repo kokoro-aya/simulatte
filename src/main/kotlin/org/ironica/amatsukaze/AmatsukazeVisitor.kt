@@ -2083,4 +2083,28 @@ class AmatsukazeVisitor(private val manager: AmatsukazeManager): amatsukazeGramm
         return SpecialRetVal.Empty
     }
 
+    override fun visitWhenExpr(ctx: amatsukazeGrammarParser.WhenExprContext?): Any {
+        TODO("Not yet implemented")
+    }
+
+    override fun visitIsExpr(ctx: amatsukazeGrammarParser.IsExprContext?): Any {
+        TODO("Not yet implemented")
+    }
+
+    override fun visitIs_expression(ctx: amatsukazeGrammarParser.Is_expressionContext?): Any {
+        TODO("Not yet implemented")
+    }
+
+    override fun visitWhen_expression(ctx: amatsukazeGrammarParser.When_expressionContext?): Any {
+        TODO("Not yet implemented")
+    }
+
+    override fun visitWhen_branch(ctx: amatsukazeGrammarParser.When_branchContext?): Any {
+        TODO("Not yet implemented")
+    }
+
+    override fun visitWhen_else_branch(ctx: amatsukazeGrammarParser.When_else_branchContext?): Any {
+        TODO("Not yet implemented")
+    }
+
 }

@@ -32,9 +32,8 @@ fragment ESC: '\\' | '\\\\';
 CHARACTER_LITERAL: '\'' CHAR '\'';
 fragment CHAR: ~["\\EOF\n];
 
-//comment: '//' ~('\r' | '\n')*
-//       | '/*' ~('*/')* '*/'
-//       ;
+COMMENT: '//' ~('\r' | '\n')* -> skip;
+MULTILINE_COMMENT: '/*' .*? '*/' -> skip;
 
 WS: [ \t\n\r]+ -> skip;
 
@@ -47,13 +46,15 @@ expression: assignment_expression                       # assignmentExpr
           | variable_expression                         # variableExpr
           | expressional_function_declaration           # exprFuncDeclExpr
           | <assoc=right> expression EXP expression     # exponentExpr
+          | NOT expression                              # isNegativeCondition
           | expression op=(MUL | DIV | MOD) expression  # mulDivModExpr
           | expression op=(ADD | SUB) expression        # addSubExpr
-          | expression op=(AND | OR) expression         # isNestedCondition
-          | NOT expression                              # isNegativeCondition
+          | pattern op=(MULEQ | DIVEQ | MODEQ | ADDEQ | SUBEQ) expression # ariAssignmentExpr
           | expression op=(GT | LT | GEQ | LEQ) expression # ariComparativeExpr
           | expression op=(EQ | NEQ) expression         # boolComparativeExpr
-          | pattern op=(MULEQ | DIVEQ | MODEQ | ADDEQ | SUBEQ) expression # ariAssignmentExpr
+          | expression op=(AND | OR) expression         # isNestedCondition
+          | when_expression                             # whenExpr
+          | is_expression                               # isExpr
           | '(' expression ')'                          # parenthesisExpr
           | expression op=(UNTIL | THROUGH | DUNTIL | DTHROUGH) expression (STEP expression)?  # rangeExpression
           ;
@@ -86,6 +87,13 @@ call_argument_clause:  call_argument (',' call_argument)*;
 call_argument: REF? expression;
 
 struct_call_expression: 'new' struct_name ('()' | '(' call_argument_clause ')');
+
+is_expression: variable_expression 'is' type;
+
+when_expression: 'when' '{' when_branch+ when_else_branch? '}';
+when_branch: expression WHEN_ARROW '{' statements '}';
+when_else_branch: 'else' WHEN_ARROW '{' statements '}';
+WHEN_ARROW: '=>';
 
 ADD: '+';
 SUB: '-';

@@ -1,0 +1,6 @@
+/amatsukaze
+/gradle
+/.gradle/
+/build/
+/src/main/java/
+/src/main/amatsukazeGrammar-other.g4
