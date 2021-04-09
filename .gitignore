@@ -1,6 +1,7 @@
 /amatsukaze
-/gradle
 /.gradle/
 /build/
-/src/main/java/
+/src/main/java/*.interp
+/src/main/java/*.tokens
+/src/main/java/*.java
 /src/main/amatsukazeGrammar-other.g4

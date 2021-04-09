@@ -1,7 +1,6 @@
 package org.ironica.amatsukaze
 
 import amatsukazeGrammarVisitor
-import com.bennyhuo.kotlin.deepcopy.compiler.deepCopy
 import org.antlr.v4.runtime.tree.ErrorNode
 import org.antlr.v4.runtime.tree.ParseTree
 import org.antlr.v4.runtime.tree.RuleNode
@@ -2083,7 +2082,7 @@ class AmatsukazeVisitor(private val manager: AmatsukazeManager): amatsukazeGramm
         return SpecialRetVal.Empty
     }
 
-    override fun visitWhenExpr(ctx: amatsukazeGrammarParser.WhenExprContext?): Any {
+    override fun visitNotIsExpr(ctx: amatsukazeGrammarParser.NotIsExprContext?): Any {
         TODO("Not yet implemented")
     }
 
@@ -2091,20 +2090,21 @@ class AmatsukazeVisitor(private val manager: AmatsukazeManager): amatsukazeGramm
         TODO("Not yet implemented")
     }
 
-    override fun visitIs_expression(ctx: amatsukazeGrammarParser.Is_expressionContext?): Any {
+    override fun visitSwitchExpr(ctx: amatsukazeGrammarParser.SwitchExprContext?): Any {
         TODO("Not yet implemented")
     }
 
-    override fun visitWhen_expression(ctx: amatsukazeGrammarParser.When_expressionContext?): Any {
+    override fun visitSwitch_expression(ctx: amatsukazeGrammarParser.Switch_expressionContext?): Any {
         TODO("Not yet implemented")
     }
 
-    override fun visitWhen_branch(ctx: amatsukazeGrammarParser.When_branchContext?): Any {
+    override fun visitSwitch_branch(ctx: amatsukazeGrammarParser.Switch_branchContext?): Any {
         TODO("Not yet implemented")
     }
 
-    override fun visitWhen_else_branch(ctx: amatsukazeGrammarParser.When_else_branchContext?): Any {
+    override fun visitSwitch_else_branch(ctx: amatsukazeGrammarParser.Switch_else_branchContext?): Any {
         TODO("Not yet implemented")
     }
+
 
 }

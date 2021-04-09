@@ -10,6 +10,7 @@ cst b = 3
 cst c = foo(b, "bar")
 print(c)
  */
+// 注意闭包的问题，这里的a应该报错？
 /*
 cst a = 1
 func foo() {
@@ -135,5 +136,20 @@ cst a = [9,4,6,13,2,19,7,5,7,1,22,8,6]
 quickSort(a, 0, a.size - 1)
 for x in a {
   print(x)
+}
+ */
+
+// Fizz buzz
+/*
+for i in 1 ..< 100 {
+    if i % 15 == 0 {
+        print("fizzbuzz")
+    } else if i % 3 == 0 {
+        print("fizz")
+    } else if i % 5 == 0 {
+        print("buzz")
+    } else {
+        print(i)
+    }
 }
  */
