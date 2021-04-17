@@ -8,13 +8,15 @@ plugins {
 group 'org.ironica'
 version '1.2.0-SNAPSHOT'
 
-sourceCompatibility = 1.8
+sourceCompatibility = 11
 
 final GRAMMAR_DIR = "gen/src/main"
+final LOCAL_GRAMMAR_DIR = "src/main/gen"
 
 sourceSets {
     main {
         java { srcDirs += GRAMMAR_DIR }
+        java { srcDirs += LOCAL_GRAMMAR_DIR }
     }
 }
 
@@ -45,8 +47,8 @@ dependencies {
 }
 
 compileKotlin {
-    kotlinOptions.jvmTarget = "1.8"
+    kotlinOptions.jvmTarget = "11"
 }
 compileTestKotlin {
-    kotlinOptions.jvmTarget = "1.8"
+    kotlinOptions.jvmTarget = "11"
 }

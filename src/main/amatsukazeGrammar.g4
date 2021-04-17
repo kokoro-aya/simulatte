@@ -53,7 +53,7 @@ expression: assignment_expression                       # assignmentExpr
           | expression op=(GT | LT | GEQ | LEQ) expression # ariComparativeExpr
           | expression op=(EQ | NEQ) expression         # boolComparativeExpr
           | expression op=(AND | OR) expression         # isNestedCondition
-          | expression '!is' type                       # notIsExpr
+          | expression '!' 'is' type                       # notIsExpr
           | expression 'is' type                        # isExpr
           | switch_expression                           # switchExpr
           | '(' expression ')'                          # parenthesisExpr
@@ -182,11 +182,10 @@ arrowfun_declaration: function_signature ARROW function_body;
 
 parameter_clause: '()' | '(' parameter_list ')';
 parameter_list: parameter (',' parameter)*;
-parameter: CONST? REF? param_name type_annotation;
+parameter: 'cst'? REF? param_name type_annotation;
 param_name: IDENTIFIER;
 
 REF: '&';
-CONST: 'cst';
 
 enum_declaration: 'enum' enum_name '{' enum_members+ '}';
 enum_name: IDENTIFIER;
