@@ -9,7 +9,7 @@ import org.antlr.v4.runtime.CommonTokenStream
 import org.antlr.v4.runtime.tree.ParseTree
 
 @Serializable
-data class PlayerData(val id: Int, val x: Int, val y: Int, val dir: String, val role: String)
+data class PlayerData(val id: Int, val x: Int, val y: Int, val dir: String, val role: String, val stamina: String)
 
 @Serializable
 data class TileInfo(val x: Int, val y: Int, val color: String, val level: Int)
@@ -62,14 +62,14 @@ fun convertJsonToPlayers(array: Array<PlayerData>): Array<Player> {
             "LEFT" -> Direction.LEFT
             "RIGHT" -> Direction.RIGHT
             else -> throw Exception("Cannot parse data to player")
-        })
+        }, it.stamina.toIntOrNull())
         "SPECIALIST" -> Specialist(it.id, Coordinate(it.x, it.y), when(it.dir) {
             "UP" -> Direction.UP
             "DOWN" -> Direction.DOWN
             "LEFT" -> Direction.LEFT
             "RIGHT" -> Direction.RIGHT
             else -> throw Exception("Cannot parse data to specialist")
-        })
+        }, it.stamina.toIntOrNull())
         else -> throw Exception("Cannot parse data to player list")
     } }.toTypedArray()
 }
@@ -106,20 +106,29 @@ private fun convertDataToColor(data: String): Color {
 
 fun calculateInitialGem(layout: Layout): Int = layout.flatten().filter { it == Item.GEM }.size
 
-class AmatsukazeInterface(type: String, code: String, grid: Grid, layout: Layout, miscLayout: SecondLayout, portals: Array<Portal>, locks: Array<Lock>, players: Array<Player>) {
-    private val input: CharStream = CharStreams.fromString(code)
-    private val lexer = amatsukazeGrammarLexer(input)
-    private val tokens = CommonTokenStream(lexer)
-    private val parser = amatsukazeGrammarParser(tokens)
-    private val tree: ParseTree = parser.top_level()
-    private val playground = Playground(grid, layout, miscLayout, portals, locks, players.toMutableList(), calculateInitialGem(layout))
-    private val manager = when (type) {
-        "colorful" -> ColorfulManager(playground)
-        "mountainous" -> MountainousManager(playground)
-        else -> throw Exception("Unsupported game module")
-    }
-    private val exec = AmatsukazeVisitor(manager)
+class AmatsukazeInterface(
+    val type: String,
+    val code: String,
+    val grid: Grid,
+    val layout: Layout,
+    val miscLayout: SecondLayout,
+    val portals: Array<Portal>,
+    val locks: Array<Lock>,
+    val players: Array<Player>) {
     fun start() {
+        val input: CharStream = CharStreams.fromString(code)
+        val lexer = amatsukazeGrammarLexer(input)
+        val tokens = CommonTokenStream(lexer)
+        val parser = amatsukazeGrammarParser(tokens)
+        val tree: ParseTree = parser.top_level()
+        val playground = Playground(grid, layout, miscLayout, portals, locks, players.toMutableList(), calculateInitialGem(layout))
+        val manager = when (type) {
+            "colorful" -> ColorfulManager(playground)
+            "mountainous" -> MountainousManager(playground)
+            else -> throw Exception("Unsupported game module")
+        }
+        manager.appendEntry() // Store the initial state of playground into payload list
+        val exec = AmatsukazeVisitor(manager)
         exec.visit(tree)
     }
 }

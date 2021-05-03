@@ -3,7 +3,7 @@ package org.ironica.amatsukaze
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class SerializedPlayer(val id: Int, val x: Int, val y: Int, val dir: Direction, val role: Role)
+data class SerializedPlayer(val id: Int, val x: Int, val y: Int, val dir: Direction, val role: Role, val stamina: Int)
 
 @Serializable
 data class SerializedPlayground(val grid: Grid, val layout: Layout, val misc: SecondLayout)

@@ -31,7 +31,8 @@ fun main(args: Array<String>) {
     val players = arrayOf(Player(
         1,
         Coordinate(0, 0),
-        Direction.RIGHT
+        Direction.RIGHT,
+        1000
     ))
     val playground = Playground(grid, layout, layout2s, portals, locks, players.toMutableList(), 4)
     val manager = ColorfulManager(playground)

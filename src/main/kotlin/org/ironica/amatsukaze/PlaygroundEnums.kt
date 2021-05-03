@@ -6,7 +6,7 @@ enum class Direction {
 
 enum class Block {
     OPEN, BLOCKED, WATER, TREE, DESERT, HOME, MOUNTAIN, STONE, LOCK,
-    STAIRNORTH, STAIRSOUTH, STAIRWEST, STAIREAST
+    STAIRVERTICAL, STAIRHORIZONTAL
 }
 
 enum class Item {
