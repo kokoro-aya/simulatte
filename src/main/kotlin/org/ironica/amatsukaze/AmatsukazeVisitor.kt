@@ -107,7 +107,7 @@ data class FuncHead(var name: String, val params: List<String>, val types: List<
 
 typealias Scope = MutableMap<String, Literal>
 
-class AmatsukazeVisitor(private val manager: AmatsukazeManager): amatsukazeGrammarVisitor<Any> {
+class AmatsukazeVisitor(private val manager: AbstractManager): amatsukazeGrammarVisitor<Any> {
 
     private var providedProperties = manager::class.declaredFunctions.filter {
         val ann = it.findAnnotation<PlaygroundFunction>()
@@ -783,8 +783,9 @@ class AmatsukazeVisitor(private val manager: AmatsukazeManager): amatsukazeGramm
                                 throw TerminatedReturn("WIN")
                             return SpecialRetVal.Empty
                         }
-                        if (funcArgu.size == 1 && functionName == "changeColor") {
-                            if (funcArgu[0] is StringLiteral) {
+                        if (funcArgu.size == 1 && providedBinaryMethods.containsKey(functionName)) {
+                            val func = providedBinaryMethods.getValue(functionName)
+                            if (func.first == PFType.Color) {
                                 val color = when ((funcArgu[0] as StringLiteral).content.toLowerCase()) {
                                     "black" -> Color.BLACK
                                     "silver" -> Color.SILVER
@@ -804,10 +805,8 @@ class AmatsukazeVisitor(private val manager: AmatsukazeManager): amatsukazeGramm
                                     "purple" -> Color.PURPLE
                                     else -> throw Exception("Unsupported color")
                                 }
-                                manager.changeColor(obj.id, color)
+                                func.second.invoke(obj.id, color)
                                 return SpecialRetVal.Empty
-                            } else {
-                                throw Exception("Wrong argument type in color function.")
                             }
                         }
                     }
@@ -820,7 +819,7 @@ class AmatsukazeVisitor(private val manager: AmatsukazeManager): amatsukazeGramm
                                 throw TerminatedReturn("WIN")
                             return SpecialRetVal.Empty
                         }
-                        if (funcArgu.isEmpty() && providedBinaryMethods.containsKey(functionName)) {
+                        if (funcArgu.size == 1 && providedBinaryMethods.containsKey(functionName)) {
                             val func = providedBinaryMethods.getValue(functionName)
                             if (func.first == PFType.Color) {
                                 val color = when ((funcArgu[0] as StringLiteral).content.toLowerCase()) {
@@ -1374,8 +1373,9 @@ class AmatsukazeVisitor(private val manager: AmatsukazeManager): amatsukazeGramm
                 if (manager.win())
                     throw TerminatedReturn("WIN")
                 return SpecialRetVal.Empty
-            } else if (functionName == "changeColor" && funcArgument.size == 1) {
-                if (funcArgument[0] is StringLiteral) {
+            } else if (funcArgument.size == 1 && providedBinaryMethods.containsKey(functionName)) {
+                val func = providedBinaryMethods.getValue(functionName)
+                if (func.first == PFType.Color &&funcArgument[0] is StringLiteral) {
                     val color = when ((funcArgument[0] as StringLiteral).content.toLowerCase()) {
                         "black" -> Color.BLACK
                         "silver" -> Color.SILVER
@@ -1395,7 +1395,7 @@ class AmatsukazeVisitor(private val manager: AmatsukazeManager): amatsukazeGramm
                         "purple" -> Color.PURPLE
                         else -> throw Exception("Unsupported color")
                     }
-                    manager.changeColor(manager.firstId, color)
+                    func.second.invoke(manager.firstId, color)
                     return SpecialRetVal.Empty
                 } else {
                     throw Exception("Wrong argument type in color function.")

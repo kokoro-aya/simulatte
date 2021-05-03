@@ -25,7 +25,7 @@ fun main(args: Array<String>) {
         arrayOf(Item.NONE, Item.CLOSEDSWITCH, Item.NONE, Item.CLOSEDSWITCH, Item.NONE, Item.CLOSEDSWITCH, Item.NONE, Item.CLOSEDSWITCH, Item.NONE),
         arrayOf(Item.NONE, Item.GEM, Item.NONE, Item.GEM, Item.NONE, Item.GEM, Item.NONE, Item.GEM, Item.NONE)
     )
-    val layout2s = Array (2) { Array (9) { Tile() } }
+    val layout2s = Array (2) { Array (9) { ColorfulTile(Color.WHITE) as Tile } }
     val locks = arrayOf<Lock>()
     val portals = arrayOf<Portal>()
     val players = arrayOf(Player(
@@ -34,7 +34,7 @@ fun main(args: Array<String>) {
         Direction.RIGHT
     ))
     val playground = Playground(grid, layout, layout2s, portals, locks, players.toMutableList(), 4)
-    val manager = AmatsukazeManager(playground)
+    val manager = ColorfulManager(playground)
     val exec = AmatsukazeVisitor(manager)
     exec.visit(tree)
     playground.printGrid()

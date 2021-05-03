@@ -15,7 +15,16 @@ data class PlayerData(val id: Int, val x: Int, val y: Int, val dir: String, val 
 data class TileInfo(val x: Int, val y: Int, val color: String, val level: Int)
 
 @Serializable
-data class Data(val code: String, val grid: Array<Array<String>>, val layout: Array<Array<String>>, val layout2s: Array<TileInfo>, val portals: Array<Portal>, val locks: Array<Lock>, val players: Array<PlayerData>)
+data class Data(
+    val type: String,
+    val code: String,
+    val grid: Array<Array<String>>,
+    val layout: Array<Array<String>>,
+    val misc: Array<Array<String>>,
+    val portals: Array<Portal>,
+    val locks: Array<Lock>,
+    val players: Array<PlayerData>
+)
 
 fun convertJsonToGrid(array: Array<Array<String>>): Grid {
     return array.map { it.map { when (it) {
@@ -65,14 +74,16 @@ fun convertJsonToPlayers(array: Array<PlayerData>): Array<Player> {
     } }.toTypedArray()
 }
 
-fun convertJsonToLayout2s(array: Array<TileInfo>, height: Int, width: Int): SecondLayout {
-    val ar = Array(height) { Array(width) { Tile() } }
-    array.forEach { ar[it.y][it.x] = convertDataToTile(it) }
-    return ar
+fun convertJsonToMiscLayout(array: Array<Array<String>>, using: String): SecondLayout {
+    return when (using) {
+        "colorful" -> array.map { it.map { ColorfulTile(convertDataToColor(it)) as Tile }.toTypedArray() }.toTypedArray()
+        "mountainous" -> array.map { it.map { MountainTile(it.toIntOrNull()) as Tile }.toTypedArray() }.toTypedArray()
+        else -> throw Exception("Unsupported game module")
+    }
 }
 
-private fun convertDataToTile(ti: TileInfo): Tile {
-    val color = when (ti.color) {
+private fun convertDataToColor(data: String): Color {
+    return when (data) {
         "BLACK" -> Color.BLACK
         "SILVER" -> Color.SILVER
         "GREY" -> Color.GREY
@@ -91,19 +102,22 @@ private fun convertDataToTile(ti: TileInfo): Tile {
         "PURPLE" -> Color.PURPLE
         else -> throw Exception("Cannot parse data to color")
     }
-    return Tile(color, ti.level)
 }
 
 fun calculateInitialGem(layout: Layout): Int = layout.flatten().filter { it == Item.GEM }.size
 
-class AmatsukazeInterface(code: String, grid: Grid, layout: Layout, layout2s: SecondLayout, portals: Array<Portal>, locks: Array<Lock>, players: Array<Player>) {
+class AmatsukazeInterface(type: String, code: String, grid: Grid, layout: Layout, miscLayout: SecondLayout, portals: Array<Portal>, locks: Array<Lock>, players: Array<Player>) {
     private val input: CharStream = CharStreams.fromString(code)
     private val lexer = amatsukazeGrammarLexer(input)
     private val tokens = CommonTokenStream(lexer)
     private val parser = amatsukazeGrammarParser(tokens)
     private val tree: ParseTree = parser.top_level()
-    val playground = Playground(grid, layout, layout2s, portals, locks, players.toMutableList(), calculateInitialGem(layout))
-    private val manager = AmatsukazeManager(playground)
+    private val playground = Playground(grid, layout, miscLayout, portals, locks, players.toMutableList(), calculateInitialGem(layout))
+    private val manager = when (type) {
+        "colorful" -> ColorfulManager(playground)
+        "mountainous" -> MountainousManager(playground)
+        else -> throw Exception("Unsupported game module")
+    }
     private val exec = AmatsukazeVisitor(manager)
     fun start() {
         exec.visit(tree)
