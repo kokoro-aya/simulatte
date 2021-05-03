@@ -37,6 +37,9 @@ fun main(args: Array<String>) {
     val playground = Playground(grid, layout, layout2s, portals, locks, players.toMutableList(), 4)
     val manager = ColorfulManager(playground)
     val exec = AmatsukazeVisitor(manager)
+
+    println()
+
     exec.visit(tree)
     playground.printGrid()
     println( if (playground.win()) "stage cleared!" else "not finished...")

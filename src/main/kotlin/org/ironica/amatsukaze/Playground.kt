@@ -10,7 +10,13 @@ sealed class Tile
 @Serializable
 data class ColorfulTile(var color: Color): Tile()
 @Serializable
-data class MountainTile(var level: Int?): Tile()
+data class MountainTile(var level: Int?): Tile() {
+    init {
+        if (level != null && level!! < 0) {
+            level = null
+        }
+    }
+}
 
 typealias Grid = Array<Array<Block>>
 typealias Layout = Array<Array<Item>>
