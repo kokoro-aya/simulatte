@@ -17,10 +17,11 @@ fun Route.getPlaygroundRoute() {
             val data = call.receive<Data>()
             payloadStorage.clear()
             val playgroundInterface = AmatsukazeInterface(
+                data.type,
                 data.code,
                 convertJsonToGrid(data.grid),
                 convertJsonToLayout(data.layout),
-                convertJsonToLayout2s(data.layout2s, data.grid.size, data.grid[0].size),
+                convertJsonToMiscLayout(data.misc, data.type),
                 data.portals,
                 data.locks,
                 convertJsonToPlayers(data.players)
@@ -28,7 +29,7 @@ fun Route.getPlaygroundRoute() {
             try {
                 playgroundInterface.start()
                 val moves = payloadStorage
-                call.respond(NormalMessage(Status.OK, payloadStorage))
+                call.respond(NormalMessage(Status.OK, moves))
             } catch (e: Exception) {
                 call.respond(ErrorMessage(Status.ERROR, e.message ?: ""))
             }

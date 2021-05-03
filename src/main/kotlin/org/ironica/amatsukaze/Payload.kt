@@ -6,10 +6,26 @@ import kotlinx.serialization.Serializable
 data class SerializedPlayer(val id: Int, val x: Int, val y: Int, val dir: Direction, val role: Role)
 
 @Serializable
-data class SerializedPlayground(val grid: Grid, val layout: Layout, val layout2s: SecondLayout)
+data class SerializedPlayground(val grid: Grid, val layout: Layout, val misc: SecondLayout)
 
 @Serializable
-data class Payload(val players: Array<SerializedPlayer>, val portals: Array<Portal>, val grid: SerializedPlayground, val consoleLog: String, val special: String)
+data class Payload(
+    val grid: Grid,
+    val layout: Layout,
+    val misc: SecondLayout,
+    val players: Array<SerializedPlayer>,
+    val portals: Array<Portal>,
+    val consoleLog: String,
+    val special: String
+    ) {
+    constructor(
+        players: Array<SerializedPlayer>,
+        portals: Array<Portal>,
+        grid: SerializedPlayground,
+        consoleLog: String,
+        special: String
+    ): this(grid.grid, grid.layout, grid.misc, players, portals, consoleLog, special)
+}
 
 
 val payloadStorage = mutableListOf<Payload>()

@@ -32,9 +32,8 @@ fragment ESC: '\\' | '\\\\';
 CHARACTER_LITERAL: '\'' CHAR '\'';
 fragment CHAR: ~["\\EOF\n];
 
-//comment: '//' ~('\r' | '\n')*
-//       | '/*' ~('*/')* '*/'
-//       ;
+COMMENT: '//' ~('\r' | '\n')* -> skip;
+MULTILINE_COMMENT: '/*' .*? '*/' -> skip;
 
 WS: [ \t\n\r]+ -> skip;
 
@@ -47,13 +46,16 @@ expression: assignment_expression                       # assignmentExpr
           | variable_expression                         # variableExpr
           | expressional_function_declaration           # exprFuncDeclExpr
           | <assoc=right> expression EXP expression     # exponentExpr
+          | NOT expression                              # isNegativeCondition
           | expression op=(MUL | DIV | MOD) expression  # mulDivModExpr
           | expression op=(ADD | SUB) expression        # addSubExpr
-          | expression op=(AND | OR) expression         # isNestedCondition
-          | NOT expression                              # isNegativeCondition
+          | pattern op=(MULEQ | DIVEQ | MODEQ | ADDEQ | SUBEQ) expression # ariAssignmentExpr
           | expression op=(GT | LT | GEQ | LEQ) expression # ariComparativeExpr
           | expression op=(EQ | NEQ) expression         # boolComparativeExpr
-          | pattern op=(MULEQ | DIVEQ | MODEQ | ADDEQ | SUBEQ) expression # ariAssignmentExpr
+          | expression op=(AND | OR) expression         # isNestedCondition
+          | expression '!' 'is' type                       # notIsExpr
+          | expression 'is' type                        # isExpr
+          | switch_expression                           # switchExpr
           | '(' expression ')'                          # parenthesisExpr
           | expression op=(UNTIL | THROUGH | DUNTIL | DTHROUGH) expression (STEP expression)?  # rangeExpression
           ;
@@ -86,6 +88,12 @@ call_argument_clause:  call_argument (',' call_argument)*;
 call_argument: REF? expression;
 
 struct_call_expression: 'new' struct_name ('()' | '(' call_argument_clause ')');
+
+switch_expression: 'switch' (REF IDENTIFIER | REF IDENTIFIER '=' expression)'{' switch_branch+ switch_else_branch? '}';
+switch_branch: literal WHEN_ARROW '{' statements FALLTHROUGH? '}';
+switch_else_branch: 'else' WHEN_ARROW '{' statements '}';
+WHEN_ARROW: '=>';
+FALLTHROUGH: ':||';
 
 ADD: '+';
 SUB: '-';
@@ -174,7 +182,7 @@ arrowfun_declaration: function_signature ARROW function_body;
 
 parameter_clause: '()' | '(' parameter_list ')';
 parameter_list: parameter (',' parameter)*;
-parameter: REF? param_name type_annotation;
+parameter: 'cst'? REF? param_name type_annotation;
 param_name: IDENTIFIER;
 
 REF: '&';
@@ -198,7 +206,7 @@ struct_member: 'this.'? IDENTIFIER ':' ( function_declaration
                                        | expression
                                        );
 
-type_inheritance_clause: ':>' type;
+type_inheritance_clause: ':::' type;
 type_annotation: ':' type;
 
 type
