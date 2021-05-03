@@ -9,6 +9,8 @@ import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.pow
 import kotlin.math.round
+import kotlin.reflect.full.declaredFunctions
+import kotlin.reflect.full.findAnnotation
 
 enum class SpecialRetVal {
     Interr, Loop, Statements, Declaration, Branch, Empty, ReDef, NotDef
@@ -107,30 +109,30 @@ typealias Scope = MutableMap<String, Literal>
 
 class AmatsukazeVisitor(private val manager: AmatsukazeManager): amatsukazeGrammarVisitor<Any> {
 
-    private val providedFunctions = mapOf(
-        "moveForward" to {e: Int -> manager.moveForward(e)},
-        "turnLeft" to {e: Int -> manager.turnLeft(e)},
-        "toggleSwitch" to {e: Int -> manager.toggleSwitch(e)},
-        "collectGem" to {e: Int -> manager.collectGem(e)},
-        "takeBeeper" to {e: Int -> manager.takeBeeper(e)},
-        "dropBeeper" to {e: Int -> manager.dropBeeper(e)},
-        "turnLockUp" to {e: Int -> manager.turnLockUp(e)},
-        "turnLockDown" to {e: Int -> manager.turnLockDown(e)}
-    )
+    private var providedProperties = manager::class.declaredFunctions.filter {
+        val ann = it.findAnnotation<PlaygroundFunction>()
+        ann?.type == PF.Property && ann.self == PFType.Self && ann.ret == PFType.Bool
+                && ann.arg1 == PFType.None && ann.arg2 == PFType.None
+    }.associate {
+        it.name to { e: Int -> it.call(manager, e) as () -> Boolean }
+    }
 
-    private val providedProperties = mapOf(
-        "isOnGem" to {e: Int -> manager.isOnGem(e)},
-        "isOnOpenedSwitch" to {e: Int -> manager.isOnOpenedSwitch(e)},
-        "isOnClosedSwitch" to {e: Int -> manager.isOnClosedSwitch(e)},
-        "isOnBeeper" to {e: Int -> manager.isOnBeeper(e)},
-        "isAtHome" to {e: Int -> manager.isAtHome(e)},
-        "isInDesert" to {e: Int -> manager.isInDesert(e)},
-        "isInForest" to {e: Int -> manager.isInForest(e)},
-        "isOnPortal" to {e: Int -> manager.isOnPortal(e)},
-        "isBlocked" to {e: Int -> manager.isBlocked(e)},
-        "isBlockedLeft" to {e: Int -> manager.isBlockedLeft(e)},
-        "isBlockedRight" to {e: Int -> manager.isBlockedRight(e)}
-    )
+    private val providedUnaryMethods = manager::class.declaredFunctions.filter {
+        val ann = it.findAnnotation<PlaygroundFunction>()
+        ann?.type == PF.Method && ann.self == PFType.Self && ann.ret == PFType.None
+                && ann.arg1 == PFType.None && ann.arg2 == PFType.None
+    }.associate {
+        it.name to { e:Int -> it.call(manager, e) as Unit }
+    }
+
+    private val providedBinaryMethods = manager::class.declaredFunctions.filter {
+        val ann = it.findAnnotation<PlaygroundFunction>()
+        ann?.type == PF.Method && ann.self == PFType.Self && ann.ret == PFType.None
+                &&ann.arg1 != PFType.None && ann.arg2 == PFType.None
+    }.associate {
+        val ann = it.findAnnotation<PlaygroundFunction>()
+        it.name to Pair<PFType, (Int, Any) -> Unit>(ann?.arg1!!) { e: Int, f: Any -> it.call(manager, e, f) }
+    }
 
     private var _break = false
     private var _continue = false
@@ -773,8 +775,8 @@ class AmatsukazeVisitor(private val manager: AmatsukazeManager): amatsukazeGramm
                 val refs = clause.map { it.second }
                 when (obj) {
                     is PlayerLiteral -> {
-                        if (funcArgu.isEmpty() && providedFunctions.containsKey(functionName)) {
-                            providedFunctions.getValue(functionName)(obj.id)
+                        if (funcArgu.isEmpty() && providedUnaryMethods.containsKey(functionName)) {
+                            providedUnaryMethods.getValue(functionName)(obj.id)
                             if (manager.dead())
                                 throw TerminatedReturn("GAMEOVER")
                             if (manager.win())
@@ -810,16 +812,17 @@ class AmatsukazeVisitor(private val manager: AmatsukazeManager): amatsukazeGramm
                         }
                     }
                     is SpecialistLiteral -> {
-                        if (funcArgu.isEmpty() && providedFunctions.containsKey(functionName)) {
-                            providedFunctions.getValue(functionName)(obj.id)
+                        if (funcArgu.isEmpty() && providedUnaryMethods.containsKey(functionName)) {
+                            providedUnaryMethods.getValue(functionName)(obj.id)
                             if (manager.dead())
                                 throw TerminatedReturn("GAMEOVER")
                             if (manager.win())
                                 throw TerminatedReturn("WIN")
                             return SpecialRetVal.Empty
                         }
-                        if (funcArgu.size == 1 && functionName == "changeColor") {
-                            if (funcArgu[0] is StringLiteral) {
+                        if (funcArgu.isEmpty() && providedBinaryMethods.containsKey(functionName)) {
+                            val func = providedBinaryMethods.getValue(functionName)
+                            if (func.first == PFType.Color) {
                                 val color = when ((funcArgu[0] as StringLiteral).content.toLowerCase()) {
                                     "black" -> Color.BLACK
                                     "silver" -> Color.SILVER
@@ -839,10 +842,8 @@ class AmatsukazeVisitor(private val manager: AmatsukazeManager): amatsukazeGramm
                                     "purple" -> Color.PURPLE
                                     else -> throw Exception("Unsupported color")
                                 }
-                                manager.changeColor(obj.id, color)
+                                func.second.invoke(obj.id, color)
                                 return SpecialRetVal.Empty
-                            } else {
-                                throw Exception("Wrong argument type in color function.")
                             }
                         }
                     }
@@ -1366,8 +1367,8 @@ class AmatsukazeVisitor(private val manager: AmatsukazeManager): amatsukazeGramm
                 return declareNewPlaygroundObject("PLAYER")
             } else if (functionName == "Specialist" && funcArgument.isEmpty()) {
                 return declareNewPlaygroundObject("SPECIALIST")
-            } else if (funcArgument.isEmpty() && providedFunctions.containsKey(functionName)) {
-                providedFunctions.getValue(functionName)(manager.firstId)
+            } else if (funcArgument.isEmpty() && providedUnaryMethods.containsKey(functionName)) {
+                providedUnaryMethods.getValue(functionName)(manager.firstId)
                 if (manager.dead())
                     throw TerminatedReturn("GAMEOVER")
                 if (manager.win())
