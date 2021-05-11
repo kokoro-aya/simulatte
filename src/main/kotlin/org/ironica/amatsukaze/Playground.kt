@@ -18,9 +18,9 @@ data class MountainTile(var level: Int?): Tile() {
     }
 }
 
-typealias Grid = Array<Array<Block>>
-typealias Layout = Array<Array<Item>>
-typealias SecondLayout = Array<Array<Tile>>
+typealias Grid = MutableList<MutableList<Block>>
+typealias Layout = MutableList<MutableList<Item>>
+typealias SecondLayout = MutableList<MutableList<Tile>>
 
 @Serializable
 data class Coordinate(var x: Int, var y: Int) {
@@ -34,14 +34,14 @@ data class Coordinate(var x: Int, var y: Int) {
 data class Portal(val coo: Coordinate = Coordinate(0, 0), val dest: Coordinate = Coordinate(0, 0), var isActive: Boolean = false)
 
 @Serializable
-data class Lock(val coo: Coordinate, val controlled: Array<Coordinate>)
+data class Lock(val coo: Coordinate, val controlled: List<Coordinate>)
 
 open class Player(val id: Int, val coo: Coordinate, var dir: Direction, var stamina: Int?) {
 
     lateinit var grid: Grid
     lateinit var layout: Layout
     lateinit var misc: SecondLayout
-    lateinit var portals: Array<Portal>
+    lateinit var portals: List<Portal>
     lateinit var playground: Playground
 
     var collectedGem = 0
@@ -230,7 +230,7 @@ open class Player(val id: Int, val coo: Coordinate, var dir: Direction, var stam
 
 class Specialist(id: Int, coo: Coordinate, dir: Direction, stamina: Int?): Player(id, coo, dir, stamina) {
 
-    lateinit var locks: Array<Lock>
+    lateinit var locks: List<Lock>
 
     val isBeforeLock = {
         when (this.dir) {
@@ -280,7 +280,7 @@ class Specialist(id: Int, coo: Coordinate, dir: Direction, stamina: Int?): Playe
     }
 }
 
-class Playground(val grid: Grid, val layout: Layout, val layout2s: SecondLayout, val portals: Array<Portal>, val locks: Array<Lock>, val players: MutableList<Player>, private val initialGem: Int) {
+class Playground(val grid: Grid, val layout: Layout, val layout2s: SecondLayout, val portals: List<Portal>, val locks: List<Lock>, val players: MutableList<Player>, private val initialGem: Int) {
 
     init {
         players.map { it.grid = grid }

@@ -11,22 +11,20 @@ import org.antlr.v4.runtime.tree.ParseTree
 @Serializable
 data class PlayerData(val id: Int, val x: Int, val y: Int, val dir: String, val role: String, val stamina: String)
 
-@Serializable
-data class TileInfo(val x: Int, val y: Int, val color: String, val level: Int)
 
 @Serializable
 data class Data(
     val type: String,
     val code: String,
-    val grid: Array<Array<String>>,
-    val layout: Array<Array<String>>,
-    val misc: Array<Array<String>>,
-    val portals: Array<Portal>,
-    val locks: Array<Lock>,
-    val players: Array<PlayerData>
+    val grid: List<List<String>>,
+    val layout: List<List<String>>,
+    val misc: List<List<String>>,
+    val portals: List<Portal>,
+    val locks: List<Lock>,
+    val players: List<PlayerData>
 )
 
-fun convertJsonToGrid(array: Array<Array<String>>): Grid {
+fun convertJsonToGrid(array: List<List<String>>): Grid {
     return array.map { it.map { when (it) {
         "OPEN" -> Block.OPEN
         "BLOCKED" -> Block.BLOCKED
@@ -38,10 +36,10 @@ fun convertJsonToGrid(array: Array<Array<String>>): Grid {
         "STONE" -> Block.STONE
         "LOCK" -> Block.LOCK
         else -> throw Exception("Cannot parse data to grid")
-    } }.toTypedArray() }.toTypedArray()
+    } }.toMutableList() }.toMutableList()
 }
 
-fun convertJsonToLayout(array: Array<Array<String>>): Layout {
+fun convertJsonToLayout(array: List<List<String>>): Layout {
     return array.map { it.map { when (it) {
         "NONE" -> Item.NONE
         "GEM" -> Item.GEM
@@ -51,10 +49,10 @@ fun convertJsonToLayout(array: Array<Array<String>>): Layout {
         "PORTAL" -> Item.PORTAL
         "PLATFORM" -> Item.PLATFORM
         else -> throw Exception("Cannot parse data to layout")
-    } }.toTypedArray()}.toTypedArray()
+    } }.toMutableList()}.toMutableList()
 }
 
-fun convertJsonToPlayers(array: Array<PlayerData>): Array<Player> {
+fun convertJsonToPlayers(array: List<PlayerData>): List<Player> {
     return array.map { when(it.role) {
         "PLAYER" -> Player(it.id, Coordinate(it.x, it.y), when(it.dir) {
             "UP" -> Direction.UP
@@ -71,13 +69,13 @@ fun convertJsonToPlayers(array: Array<PlayerData>): Array<Player> {
             else -> throw Exception("Cannot parse data to specialist")
         }, it.stamina.toIntOrNull())
         else -> throw Exception("Cannot parse data to player list")
-    } }.toTypedArray()
+    } }
 }
 
-fun convertJsonToMiscLayout(array: Array<Array<String>>, using: String): SecondLayout {
+fun convertJsonToMiscLayout(array: List<List<String>>, using: String): SecondLayout {
     return when (using) {
-        "colorful" -> array.map { it.map { ColorfulTile(convertDataToColor(it)) as Tile }.toTypedArray() }.toTypedArray()
-        "mountainous" -> array.map { it.map { MountainTile(it.toIntOrNull()) as Tile }.toTypedArray() }.toTypedArray()
+        "colorful" -> array.map { it.map { ColorfulTile(convertDataToColor(it)) as Tile }.toMutableList() }.toMutableList()
+        "mountainous" -> array.map { it.map { MountainTile(it.toIntOrNull()) as Tile }.toMutableList() }.toMutableList()
         else -> throw Exception("Unsupported game module")
     }
 }
@@ -112,9 +110,9 @@ class AmatsukazeInterface(
     val grid: Grid,
     val layout: Layout,
     val miscLayout: SecondLayout,
-    val portals: Array<Portal>,
-    val locks: Array<Lock>,
-    val players: Array<Player>) {
+    val portals: List<Portal>,
+    val locks: List<Lock>,
+    val players: List<Player>) {
     fun start() {
         val input: CharStream = CharStreams.fromString(code)
         val lexer = amatsukazeGrammarLexer(input)

@@ -88,52 +88,57 @@ class ColorfulManager(override val playground: Playground): AbstractManager {
 
 
     override fun printGrid() {
-        playground.layout2s.forEach {
-            it.forEach {
-                when ((it as ColorfulTile).color) {
-                    Color.WHITE -> '白'
-                    Color.BLACK -> '黑'
-                    Color.SILVER -> '银'
-                    Color.GREY -> '灰'
-                    Color.RED -> '红'
-                    Color.ORANGE -> '橙'
-                    Color.GOLD -> '金'
-                    Color.PINK -> '粉'
-                    Color.YELLOW -> '黄'
-                    Color.BEIGE -> '米'
-                    Color.BROWN -> '棕'
-                    Color.GREEN -> '绿'
-                    Color.AZURE -> '碧'
-                    Color.CYAN -> '青'
-                    Color.ALICEBLUE -> '蓝'
-                    Color.PURPLE -> '紫'
-                }.apply { print(it) }
-                println()
-            }
-        }
+//        playground.layout2s.forEach { line ->
+//            line.forEach { tile ->
+//                if (tile is ColorfulTile) {
+//                    val t = tile.color
+//                    print(
+//                        when (t) {
+//                            Color.WHITE -> '白'
+//                            Color.BLACK -> '黑'
+//                            Color.SILVER -> '银'
+//                            Color.GREY -> '灰'
+//                            Color.RED -> '红'
+//                            Color.ORANGE -> '橙'
+//                            Color.GOLD -> '金'
+//                            Color.PINK -> '粉'
+//                            Color.YELLOW -> '黄'
+//                            Color.BEIGE -> '米'
+//                            Color.BROWN -> '棕'
+//                            Color.GREEN -> '绿'
+//                            Color.AZURE -> '碧'
+//                            Color.CYAN -> '青'
+//                            Color.ALICEBLUE -> '蓝'
+//                            Color.PURPLE -> '紫'
+//                        }
+//                    )
+//                }
+//            }
+//            println()
+//        }
     }
 
     override fun appendEntry() {
         if (payloadStorage.size > 1000)
             throw Exception("Too many entries!")
-        val currentGrid = Array(playground.grid.size) { Array(playground.grid[0].size) { Block.OPEN } }
+        val currentGrid = MutableList(playground.grid.size) { MutableList(playground.grid[0].size) { Block.OPEN } }
         for (i in playground.grid.indices)
             for (j in playground.grid[0].indices)
                 currentGrid[i][j] = playground.grid[i][j]
-        val currentLayout = Array(playground.layout.size) { Array(playground.layout[0].size) { Item.NONE } }
+        val currentLayout = MutableList(playground.layout.size) { MutableList(playground.layout[0].size) { Item.NONE } }
         for (i in playground.layout.indices)
             for (j in playground.layout[0].indices)
                 currentLayout[i][j] = playground.layout[i][j]
-        val currentMiscLayout = Array(playground.layout2s.size) { Array<Tile>(playground.layout2s[0].size) { ColorfulTile(Color.WHITE) } }
+        val currentMiscLayout: MutableList<MutableList<String>> = MutableList(playground.layout2s.size) { MutableList(playground.layout2s[0].size) { "" } }
         for (i in playground.layout2s.indices)
             for (j in playground.layout2s[0].indices) {
-                currentMiscLayout[i][j] = playground.layout2s[i][j]
+                currentMiscLayout[i][j] = (playground.layout2s[i][j] as ColorfulTile).color.toString()
             }
-        val currentPortals = Array(playground.portals.size) { Portal() }
+        val currentPortals = MutableList(playground.portals.size) { Portal() }
         for (i in playground.portals.indices)
             currentPortals[i] = playground.portals[i]
         val serializedPlayers = playground.players.map {
-            SerializedPlayer(it.id, it.coo.x, it.coo.y, it.dir, if (it is Specialist) Role.SPECIALIST else Role.PLAYER, it.stamina ?: 0) }.toTypedArray()
+            SerializedPlayer(it.id, it.coo.x, it.coo.y, it.dir, if (it is Specialist) Role.SPECIALIST else Role.PLAYER, it.stamina ?: 0) }
         val payload = Payload(
             serializedPlayers,
             currentPortals,

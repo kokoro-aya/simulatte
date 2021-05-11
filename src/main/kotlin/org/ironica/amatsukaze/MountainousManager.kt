@@ -97,24 +97,24 @@ class MountainousManager(override val playground: Playground): AbstractManager {
     override fun appendEntry() {
         if (payloadStorage.size > 1000)
             throw Exception("Too many entries!")
-        val currentGrid = Array(playground.grid.size) { Array(playground.grid[0].size) { Block.OPEN } }
+        val currentGrid = MutableList(playground.grid.size) { MutableList(playground.grid[0].size) { Block.OPEN } }
         for (i in playground.grid.indices)
             for (j in playground.grid[0].indices)
                 currentGrid[i][j] = playground.grid[i][j]
-        val currentLayout = Array(playground.layout.size) { Array(playground.layout[0].size) { Item.NONE } }
+        val currentLayout = MutableList(playground.layout.size) { MutableList(playground.layout[0].size) { Item.NONE } }
         for (i in playground.layout.indices)
             for (j in playground.layout[0].indices)
                 currentLayout[i][j] = playground.layout[i][j]
-        val currentMiscLayout = Array(playground.layout2s.size) { Array<Tile>(playground.layout2s[0].size) { MountainTile(1) } }
+        val currentMiscLayout = MutableList(playground.layout2s.size) { MutableList(playground.layout2s[0].size) { "1" } }
         for (i in playground.layout2s.indices)
             for (j in playground.layout2s[0].indices) {
-                currentMiscLayout[i][j] = playground.layout2s[i][j]
+                currentMiscLayout[i][j] = (playground.layout2s[i][j] as MountainTile).level.toString()
             }
-        val currentPortals = Array(playground.portals.size) { Portal() }
+        val currentPortals = MutableList(playground.portals.size) { Portal() }
         for (i in playground.portals.indices)
             currentPortals[i] = playground.portals[i]
         val serializedPlayers = playground.players.map {
-            SerializedPlayer(it.id, it.coo.x, it.coo.y, it.dir, if (it is Specialist) Role.SPECIALIST else Role.PLAYER, it.stamina ?: 0) }.toTypedArray()
+            SerializedPlayer(it.id, it.coo.x, it.coo.y, it.dir, if (it is Specialist) Role.SPECIALIST else Role.PLAYER, it.stamina ?: 0) }
         val payload = Payload(
             serializedPlayers,
             currentPortals,
