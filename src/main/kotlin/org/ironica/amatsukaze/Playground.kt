@@ -10,11 +10,17 @@ sealed class Tile
 @Serializable
 data class ColorfulTile(var color: Color): Tile()
 @Serializable
-data class MountainTile(var level: Int?): Tile()
+data class MountainTile(var level: Int?): Tile() {
+    init {
+        if (level != null && level!! < 0) {
+            level = null
+        }
+    }
+}
 
-typealias Grid = Array<Array<Block>>
-typealias Layout = Array<Array<Item>>
-typealias SecondLayout = Array<Array<Tile>>
+typealias Grid = MutableList<MutableList<Block>>
+typealias Layout = MutableList<MutableList<Item>>
+typealias SecondLayout = MutableList<MutableList<Tile>>
 
 @Serializable
 data class Coordinate(var x: Int, var y: Int) {
@@ -28,21 +34,15 @@ data class Coordinate(var x: Int, var y: Int) {
 data class Portal(val coo: Coordinate = Coordinate(0, 0), val dest: Coordinate = Coordinate(0, 0), var isActive: Boolean = false)
 
 @Serializable
-data class Lock(val coo: Coordinate, val controlled: Array<Coordinate>)
+data class Lock(val coo: Coordinate, val controlled: List<Coordinate>)
 
-open class Player(val id: Int, val coo: Coordinate, var dir: Direction) {
+open class Player(val id: Int, val coo: Coordinate, var dir: Direction, var stamina: Int?) {
 
     lateinit var grid: Grid
     lateinit var layout: Layout
     lateinit var misc: SecondLayout
-    lateinit var portals: Array<Portal>
+    lateinit var portals: List<Portal>
     lateinit var playground: Playground
-
-    var stamina: Int? = null
-
-    constructor(id: Int, coo: Coordinate, dir: Direction, stamina: Int): this(id, coo, dir) {
-        this.stamina = stamina
-    }
 
     var collectedGem = 0
     var beeperInBag = 0
@@ -54,8 +54,8 @@ open class Player(val id: Int, val coo: Coordinate, var dir: Direction) {
                 || if (misc[0][0] is MountainTile) {
                         val forward = misc[coo.y - 1][coo.x] as MountainTile
                         val current = misc[coo.y][coo.x] as MountainTile
-                        if (forward.level == null && (grid[coo.y - 1][coo.x] == STAIRSOUTH || grid[coo.y - 1][coo.x] == STAIRNORTH)) false
-                        else if (current.level == null && (grid[coo.y][coo.x] == STAIRNORTH || grid[coo.y][coo.x] == STAIRSOUTH)) false
+                        if (forward.level == null && grid[coo.y - 1][coo.x] == STAIRVERTICAL) false
+                        else if (current.level == null && grid[coo.y][coo.x] == STAIRVERTICAL) false
                         else forward.level != null && current.level != null && forward.level != current.level
                     } else false
     private fun isBlockedYMinus() =
@@ -65,8 +65,8 @@ open class Player(val id: Int, val coo: Coordinate, var dir: Direction) {
                 || if (misc[0][0] is MountainTile) {
                         val forward = misc[coo.y + 1][coo.x] as MountainTile
                         val current = misc[coo.y][coo.x] as MountainTile
-                        if (forward.level == null && (grid[coo.y + 1][coo.x] == STAIRSOUTH || grid[coo.y + 1][coo.x] == STAIRNORTH)) false
-                        else if (current.level == null && (grid[coo.y][coo.x] == STAIRNORTH || grid[coo.y][coo.x] == STAIRSOUTH)) false
+                        if (forward.level == null && grid[coo.y + 1][coo.x] == STAIRVERTICAL) false
+                        else if (current.level == null && grid[coo.y][coo.x] == STAIRVERTICAL) false
                         else forward.level != null && current.level != null && forward.level != current.level
                     } else false
     private fun isBlockedXMinus() =
@@ -76,8 +76,8 @@ open class Player(val id: Int, val coo: Coordinate, var dir: Direction) {
                 || if (misc[0][0] is MountainTile) {
                         val forward = misc[coo.y][coo.x - 1] as MountainTile
                         val current = misc[coo.y][coo.x] as MountainTile
-                        if (forward.level == null && (grid[coo.y][coo.x - 1] == STAIREAST || grid[coo.y][coo.x - 1] == STAIRWEST)) false
-                        else if (current.level == null && (grid[coo.y][coo.x] == STAIREAST || grid[coo.y][coo.x] == STAIRWEST)) false
+                        if (forward.level == null && grid[coo.y][coo.x - 1] == STAIRHORIZONTAL) false
+                        else if (current.level == null && grid[coo.y][coo.x] == STAIRHORIZONTAL) false
                         else forward.level != null && current.level != null && forward.level != current.level
                     } else false
     private fun isBlockedXPlus() =
@@ -87,8 +87,8 @@ open class Player(val id: Int, val coo: Coordinate, var dir: Direction) {
                 || if (misc[0][0] is MountainTile) {
                         val forward = misc[coo.y][coo.x + 1] as MountainTile
                         val current = misc[coo.y][coo.x] as MountainTile
-                        if (forward.level == null && (grid[coo.y][coo.x + 1] == STAIREAST || grid[coo.y][coo.x + 1] == STAIRWEST)) false
-                        else if (current.level == null && (grid[coo.y][coo.x] == STAIREAST || grid[coo.y][coo.x] == STAIRWEST)) false
+                        if (forward.level == null && grid[coo.y][coo.x + 1] == STAIRHORIZONTAL) false
+                        else if (current.level == null && grid[coo.y][coo.x] == STAIRHORIZONTAL) false
                         else forward.level != null && current.level != null && forward.level != current.level
                     } else false
 
@@ -208,7 +208,7 @@ open class Player(val id: Int, val coo: Coordinate, var dir: Direction) {
     }
 
     fun dropBeeper(): Boolean {
-        if (beeperInBag > 0) {
+        if (beeperInBag > 0 && layout[coo.y][coo.x] == NONE) {
             if (isInDesert()) stamina = stamina?.minus(2)
             if (isInForest()) stamina = stamina?.minus(1)
             layout[coo.y][coo.x] = BEEPER
@@ -228,9 +228,9 @@ open class Player(val id: Int, val coo: Coordinate, var dir: Direction) {
     }
 }
 
-class Specialist(id: Int, coo: Coordinate, dir: Direction): Player(id, coo, dir) {
+class Specialist(id: Int, coo: Coordinate, dir: Direction, stamina: Int?): Player(id, coo, dir, stamina) {
 
-    lateinit var locks: Array<Lock>
+    lateinit var locks: List<Lock>
 
     val isBeforeLock = {
         when (this.dir) {
@@ -254,7 +254,7 @@ class Specialist(id: Int, coo: Coordinate, dir: Direction): Player(id, coo, dir)
     private fun turnLock(up: Boolean): Boolean {
         if (isBeforeLock() && misc[0][0] is MountainTile) {
             locks.filter { it.coo == lockCoo() }[0].controlled.forEach { c ->
-                val grid = misc[c.y][c.x] as MountainTile; if (grid.level in 0..15) {
+                val grid = misc[c.y][c.x] as MountainTile; if (grid.level in 1..15) {
                 if (up) grid.level = grid.level?.plus(1)
                 else grid.level = grid.level?.minus(1)
             } }
@@ -280,7 +280,7 @@ class Specialist(id: Int, coo: Coordinate, dir: Direction): Player(id, coo, dir)
     }
 }
 
-class Playground(val grid: Grid, val layout: Layout, val layout2s: SecondLayout, val portals: Array<Portal>, val locks: Array<Lock>, val players: MutableList<Player>, private val initialGem: Int) {
+class Playground(val grid: Grid, val layout: Layout, val layout2s: SecondLayout, val portals: List<Portal>, val locks: List<Lock>, val players: MutableList<Player>, private val initialGem: Int) {
 
     init {
         players.map { it.grid = grid }
@@ -328,10 +328,8 @@ class Playground(val grid: Grid, val layout: Layout, val layout2s: SecondLayout,
                     MOUNTAIN -> "山"
                     STONE -> "石"
                     LOCK -> "锁"
-                    STAIRNORTH -> "⬆️"
-                    STAIRSOUTH -> "⬇️"
-                    STAIRWEST -> "⬅️"
-                    STAIREAST -> "➡️"
+                    STAIRVERTICAL -> "竖"
+                    STAIRHORIZONTAL -> "横"
                 }
             }
             else -> {
