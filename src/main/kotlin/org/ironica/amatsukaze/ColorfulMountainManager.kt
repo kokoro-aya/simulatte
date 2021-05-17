@@ -101,37 +101,9 @@ class ColorfulMountainManager(override val playground: Playground, override val 
     }
 
 
-    override fun printGrid() {
-        playground.layout2s.forEach { line ->
-            line.forEach { tile ->
-                if (tile is ColorfulTile) {
-                    val t = tile.color
-                    print(
-                        when (t) {
-                            Color.WHITE -> '白'
-                            Color.BLACK -> '黑'
-                            Color.SILVER -> '银'
-                            Color.GREY -> '灰'
-                            Color.RED -> '红'
-                            Color.ORANGE -> '橙'
-                            Color.GOLD -> '金'
-                            Color.PINK -> '粉'
-                            Color.YELLOW -> '黄'
-                            Color.BEIGE -> '米'
-                            Color.BROWN -> '棕'
-                            Color.GREEN -> '绿'
-                            Color.AZURE -> '碧'
-                            Color.CYAN -> '青'
-                            Color.ALICEBLUE -> '蓝'
-                            Color.PURPLE -> '紫'
-                        }
-                    )
-                }
-            }
-            println()
-        }
-        println()
-    }
+//    override fun printGrid() {
+        // TODO ("TBA")
+//    }
 
     override fun appendEntry() {
         if (payloadStorage.size > 1000)
