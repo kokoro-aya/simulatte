@@ -146,6 +146,7 @@ class AmatsukazeInterface(
         val manager = when (type) {
             "colorful" -> ColorfulManager(playground, debug, stdout)
             "mountainous" -> MountainousManager(playground, debug, stdout)
+            "colorfulmountainous" -> ColorfulMountainManager(playground, debug, stdout)
             else -> throw Exception("Unsupported game module")
         }
         manager.appendEntry() // Store the initial state of playground into payload list

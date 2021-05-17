@@ -229,6 +229,8 @@ open class Player(val id: Int, val coo: Coordinate, var dir: Direction, var stam
     fun changeColor(c: Color) {
         if (misc[coo.y][coo.x] is ColorfulTile)
             (misc[coo.y][coo.x] as ColorfulTile).color = c
+        if (misc[coo.y][coo.x] is ColorfulMountainTile)
+            (misc[coo.y][coo.x] as ColorfulMountainTile).color = c
     }
 }
 
