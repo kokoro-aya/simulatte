@@ -1,6 +1,6 @@
 package org.ironica.amatsukaze
 
-class ColorfulManager(override val playground: Playground): AbstractManager {
+class ColorfulManager(override val playground: Playground, override val debug: Boolean, override val stdout: Boolean): AbstractManager {
 
     override var consoleLog: String = ""
     override var special: String = ""
@@ -88,34 +88,37 @@ class ColorfulManager(override val playground: Playground): AbstractManager {
 
 
     override fun printGrid() {
-//        playground.layout2s.forEach { line ->
-//            line.forEach { tile ->
-//                if (tile is ColorfulTile) {
-//                    val t = tile.color
-//                    print(
-//                        when (t) {
-//                            Color.WHITE -> '白'
-//                            Color.BLACK -> '黑'
-//                            Color.SILVER -> '银'
-//                            Color.GREY -> '灰'
-//                            Color.RED -> '红'
-//                            Color.ORANGE -> '橙'
-//                            Color.GOLD -> '金'
-//                            Color.PINK -> '粉'
-//                            Color.YELLOW -> '黄'
-//                            Color.BEIGE -> '米'
-//                            Color.BROWN -> '棕'
-//                            Color.GREEN -> '绿'
-//                            Color.AZURE -> '碧'
-//                            Color.CYAN -> '青'
-//                            Color.ALICEBLUE -> '蓝'
-//                            Color.PURPLE -> '紫'
-//                        }
-//                    )
-//                }
-//            }
-//            println()
-//        }
+        if (debug) {
+            playground.layout2s.forEach { line ->
+                line.forEach { tile ->
+                    if (tile is ColorfulTile) {
+                        val t = tile.color
+                        print(
+                            when (t) {
+                                Color.WHITE -> '白'
+                                Color.BLACK -> '黑'
+                                Color.SILVER -> '银'
+                                Color.GREY -> '灰'
+                                Color.RED -> '红'
+                                Color.ORANGE -> '橙'
+                                Color.GOLD -> '金'
+                                Color.PINK -> '粉'
+                                Color.YELLOW -> '黄'
+                                Color.BEIGE -> '米'
+                                Color.BROWN -> '棕'
+                                Color.GREEN -> '绿'
+                                Color.AZURE -> '碧'
+                                Color.CYAN -> '青'
+                                Color.ALICEBLUE -> '蓝'
+                                Color.PURPLE -> '紫'
+                            }
+                        )
+                    }
+                }
+                println()
+            }
+            println()
+        }
     }
 
     override fun appendEntry() {
@@ -129,10 +132,11 @@ class ColorfulManager(override val playground: Playground): AbstractManager {
         for (i in playground.layout.indices)
             for (j in playground.layout[0].indices)
                 currentLayout[i][j] = playground.layout[i][j]
-        val currentMiscLayout: MutableList<MutableList<String>> = MutableList(playground.layout2s.size) { MutableList(playground.layout2s[0].size) { "" } }
+        val currentColorLayout: MutableList<MutableList<Color>> = MutableList(playground.layout2s.size) { MutableList(playground.layout2s[0].size) { Color.WHITE } }
+        val currentLevelLayout = List(playground.grid.size) { List(playground.grid[0].size) { 1 } }
         for (i in playground.layout2s.indices)
             for (j in playground.layout2s[0].indices) {
-                currentMiscLayout[i][j] = (playground.layout2s[i][j] as ColorfulTile).color.toString()
+                currentColorLayout[i][j] = (playground.layout2s[i][j] as ColorfulTile).color
             }
         val currentPortals = MutableList(playground.portals.size) { Portal() }
         for (i in playground.portals.indices)
@@ -142,7 +146,7 @@ class ColorfulManager(override val playground: Playground): AbstractManager {
         val payload = Payload(
             serializedPlayers,
             currentPortals,
-            SerializedPlayground(currentGrid, currentLayout, currentMiscLayout),
+            SerializedPlayground(currentGrid, currentLayout, currentColorLayout, currentLevelLayout),
             this.consoleLog,
             this.special
         )

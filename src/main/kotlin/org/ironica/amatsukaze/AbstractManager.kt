@@ -6,6 +6,8 @@ interface AbstractManager {
     var special: String
 
     val firstId: Int
+    val debug: Boolean
+    val stdout: Boolean
 
     fun getPlayer(id: Int): Player {
         val player = playground.players.filter { it.id == id }
@@ -14,7 +16,8 @@ interface AbstractManager {
     }
 
     fun printGrid() {
-        return playground.printGrid()
+        if (debug) return playground.printGrid()
+        return
     }
 
     fun isOnGem(id: Int): () -> Boolean
@@ -38,8 +41,10 @@ interface AbstractManager {
     fun dropBeeper(id: Int)
 
     fun print(lmsg: List<String>) {
-        lmsg.forEach { print("$it ")}
-        println()
+        if (stdout) {
+            lmsg.forEach { print("$it ") }
+            println()
+        }
         lmsg.forEach { consoleLog += it }
         consoleLog += "\n"
         appendEntry()

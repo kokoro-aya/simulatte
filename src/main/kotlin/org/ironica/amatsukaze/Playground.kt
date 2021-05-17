@@ -5,15 +5,19 @@ import org.ironica.amatsukaze.Direction.*
 import org.ironica.amatsukaze.Block.*
 import org.ironica.amatsukaze.Item.*
 
-@Serializable
 sealed class Tile
-@Serializable
 data class ColorfulTile(var color: Color): Tile()
-@Serializable
-data class MountainTile(var level: Int?): Tile() {
+data class MountainTile(var level: Int): Tile() {
     init {
-        if (level != null && level!! < 0) {
-            level = null
+        if (level < 0) {
+            level = 0
+        }
+    }
+}
+data class ColorfulMountainTile(var color: Color, var level: Int): Tile() {
+    init {
+        if (level < 0) {
+            level = 0
         }
     }
 }
@@ -51,7 +55,7 @@ open class Player(val id: Int, val coo: Coordinate, var dir: Direction, var stam
         coo.y < 1 || grid[coo.y - 1][coo.x] == BLOCKED || grid[coo.y - 1][coo.x] == WATER
                 || grid[coo.y - 1][coo.x] == MOUNTAIN || grid[coo.y - 1][coo.x] == STONE
                 || grid[coo.y - 1][coo.x] == LOCK
-                || if (misc[0][0] is MountainTile) {
+                || if (misc.size != 0 && misc[0].size != 0 && misc[0][0] is MountainTile) { // need to check if misc is empty
                         val forward = misc[coo.y - 1][coo.x] as MountainTile
                         val current = misc[coo.y][coo.x] as MountainTile
                         if (forward.level == null && grid[coo.y - 1][coo.x] == STAIRVERTICAL) false
@@ -62,7 +66,7 @@ open class Player(val id: Int, val coo: Coordinate, var dir: Direction, var stam
         coo.y > grid.size - 2 || grid[coo.y + 1][coo.x] == BLOCKED || grid[coo.y + 1][coo.x] == WATER
                 || grid[coo.y + 1][coo.x] == MOUNTAIN || grid[coo.y + 1][coo.x] == STONE
                 || grid[coo.y + 1][coo.x] == LOCK
-                || if (misc[0][0] is MountainTile) {
+                || if (misc.size != 0 && misc[0].size != 0 && misc[0][0] is MountainTile) {
                         val forward = misc[coo.y + 1][coo.x] as MountainTile
                         val current = misc[coo.y][coo.x] as MountainTile
                         if (forward.level == null && grid[coo.y + 1][coo.x] == STAIRVERTICAL) false
@@ -73,7 +77,7 @@ open class Player(val id: Int, val coo: Coordinate, var dir: Direction, var stam
         coo.x < 1 || grid[coo.y][coo.x - 1] == BLOCKED || grid[coo.y][coo.x - 1] == WATER
                 || grid[coo.y][coo.x - 1] == MOUNTAIN || grid[coo.y][coo.x - 1] == STONE
                 || grid[coo.y][coo.x - 1] == LOCK
-                || if (misc[0][0] is MountainTile) {
+                || if (misc.size != 0 && misc[0].size != 0 && misc[0][0] is MountainTile) {
                         val forward = misc[coo.y][coo.x - 1] as MountainTile
                         val current = misc[coo.y][coo.x] as MountainTile
                         if (forward.level == null && grid[coo.y][coo.x - 1] == STAIRHORIZONTAL) false
@@ -84,7 +88,7 @@ open class Player(val id: Int, val coo: Coordinate, var dir: Direction, var stam
         coo.x > grid[0].size - 2 || grid[coo.y][coo.x + 1] == BLOCKED || grid[coo.y][coo.x + 1] == WATER
                 || grid[coo.y][coo.x + 1] == MOUNTAIN || grid[coo.y][coo.x + 1] == STONE
                 || grid[coo.y][coo.x + 1] == LOCK
-                || if (misc[0][0] is MountainTile) {
+                || if (misc.size != 0 && misc[0].size != 0 && misc[0][0] is MountainTile) {
                         val forward = misc[coo.y][coo.x + 1] as MountainTile
                         val current = misc[coo.y][coo.x] as MountainTile
                         if (forward.level == null && grid[coo.y][coo.x + 1] == STAIRHORIZONTAL) false

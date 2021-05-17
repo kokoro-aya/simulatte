@@ -6,13 +6,14 @@ import kotlinx.serialization.Serializable
 data class SerializedPlayer(val id: Int, val x: Int, val y: Int, val dir: Direction, val role: Role, val stamina: Int)
 
 @Serializable
-data class SerializedPlayground(val grid: Grid, val layout: Layout, val misc: List<List<String>>)
+data class SerializedPlayground(val grid: Grid, val layout: Layout, val colors: List<List<Color>>, val levels: List<List<Int>>)
 
 @Serializable
 data class Payload(
     val grid: Grid,
     val layout: Layout,
-    val misc: List<List<String>>,
+    val colors: List<List<Color>>,
+    val levels: List<List<Int>>,
     val players: List<SerializedPlayer>,
     val portals: List<Portal>,
     val consoleLog: String,
@@ -24,7 +25,7 @@ data class Payload(
         grid: SerializedPlayground,
         consoleLog: String,
         special: String
-    ): this(grid.grid, grid.layout, grid.misc, players, portals, consoleLog, special)
+    ): this(grid.grid, grid.layout, grid.colors, grid.levels, players, portals, consoleLog, special)
 }
 
 val payloadStorage = mutableListOf<Payload>()

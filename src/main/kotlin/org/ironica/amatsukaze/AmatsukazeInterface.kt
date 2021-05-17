@@ -18,7 +18,8 @@ data class Data(
     val code: String,
     val grid: List<List<String>>,
     val layout: List<List<String>>,
-    val misc: List<List<String>>,
+    val colors: List<List<Color>>,
+    val levels: List<List<Int>>,
     val portals: List<Portal>,
     val locks: List<Lock>,
     val players: List<PlayerData>
@@ -72,10 +73,30 @@ fun convertJsonToPlayers(array: List<PlayerData>): List<Player> {
     } }
 }
 
-fun convertJsonToMiscLayout(array: List<List<String>>, using: String): SecondLayout {
+fun convertJsonToMiscLayout(colors: List<List<Color>>, levels: List<List<Int>>, using: String, defaultSize: Pair<Int, Int>): SecondLayout {
     return when (using) {
-        "colorful" -> array.map { it.map { ColorfulTile(convertDataToColor(it)) as Tile }.toMutableList() }.toMutableList()
-        "mountainous" -> array.map { it.map { MountainTile(it.toIntOrNull()) as Tile }.toMutableList() }.toMutableList()
+        "colorful" -> {
+            if (colors.size == defaultSize.first && colors[0].size == defaultSize.second)
+                colors.map { it.map { ColorfulTile(it) as Tile }.toMutableList() }.toMutableList()
+            else
+                MutableList(defaultSize.first) { MutableList(defaultSize.second) { ColorfulTile(Color.WHITE) } }
+        }
+        "mountainous" -> {
+            if (levels.size == defaultSize.first && levels[0].size == defaultSize.second)
+                levels.map { it.map { MountainTile(it) as Tile }.toMutableList() }.toMutableList()
+            else
+                MutableList(defaultSize.first) { MutableList(defaultSize.second) { MountainTile(1) } }
+        }
+        "colorfulmountainous" -> {
+            val cc = if (colors.size == defaultSize.first && colors[0].size == defaultSize.second) colors
+            else List(defaultSize.first) { List(defaultSize.second) { Color.WHITE } }
+            val ll = if (levels.size == defaultSize.first && levels[0].size == defaultSize.second) levels
+            else List(defaultSize.first) { List(defaultSize.second) { 1 } }
+
+            cc.mapIndexed { i, line ->
+                line.mapIndexed { j, it -> ColorfulMountainTile(it, ll[i][j]) as Tile }.toMutableList()
+            }.toMutableList()
+        }
         else -> throw Exception("Unsupported game module")
     }
 }
@@ -112,7 +133,9 @@ class AmatsukazeInterface(
     val miscLayout: SecondLayout,
     val portals: List<Portal>,
     val locks: List<Lock>,
-    val players: List<Player>) {
+    val players: List<Player>,
+    val debug: Boolean, val stdout: Boolean
+) {
     fun start() {
         val input: CharStream = CharStreams.fromString(code)
         val lexer = amatsukazeGrammarLexer(input)
@@ -121,8 +144,8 @@ class AmatsukazeInterface(
         val tree: ParseTree = parser.top_level()
         val playground = Playground(grid, layout, miscLayout, portals, locks, players.toMutableList(), calculateInitialGem(layout))
         val manager = when (type) {
-            "colorful" -> ColorfulManager(playground)
-            "mountainous" -> MountainousManager(playground)
+            "colorful" -> ColorfulManager(playground, debug, stdout)
+            "mountainous" -> MountainousManager(playground, debug, stdout)
             else -> throw Exception("Unsupported game module")
         }
         manager.appendEntry() // Store the initial state of playground into payload list
