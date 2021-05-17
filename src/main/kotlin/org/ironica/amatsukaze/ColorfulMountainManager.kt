@@ -1,7 +1,6 @@
 package org.ironica.amatsukaze
 
-class MountainousManager(override val playground: Playground, override val debug: Boolean,
-                         override val stdout: Boolean): AbstractManager {
+class ColorfulMountainManager(override val playground: Playground, override val debug: Boolean, override val stdout: Boolean): AbstractManager {
 
     override var consoleLog: String = ""
     override var special: String = ""
@@ -79,7 +78,6 @@ class MountainousManager(override val playground: Playground, override val debug
         appendEntry()
     }
 
-
     @PlaygroundFunction(type = PF.Method, ret = PFType.None, self = PFType.Self, arg1 = PFType.None, arg2 = PFType.None)
     fun turnLockUp(id: Int) {
         if (getPlayer(id) !is Specialist) throw Exception("Only specialist could turn locks up")
@@ -95,6 +93,46 @@ class MountainousManager(override val playground: Playground, override val debug
         appendEntry()
     }
 
+    @PlaygroundFunction(type = PF.Method, ret = PFType.None, self = PFType.Self, arg1 = PFType.Color, arg2 = PFType.None)
+    fun changeColor(id: Int, c: Color) {
+        getPlayer(id).changeColor(c)
+        printGrid()
+        appendEntry()
+    }
+
+
+    override fun printGrid() {
+        playground.layout2s.forEach { line ->
+            line.forEach { tile ->
+                if (tile is ColorfulTile) {
+                    val t = tile.color
+                    print(
+                        when (t) {
+                            Color.WHITE -> '白'
+                            Color.BLACK -> '黑'
+                            Color.SILVER -> '银'
+                            Color.GREY -> '灰'
+                            Color.RED -> '红'
+                            Color.ORANGE -> '橙'
+                            Color.GOLD -> '金'
+                            Color.PINK -> '粉'
+                            Color.YELLOW -> '黄'
+                            Color.BEIGE -> '米'
+                            Color.BROWN -> '棕'
+                            Color.GREEN -> '绿'
+                            Color.AZURE -> '碧'
+                            Color.CYAN -> '青'
+                            Color.ALICEBLUE -> '蓝'
+                            Color.PURPLE -> '紫'
+                        }
+                    )
+                }
+            }
+            println()
+        }
+        println()
+    }
+
     override fun appendEntry() {
         if (payloadStorage.size > 1000)
             throw Exception("Too many entries!")
@@ -106,11 +144,13 @@ class MountainousManager(override val playground: Playground, override val debug
         for (i in playground.layout.indices)
             for (j in playground.layout[0].indices)
                 currentLayout[i][j] = playground.layout[i][j]
-        val currentColorLayout = List(playground.layout2s.size) { List(playground.layout2s[0].size) { Color.WHITE } }
-        val currentLevelLayout = MutableList(playground.layout2s.size) { MutableList(playground.layout2s[0].size) { 1 } }
+        val currentColorLayout: MutableList<MutableList<Color>> = MutableList(playground.layout2s.size) { MutableList(playground.layout2s[0].size) { Color.WHITE } }
+        val currentLevelLayout: MutableList<MutableList<Int>> = MutableList(playground.layout2s.size) { MutableList(playground.layout2s[0].size) { 1 } }
         for (i in playground.layout2s.indices)
             for (j in playground.layout2s[0].indices) {
-                currentLevelLayout[i][j] = (playground.layout2s[i][j] as MountainTile).level
+                (playground.layout2s[i][j] as ColorfulMountainTile).let {
+                    currentColorLayout[i][j] = it.color; currentLevelLayout[i][j] = it.level
+                }
             }
         val currentPortals = MutableList(playground.portals.size) { Portal() }
         for (i in playground.portals.indices)
@@ -127,5 +167,4 @@ class MountainousManager(override val playground: Playground, override val debug
         payloadStorage.add(payload)
         this.special = ""
     }
-
 }

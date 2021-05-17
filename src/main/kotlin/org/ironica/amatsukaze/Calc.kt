@@ -35,7 +35,9 @@ fun main(args: Array<String>) {
         1000
     ))
     val playground = Playground(grid.convertToMutableList(), layout.convertToMutableList(), layout2s.convertToMutableList(), portals, locks, players.toMutableList(), 4)
-    val manager = ColorfulManager(playground)
+    val manager = ColorfulManager(playground,
+        debug = true, stdout = true
+    )
     val exec = AmatsukazeVisitor(manager)
 
     println()
