@@ -21,9 +21,9 @@ fun Route.getPlaygroundRoute(args: Pair<Boolean, Boolean>) {
             val playgroundInterface = AmatsukazeInterface(
                 data.type,
                 data.code,
-                convertJsonToGrid(data.grid),
+                data.grid.map { it.toMutableList() }.toMutableList(),
                 data.layout.let {
-                    if (it.size == data.grid.size && it[0].size == data.grid[0].size) convertJsonToLayout(it)
+                    if (it.size == data.grid.size && it[0].size == data.grid[0].size) it.map { it.toMutableList() }.toMutableList()
                     else with (data.grid) {
                         MutableList(this.size) { MutableList(this[0].size) { Item.NONE } }
                     } },

@@ -47,16 +47,16 @@ fun main(args: Array<String>) {
     )
     val levels = listOf(
         listOf(2, 2, 2, 2, 2),
-        listOf(1, 1, 2, 1 ,1),
-        listOf(1, 1, 2, 1, 1),
+        listOf(1, 1, 3, 1 ,1),
+        listOf(1, 1, 3, 1, 1),
         listOf(1, 1, 2, 1 ,1),
     )
 
     val locks = listOf<Lock>()
     val portals = listOf<Portal>()
     val stairs = listOf(
-        Stair(Coordinate(2, 1), Direction.LEFT),
-        Stair(Coordinate(2, 2), Direction.RIGHT),
+        Stair(Coordinate(2, 1), Direction.UP),
+        Stair(Coordinate(2, 2), Direction.DOWN),
         Stair(Coordinate(2, 3), Direction.DOWN),
     )
     val players = listOf(Player(

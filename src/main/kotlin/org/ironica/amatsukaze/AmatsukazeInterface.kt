@@ -16,8 +16,8 @@ data class PlayerData(val id: Int, val x: Int, val y: Int, val dir: String, val 
 data class Data(
     val type: String,
     val code: String,
-    val grid: List<List<String>>,
-    val layout: List<List<String>>,
+    val grid: List<List<Block>>,
+    val layout: List<List<Item>>,
     val colors: List<List<Color>>,
     val levels: List<List<Int>>,
     val portals: List<Portal>,
@@ -25,21 +25,6 @@ data class Data(
     val stairs: List<Stair>,
     val players: List<PlayerData>
 )
-
-fun convertJsonToGrid(array: List<List<String>>): Grid {
-    return array.map { it.map { when (it) {
-        "OPEN" -> Block.OPEN
-        "BLOCKED" -> Block.BLOCKED
-        "WATER" -> Block.WATER
-        "TREE" -> Block.TREE
-        "DESERT" -> Block.DESERT
-        "HOME" -> Block.HOME
-        "MOUNTAIN" -> Block.MOUNTAIN
-        "STONE" -> Block.STONE
-        "LOCK" -> Block.LOCK
-        else -> throw Exception("Cannot parse data to grid")
-    } }.toMutableList() }.toMutableList()
-}
 
 fun convertJsonToLayout(array: List<List<String>>): ItemLayout {
     return array.map { it.map { when (it) {
