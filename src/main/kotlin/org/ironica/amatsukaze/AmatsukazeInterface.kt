@@ -41,7 +41,7 @@ fun convertJsonToGrid(array: List<List<String>>): Grid {
     } }.toMutableList() }.toMutableList()
 }
 
-fun convertJsonToLayout(array: List<List<String>>): Layout {
+fun convertJsonToLayout(array: List<List<String>>): ItemLayout {
     return array.map { it.map { when (it) {
         "NONE" -> Item.NONE
         "GEM" -> Item.GEM
@@ -74,7 +74,7 @@ fun convertJsonToPlayers(array: List<PlayerData>): List<Player> {
     } }
 }
 
-fun convertJsonToMiscLayout(colors: List<List<Color>>, levels: List<List<Int>>, using: String, defaultSize: Pair<Int, Int>): SecondLayout {
+fun convertJsonToMiscLayout(colors: List<List<Color>>, levels: List<List<Int>>, using: String, defaultSize: Pair<Int, Int>): TileLayout {
     return when (using) {
         "colorful" -> {
             if (colors.size == defaultSize.first && colors[0].size == defaultSize.second)
@@ -124,14 +124,14 @@ private fun convertDataToColor(data: String): Color {
     }
 }
 
-fun calculateInitialGem(layout: Layout): Int = layout.flatten().filter { it == Item.GEM }.size
+fun calculateInitialGem(itemLayout: ItemLayout): Int = itemLayout.flatten().filter { it == Item.GEM }.size
 
 class AmatsukazeInterface(
     val type: String,
     val code: String,
     val grid: Grid,
-    val layout: Layout,
-    val miscLayout: SecondLayout,
+    val itemLayout: ItemLayout,
+    val miscLayout: TileLayout,
     val portals: List<Portal>,
     val locks: List<Lock>,
     val stairs: List<Stair>,
@@ -144,7 +144,7 @@ class AmatsukazeInterface(
         val tokens = CommonTokenStream(lexer)
         val parser = amatsukazeGrammarParser(tokens)
         val tree: ParseTree = parser.top_level()
-        val playground = Playground(grid, layout, miscLayout, portals, locks, stairs, players.toMutableList(), calculateInitialGem(layout))
+        val playground = Playground(grid, itemLayout, miscLayout, portals, locks, stairs, players.toMutableList(), calculateInitialGem(itemLayout))
         val manager = when (type) {
             "colorful" -> ColorfulManager(playground, debug, stdout)
             "mountainous" -> MountainousManager(playground, debug, stdout)

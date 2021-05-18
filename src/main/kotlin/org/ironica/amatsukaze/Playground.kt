@@ -14,8 +14,8 @@ data class Tile(var color: Color = Color.WHITE, var level: Int = 1) {
 }
 
 typealias Grid = MutableList<MutableList<Block>>
-typealias Layout = MutableList<MutableList<Item>>
-typealias SecondLayout = MutableList<MutableList<Tile>>
+typealias ItemLayout = MutableList<MutableList<Item>>
+typealias TileLayout = MutableList<MutableList<Tile>>
 
 @Serializable
 data class Coordinate(var x: Int, var y: Int) {
@@ -37,8 +37,8 @@ data class Stair(val coo: Coordinate, val dir: Direction)
 open class Player(val id: Int, val coo: Coordinate, var dir: Direction, var stamina: Int?) {
 
     lateinit var grid: Grid
-    lateinit var layout: Layout
-    lateinit var misc: SecondLayout
+    lateinit var itemLayout: ItemLayout
+    lateinit var misc: TileLayout
     lateinit var portals: List<Portal>
     lateinit var stairs: List<Stair>
     lateinit var playground: Playground
@@ -86,16 +86,16 @@ open class Player(val id: Int, val coo: Coordinate, var dir: Direction, var stam
                     && stairs.any { it.coo == Coordinate(coo.x + 1, coo.y) && it.dir == LEFT })
                 )
 
-    val isOnGem = { layout[coo.y][coo.x] == GEM }
-    val isOnOpenedSwitch = { layout[coo.y][coo.x] == OPENEDSWITCH }
-    val isOnClosedSwitch = { layout[coo.y][coo.x] == CLOSEDSWITCH }
-    val isOnBeeper = { layout[coo.y][coo.x] == BEEPER }
+    val isOnGem = { itemLayout[coo.y][coo.x] == GEM }
+    val isOnOpenedSwitch = { itemLayout[coo.y][coo.x] == OPENEDSWITCH }
+    val isOnClosedSwitch = { itemLayout[coo.y][coo.x] == CLOSEDSWITCH }
+    val isOnBeeper = { itemLayout[coo.y][coo.x] == BEEPER }
 
     val isAtHome = { grid[coo.y][coo.x] == HOME }
     val isInDesert = { grid[coo.y][coo.x] == DESERT}
     val isInForest = { grid[coo.y][coo.x] == TREE }
 
-    val isOnPortal = { layout[coo.y][coo.x] == PORTAL }
+    val isOnPortal = { itemLayout[coo.y][coo.x] == PORTAL }
 
     val isBlocked = { when (dir) {
         UP -> !isAccessibleYPlus()
@@ -158,7 +158,7 @@ open class Player(val id: Int, val coo: Coordinate, var dir: Direction, var stam
         if (isInForest()) stamina = stamina?.minus(1)
         if (isOnGem() && (stamina == null || (stamina != null && stamina!! > 0))) {
             collectedGem += 1
-            layout[coo.y][coo.x] = NONE
+            itemLayout[coo.y][coo.x] = NONE
             stamina = stamina?.minus(1)
             return true
         }
@@ -171,12 +171,12 @@ open class Player(val id: Int, val coo: Coordinate, var dir: Direction, var stam
         if (isInDesert()) stamina = stamina?.minus(2)
         if (isInForest()) stamina = stamina?.minus(1)
         if (isOnOpenedSwitch() && (stamina == null || (stamina != null && stamina!! > 0))) {
-            layout[coo.y][coo.x] = CLOSEDSWITCH
+            itemLayout[coo.y][coo.x] = CLOSEDSWITCH
             stamina = stamina?.minus(1)
             return true
         }
         if (isOnClosedSwitch() && (stamina == null || (stamina != null && stamina!! > 0))) {
-            layout[coo.y][coo.x] = OPENEDSWITCH
+            itemLayout[coo.y][coo.x] = OPENEDSWITCH
             stamina = stamina?.minus(1)
             return true
         }
@@ -190,7 +190,7 @@ open class Player(val id: Int, val coo: Coordinate, var dir: Direction, var stam
         if (isInDesert()) stamina = stamina?.minus(2)
         if (isInForest()) stamina = stamina?.minus(1)
         if (isOnBeeper() && (stamina == null || (stamina != null && stamina!! > 0))) {
-            layout[coo.y][coo.x] = NONE
+            itemLayout[coo.y][coo.x] = NONE
             beeperInBag += 1
             stamina = stamina?.minus(1)
             return true
@@ -202,10 +202,10 @@ open class Player(val id: Int, val coo: Coordinate, var dir: Direction, var stam
     }
 
     fun dropBeeper(): Boolean {
-        if (beeperInBag > 0 && layout[coo.y][coo.x] == NONE) {
+        if (beeperInBag > 0 && itemLayout[coo.y][coo.x] == NONE) {
             if (isInDesert()) stamina = stamina?.minus(2)
             if (isInForest()) stamina = stamina?.minus(1)
-            layout[coo.y][coo.x] = BEEPER
+            itemLayout[coo.y][coo.x] = BEEPER
             beeperInBag -= 1
             stamina = stamina?.minus(1)
             return true
@@ -277,8 +277,8 @@ class Specialist(id: Int, coo: Coordinate, dir: Direction, stamina: Int?): Playe
 }
 
 class Playground(val grid: Grid,
-                 val layout: Layout,
-                 val layout2s: SecondLayout,
+                 val itemLayout: ItemLayout,
+                 val tileLayout: TileLayout,
                  val portals: List<Portal>,
                  val locks: List<Lock>,
                  val stairs: List<Stair>,
@@ -287,7 +287,7 @@ class Playground(val grid: Grid,
 
     init {
 
-        assert (portals.all { it.coo.let { layout[it.y][it.x] == PORTAL } })
+        assert (portals.all { it.coo.let { itemLayout[it.y][it.x] == PORTAL } })
         assert (locks.all { it.coo.let { grid[it.y][it.x] == LOCK } })
         assert (stairs.all { it.coo.let { grid[it.y][it.x] == STAIR } })
 
@@ -299,17 +299,17 @@ class Playground(val grid: Grid,
                 if (grid[i][j] == STAIR) {
                     assert (stairs.any { it.coo.x == j && it.coo.y == i })
                 }
-                if (layout[i][j] == PORTAL) {
+                if (itemLayout[i][j] == PORTAL) {
                     assert (portals.any { it.coo.x == j && it.coo.y == i })
                 }
             }
         }
 
-        assert (locks.all { it.controlled.all { layout[it.y][it.x] == PLATFORM } })
+        assert (locks.all { it.controlled.all { itemLayout[it.y][it.x] == PLATFORM } })
 
         players.map { it.grid = grid }
-        players.map { it.layout = layout }
-        players.map { it.misc = layout2s }
+        players.map { it.itemLayout = itemLayout }
+        players.map { it.misc = tileLayout }
         players.map { it.portals = portals }
         players.map { it.stairs = stairs }
         players.filterIsInstance<Specialist>().map { it.locks = locks }
@@ -321,13 +321,13 @@ class Playground(val grid: Grid,
     }
 
     fun win(): Boolean {
-        return layout.flatMap { it.filter { it == GEM } }.isEmpty() && layout.flatMap { it.filter { it == CLOSEDSWITCH } }.isEmpty()
+        return itemLayout.flatMap { it.filter { it == GEM } }.isEmpty() && itemLayout.flatMap { it.filter { it == CLOSEDSWITCH } }.isEmpty()
     }
     fun gemCount(): Int {
-        return initialGem - layout.flatMap { it.filter { it == GEM } }.size
+        return initialGem - itemLayout.flatMap { it.filter { it == GEM } }.size
     }
     fun switchCount(): Int {
-        return layout.flatMap { it.filter { it == OPENEDSWITCH } }.size
+        return itemLayout.flatMap { it.filter { it == OPENEDSWITCH } }.size
     }
 
     private fun prePrintTile(x: Int, y: Int): String {
@@ -342,7 +342,7 @@ class Playground(val grid: Grid,
         } }
         return when {
             ret != "" -> ret
-            layout[y][x] == NONE -> {
+            itemLayout[y][x] == NONE -> {
                 when (grid[y][x]) {
                     OPEN -> "空"
                     BLOCKED -> "障"
@@ -357,7 +357,7 @@ class Playground(val grid: Grid,
                 }
             }
             else -> {
-                when (layout[y][x]) {
+                when (itemLayout[y][x]) {
                     GEM -> "钻"
                     CLOSEDSWITCH -> "关"
                     OPENEDSWITCH -> "开"

@@ -112,15 +112,15 @@ class ColorfulMountainManager(override val playground: Playground, override val 
         for (i in playground.grid.indices)
             for (j in playground.grid[0].indices)
                 currentGrid[i][j] = playground.grid[i][j]
-        val currentLayout = MutableList(playground.layout.size) { MutableList(playground.layout[0].size) { Item.NONE } }
-        for (i in playground.layout.indices)
-            for (j in playground.layout[0].indices)
-                currentLayout[i][j] = playground.layout[i][j]
-        val currentColorLayout: MutableList<MutableList<Color>> = MutableList(playground.layout2s.size) { MutableList(playground.layout2s[0].size) { Color.WHITE } }
-        val currentLevelLayout: MutableList<MutableList<Int>> = MutableList(playground.layout2s.size) { MutableList(playground.layout2s[0].size) { 1 } }
-        for (i in playground.layout2s.indices)
-            for (j in playground.layout2s[0].indices) {
-                (playground.layout2s[i][j]).let {
+        val currentLayout = MutableList(playground.itemLayout.size) { MutableList(playground.itemLayout[0].size) { Item.NONE } }
+        for (i in playground.itemLayout.indices)
+            for (j in playground.itemLayout[0].indices)
+                currentLayout[i][j] = playground.itemLayout[i][j]
+        val currentColorLayout: MutableList<MutableList<Color>> = MutableList(playground.tileLayout.size) { MutableList(playground.tileLayout[0].size) { Color.WHITE } }
+        val currentLevelLayout: MutableList<MutableList<Int>> = MutableList(playground.tileLayout.size) { MutableList(playground.tileLayout[0].size) { 1 } }
+        for (i in playground.tileLayout.indices)
+            for (j in playground.tileLayout[0].indices) {
+                (playground.tileLayout[i][j]).let {
                     currentColorLayout[i][j] = it.color; currentLevelLayout[i][j] = it.level
                 }
             }
