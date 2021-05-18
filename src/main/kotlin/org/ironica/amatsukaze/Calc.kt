@@ -28,10 +28,10 @@ fun main(args: Array<String>) {
 //    val layout2s = List (2) { List (9) { Tile() } }
 
     val grid = listOf(
-        listOf(Block.OPEN, Block.STAIR, Block.STAIR, Block.STAIR, Block.STAIR),
         listOf(Block.OPEN, Block.OPEN, Block.OPEN, Block.OPEN, Block.OPEN),
-        listOf(Block.OPEN, Block.OPEN, Block.OPEN, Block.OPEN, Block.OPEN),
-        listOf(Block.OPEN, Block.OPEN, Block.OPEN, Block.OPEN, Block.OPEN)
+        listOf(Block.OPEN, Block.OPEN, Block.STAIR, Block.OPEN, Block.OPEN),
+        listOf(Block.OPEN, Block.OPEN, Block.STAIR, Block.OPEN, Block.OPEN),
+        listOf(Block.OPEN, Block.OPEN, Block.STAIR, Block.OPEN, Block.OPEN)
     )
     val layout = listOf(
         listOf(Item.NONE, Item.NONE, Item.NONE, Item.NONE, Item.NONE),
@@ -46,24 +46,23 @@ fun main(args: Array<String>) {
         listOf(Color.WHITE, Color.WHITE, Color.WHITE, Color.WHITE, Color.WHITE, ),
     )
     val levels = listOf(
-        listOf(1, 2, 3, 3, 2),
-        listOf(1, 2, 2, 2, 2),
-        listOf(2, 1, 2, 2, 2),
-        listOf(0, 1, 2, 2 ,2),
+        listOf(2, 2, 2, 2, 2),
+        listOf(1, 1, 2, 1 ,1),
+        listOf(1, 1, 2, 1, 1),
+        listOf(1, 1, 2, 1 ,1),
     )
 
     val locks = listOf<Lock>()
     val portals = listOf<Portal>()
     val stairs = listOf(
-        Stair(Coordinate(1, 0), Direction.LEFT),
-        Stair(Coordinate(2, 0), Direction.LEFT),
-        Stair(Coordinate(3, 0), Direction.RIGHT),
-        Stair(Coordinate(4, 0), Direction.RIGHT)
+        Stair(Coordinate(2, 1), Direction.LEFT),
+        Stair(Coordinate(2, 2), Direction.RIGHT),
+        Stair(Coordinate(2, 3), Direction.DOWN),
     )
     val players = listOf(Player(
         1,
-        Coordinate(0, 0),
-        Direction.RIGHT,
+        Coordinate(2, 0),
+        Direction.DOWN,
         1000
     ))
     val playground = Playground(

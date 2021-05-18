@@ -45,37 +45,45 @@ open class Player(val id: Int, val coo: Coordinate, var dir: Direction, var stam
 
     var collectedGem = 0
     var beeperInBag = 0
-    
+
+    private fun sameLevelAccessible(dest: Coordinate): Boolean {
+        return grid[dest.y][dest.x] == OPEN || grid[dest.y][dest.x] == TREE || grid[dest.y][dest.x] == HOME || grid[dest.y][dest.x] == STAIR
+    }
+
+    private fun sameLevel(coo: Coordinate, dest: Coordinate): Boolean {
+        return misc[coo.y][coo.x] == misc[dest.y][dest.x]
+    }
+
     private fun isAccessibleYPlus() =
-        coo.y >= 1 && ((grid[coo.y - 1][coo.x] == OPEN || grid[coo.y - 1][coo.x] == TREE || grid[coo.y - 1][coo.x] == HOME) && misc[coo.y - 1][coo.x].level == misc[coo.y][coo.x].level
+        coo.y >= 1 && (sameLevelAccessible(Coordinate(coo.x, coo.y - 1)) && sameLevel(coo, Coordinate(coo.x, coo.y - 1))
                 || grid[coo.y][coo.x] == STAIR && (misc[coo.y - 1][coo.x].level + 1 == misc[coo.y][coo.x].level
-                && stairs.any { it.coo == coo && it.dir == UP})
+                    && stairs.any { it.coo == coo && it.dir == UP})
                 || grid[coo.y - 1][coo.x] == STAIR && (misc[coo.y - 1][coo.x].level - 1 == misc[coo.y][coo.x].level
-                && stairs.any { it.coo == Coordinate(coo.x, coo.y - 1) && it.dir == DOWN })
+                    && stairs.any { it.coo == Coordinate(coo.x, coo.y - 1) && it.dir == DOWN })
                 )
 
     private fun isAccessibleYMinus() =
-        coo.y <= grid.size - 2 && ((grid[coo.y + 1][coo.x] == OPEN || grid[coo.y + 1][coo.x] == TREE || grid[coo.y + 1][coo.x] == HOME) && misc[coo.y + 1][coo.x].level == misc[coo.y][coo.x].level
+        coo.y <= grid.size - 2 && (sameLevelAccessible(Coordinate(coo.x, coo.y + 1)) && sameLevel(coo, Coordinate(coo.x, coo.y + 1))
                 || grid[coo.y][coo.x] == STAIR && (misc[coo.y + 1][coo.x].level + 1 == misc[coo.y][coo.x].level
-                && stairs.any { it.coo == coo && it.dir == DOWN })
+                    && stairs.any { it.coo == coo && it.dir == DOWN })
                 || grid[coo.y + 1][coo.x] == STAIR && (misc[coo.y + 1][coo.x].level - 1 == misc[coo.y][coo.x].level
-                && stairs.any { it.coo == Coordinate(coo.x, coo.y + 1) && it.dir == UP })
+                    && stairs.any { it.coo == Coordinate(coo.x, coo.y + 1) && it.dir == UP })
                 )
 
     private fun isAccessibleXMinus() =
-        coo.x >= 1 && ((grid[coo.y][coo.x - 1] == OPEN || grid[coo.y][coo.x - 1] == TREE || grid[coo.y][coo.x - 1] == HOME) && misc[coo.y][coo.x - 1].level == misc[coo.y][coo.x].level
+        coo.x >= 1 && (sameLevelAccessible(Coordinate(coo.x - 1, coo.y)) && sameLevel(coo, Coordinate(coo.x - 1, coo.y))
                 || grid[coo.y][coo.x] == STAIR && (misc[coo.y][coo.x - 1].level + 1 == misc[coo.y][coo.x].level
-                && stairs.any { it.coo == coo && it.dir == LEFT })
+                    && stairs.any { it.coo == coo && it.dir == LEFT })
                 || grid[coo.y][coo.x - 1] == STAIR && (misc[coo.y][coo.x - 1].level - 1 == misc[coo.y][coo.x].level
-                && stairs.any { it.coo == Coordinate(coo.x - 1, coo.y) && it.dir == RIGHT })
+                    && stairs.any { it.coo == Coordinate(coo.x - 1, coo.y) && it.dir == RIGHT })
                 )
 
     private fun isAccessibleXPlus() =
-        coo.x <= grid[0].size - 2 && ((grid[coo.y][coo.x + 1] == OPEN || grid[coo.y][coo.x + 1] == TREE || grid[coo.y][coo.x + 1] == HOME) && misc[coo.y][coo.x + 1].level == misc[coo.y][coo.x].level
+        coo.x <= grid[0].size - 2 && (sameLevelAccessible(Coordinate(coo.x + 1, coo.y)) && sameLevel(coo, Coordinate(coo.x + 1, coo.y))
                 || grid[coo.y][coo.x] == STAIR && (misc[coo.y][coo.x + 1].level + 1 == misc[coo.y][coo.x].level
-                && stairs.any { it.coo == coo && it.dir == RIGHT })
+                    && stairs.any { it.coo == coo && it.dir == RIGHT })
                 || grid[coo.y][coo.x + 1] == STAIR && (misc[coo.y][coo.x + 1].level - 1 == misc[coo.y][coo.x].level
-                && stairs.any { it.coo == Coordinate(coo.x + 1, coo.y) && it.dir == LEFT })
+                    && stairs.any { it.coo == Coordinate(coo.x + 1, coo.y) && it.dir == LEFT })
                 )
 
     val isOnGem = { layout[coo.y][coo.x] == GEM }
@@ -278,6 +286,27 @@ class Playground(val grid: Grid,
                  private val initialGem: Int) {
 
     init {
+
+        assert (portals.all { it.coo.let { layout[it.y][it.x] == PORTAL } })
+        assert (locks.all { it.coo.let { grid[it.y][it.x] == LOCK } })
+        assert (stairs.all { it.coo.let { grid[it.y][it.x] == STAIR } })
+
+        grid.forEachIndexed { i, line ->
+            line.forEachIndexed { j, _ ->
+                if (grid[i][j] == LOCK) {
+                    assert (locks.any { it.coo.x == j && it.coo.y == i })
+                }
+                if (grid[i][j] == STAIR) {
+                    assert (stairs.any { it.coo.x == j && it.coo.y == i })
+                }
+                if (layout[i][j] == PORTAL) {
+                    assert (portals.any { it.coo.x == j && it.coo.y == i })
+                }
+            }
+        }
+
+        assert (locks.all { it.controlled.all { layout[it.y][it.x] == PLATFORM } })
+
         players.map { it.grid = grid }
         players.map { it.layout = layout }
         players.map { it.misc = layout2s }
