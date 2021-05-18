@@ -120,7 +120,7 @@ class ColorfulMountainManager(override val playground: Playground, override val 
         val currentLevelLayout: MutableList<MutableList<Int>> = MutableList(playground.layout2s.size) { MutableList(playground.layout2s[0].size) { 1 } }
         for (i in playground.layout2s.indices)
             for (j in playground.layout2s[0].indices) {
-                (playground.layout2s[i][j] as ColorfulMountainTile).let {
+                (playground.layout2s[i][j]).let {
                     currentColorLayout[i][j] = it.color; currentLevelLayout[i][j] = it.level
                 }
             }

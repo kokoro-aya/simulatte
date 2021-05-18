@@ -5,16 +5,7 @@ import org.ironica.amatsukaze.Direction.*
 import org.ironica.amatsukaze.Block.*
 import org.ironica.amatsukaze.Item.*
 
-sealed class Tile
-data class ColorfulTile(var color: Color): Tile()
-data class MountainTile(var level: Int): Tile() {
-    init {
-        if (level < 0) {
-            level = 0
-        }
-    }
-}
-data class ColorfulMountainTile(var color: Color, var level: Int): Tile() {
+data class Tile(var color: Color = Color.WHITE, var level: Int = 1) {
     init {
         if (level < 0) {
             level = 0
@@ -40,61 +31,52 @@ data class Portal(val coo: Coordinate = Coordinate(0, 0), val dest: Coordinate =
 @Serializable
 data class Lock(val coo: Coordinate, val controlled: List<Coordinate>)
 
+@Serializable
+data class Stair(val coo: Coordinate, val dir: Direction)
+
 open class Player(val id: Int, val coo: Coordinate, var dir: Direction, var stamina: Int?) {
 
     lateinit var grid: Grid
     lateinit var layout: Layout
     lateinit var misc: SecondLayout
     lateinit var portals: List<Portal>
+    lateinit var stairs: List<Stair>
     lateinit var playground: Playground
 
     var collectedGem = 0
     var beeperInBag = 0
+    
+    private fun isAccessibleYPlus() =
+        coo.y >= 1 && ((grid[coo.y - 1][coo.x] == OPEN || grid[coo.y - 1][coo.x] == TREE || grid[coo.y - 1][coo.x] == HOME) && misc[coo.y - 1][coo.x].level == misc[coo.y][coo.x].level
+                || grid[coo.y][coo.x] == STAIR && (misc[coo.y - 1][coo.x].level + 1 == misc[coo.y][coo.x].level
+                && stairs.any { it.coo == coo && it.dir == UP})
+                || grid[coo.y - 1][coo.x] == STAIR && (misc[coo.y - 1][coo.x].level - 1 == misc[coo.y][coo.x].level
+                && stairs.any { it.coo == Coordinate(coo.x, coo.y - 1) && it.dir == DOWN })
+                )
 
-    private fun isBlockedYPlus() =
-        coo.y < 1 || grid[coo.y - 1][coo.x] == BLOCKED || grid[coo.y - 1][coo.x] == WATER
-                || grid[coo.y - 1][coo.x] == MOUNTAIN || grid[coo.y - 1][coo.x] == STONE
-                || grid[coo.y - 1][coo.x] == LOCK
-                || if (misc.size != 0 && misc[0].size != 0 && misc[0][0] is MountainTile) { // need to check if misc is empty
-                        val forward = misc[coo.y - 1][coo.x] as MountainTile
-                        val current = misc[coo.y][coo.x] as MountainTile
-                        if (forward.level == null && grid[coo.y - 1][coo.x] == STAIRVERTICAL) false
-                        else if (current.level == null && grid[coo.y][coo.x] == STAIRVERTICAL) false
-                        else forward.level != null && current.level != null && forward.level != current.level
-                    } else false
-    private fun isBlockedYMinus() =
-        coo.y > grid.size - 2 || grid[coo.y + 1][coo.x] == BLOCKED || grid[coo.y + 1][coo.x] == WATER
-                || grid[coo.y + 1][coo.x] == MOUNTAIN || grid[coo.y + 1][coo.x] == STONE
-                || grid[coo.y + 1][coo.x] == LOCK
-                || if (misc.size != 0 && misc[0].size != 0 && misc[0][0] is MountainTile) {
-                        val forward = misc[coo.y + 1][coo.x] as MountainTile
-                        val current = misc[coo.y][coo.x] as MountainTile
-                        if (forward.level == null && grid[coo.y + 1][coo.x] == STAIRVERTICAL) false
-                        else if (current.level == null && grid[coo.y][coo.x] == STAIRVERTICAL) false
-                        else forward.level != null && current.level != null && forward.level != current.level
-                    } else false
-    private fun isBlockedXMinus() =
-        coo.x < 1 || grid[coo.y][coo.x - 1] == BLOCKED || grid[coo.y][coo.x - 1] == WATER
-                || grid[coo.y][coo.x - 1] == MOUNTAIN || grid[coo.y][coo.x - 1] == STONE
-                || grid[coo.y][coo.x - 1] == LOCK
-                || if (misc.size != 0 && misc[0].size != 0 && misc[0][0] is MountainTile) {
-                        val forward = misc[coo.y][coo.x - 1] as MountainTile
-                        val current = misc[coo.y][coo.x] as MountainTile
-                        if (forward.level == null && grid[coo.y][coo.x - 1] == STAIRHORIZONTAL) false
-                        else if (current.level == null && grid[coo.y][coo.x] == STAIRHORIZONTAL) false
-                        else forward.level != null && current.level != null && forward.level != current.level
-                    } else false
-    private fun isBlockedXPlus() =
-        coo.x > grid[0].size - 2 || grid[coo.y][coo.x + 1] == BLOCKED || grid[coo.y][coo.x + 1] == WATER
-                || grid[coo.y][coo.x + 1] == MOUNTAIN || grid[coo.y][coo.x + 1] == STONE
-                || grid[coo.y][coo.x + 1] == LOCK
-                || if (misc.size != 0 && misc[0].size != 0 && misc[0][0] is MountainTile) {
-                        val forward = misc[coo.y][coo.x + 1] as MountainTile
-                        val current = misc[coo.y][coo.x] as MountainTile
-                        if (forward.level == null && grid[coo.y][coo.x + 1] == STAIRHORIZONTAL) false
-                        else if (current.level == null && grid[coo.y][coo.x] == STAIRHORIZONTAL) false
-                        else forward.level != null && current.level != null && forward.level != current.level
-                    } else false
+    private fun isAccessibleYMinus() =
+        coo.y <= grid.size - 2 && ((grid[coo.y + 1][coo.x] == OPEN || grid[coo.y + 1][coo.x] == TREE || grid[coo.y + 1][coo.x] == HOME) && misc[coo.y + 1][coo.x].level == misc[coo.y][coo.x].level
+                || grid[coo.y][coo.x] == STAIR && (misc[coo.y + 1][coo.x].level + 1 == misc[coo.y][coo.x].level
+                && stairs.any { it.coo == coo && it.dir == DOWN })
+                || grid[coo.y + 1][coo.x] == STAIR && (misc[coo.y + 1][coo.x].level - 1 == misc[coo.y][coo.x].level
+                && stairs.any { it.coo == Coordinate(coo.x, coo.y + 1) && it.dir == UP })
+                )
+
+    private fun isAccessibleXMinus() =
+        coo.x >= 1 && ((grid[coo.y][coo.x - 1] == OPEN || grid[coo.y][coo.x - 1] == TREE || grid[coo.y][coo.x - 1] == HOME) && misc[coo.y][coo.x - 1].level == misc[coo.y][coo.x].level
+                || grid[coo.y][coo.x] == STAIR && (misc[coo.y][coo.x - 1].level + 1 == misc[coo.y][coo.x].level
+                && stairs.any { it.coo == coo && it.dir == LEFT })
+                || grid[coo.y][coo.x - 1] == STAIR && (misc[coo.y][coo.x - 1].level - 1 == misc[coo.y][coo.x].level
+                && stairs.any { it.coo == Coordinate(coo.x - 1, coo.y) && it.dir == RIGHT })
+                )
+
+    private fun isAccessibleXPlus() =
+        coo.x <= grid[0].size - 2 && ((grid[coo.y][coo.x + 1] == OPEN || grid[coo.y][coo.x + 1] == TREE || grid[coo.y][coo.x + 1] == HOME) && misc[coo.y][coo.x + 1].level == misc[coo.y][coo.x].level
+                || grid[coo.y][coo.x] == STAIR && (misc[coo.y][coo.x + 1].level + 1 == misc[coo.y][coo.x].level
+                && stairs.any { it.coo == coo && it.dir == RIGHT })
+                || grid[coo.y][coo.x + 1] == STAIR && (misc[coo.y][coo.x + 1].level - 1 == misc[coo.y][coo.x].level
+                && stairs.any { it.coo == Coordinate(coo.x + 1, coo.y) && it.dir == LEFT })
+                )
 
     val isOnGem = { layout[coo.y][coo.x] == GEM }
     val isOnOpenedSwitch = { layout[coo.y][coo.x] == OPENEDSWITCH }
@@ -108,22 +90,22 @@ open class Player(val id: Int, val coo: Coordinate, var dir: Direction, var stam
     val isOnPortal = { layout[coo.y][coo.x] == PORTAL }
 
     val isBlocked = { when (dir) {
-        UP -> isBlockedYPlus()
-        DOWN -> isBlockedYMinus()
-        LEFT -> isBlockedXMinus()
-        RIGHT -> isBlockedXPlus()
+        UP -> !isAccessibleYPlus()
+        DOWN -> !isAccessibleYMinus()
+        LEFT -> !isAccessibleXMinus()
+        RIGHT -> !isAccessibleXPlus()
     }}
     val isBlockedLeft = { when (dir) {
-        RIGHT ->isBlockedYPlus()
-        LEFT -> isBlockedYMinus()
-        UP -> isBlockedXMinus()
-        DOWN -> isBlockedXPlus()
+        RIGHT -> !isAccessibleYPlus()
+        LEFT -> !isAccessibleYMinus()
+        UP -> !isAccessibleXMinus()
+        DOWN -> !isAccessibleXPlus()
     }}
     val isBlockedRight = { when (dir) {
-        LEFT -> isBlockedYPlus()
-        RIGHT -> isBlockedYMinus()
-        DOWN -> isBlockedXMinus()
-        UP -> isBlockedXPlus()
+        LEFT -> !isAccessibleYPlus()
+        RIGHT -> !isAccessibleYMinus()
+        DOWN -> !isAccessibleXMinus()
+        UP -> !isAccessibleXPlus()
     }}
 
     fun turnLeft() { dir = when(dir) {
@@ -227,10 +209,7 @@ open class Player(val id: Int, val coo: Coordinate, var dir: Direction, var stam
     }
 
     fun changeColor(c: Color) {
-        if (misc[coo.y][coo.x] is ColorfulTile)
-            (misc[coo.y][coo.x] as ColorfulTile).color = c
-        if (misc[coo.y][coo.x] is ColorfulMountainTile)
-            (misc[coo.y][coo.x] as ColorfulMountainTile).color = c
+        misc[coo.y][coo.x].color = c
     }
 }
 
@@ -258,12 +237,15 @@ class Specialist(id: Int, coo: Coordinate, dir: Direction, stamina: Int?): Playe
     }
 
     private fun turnLock(up: Boolean): Boolean {
-        if (isBeforeLock() && misc[0][0] is MountainTile) {
+        if (isBeforeLock()) {
             locks.filter { it.coo == lockCoo() }[0].controlled.forEach { c ->
-                val grid = misc[c.y][c.x] as MountainTile; if (grid.level in 1..15) {
-                if (up) grid.level = grid.level?.plus(1)
-                else grid.level = grid.level?.minus(1)
-            } }
+                misc[c.y][c.x].let {
+                    if (it.level in 0 .. 15) {
+                        if (up) it.level += 1
+                        else it.level -= 1
+                    }
+                }
+            }
             return true
         }
         return false
@@ -286,13 +268,21 @@ class Specialist(id: Int, coo: Coordinate, dir: Direction, stamina: Int?): Playe
     }
 }
 
-class Playground(val grid: Grid, val layout: Layout, val layout2s: SecondLayout, val portals: List<Portal>, val locks: List<Lock>, val players: MutableList<Player>, private val initialGem: Int) {
+class Playground(val grid: Grid,
+                 val layout: Layout,
+                 val layout2s: SecondLayout,
+                 val portals: List<Portal>,
+                 val locks: List<Lock>,
+                 val stairs: List<Stair>,
+                 val players: MutableList<Player>,
+                 private val initialGem: Int) {
 
     init {
         players.map { it.grid = grid }
         players.map { it.layout = layout }
         players.map { it.misc = layout2s }
         players.map { it.portals = portals }
+        players.map { it.stairs = stairs }
         players.filterIsInstance<Specialist>().map { it.locks = locks }
         players.map { it.playground = this }
     }
@@ -334,8 +324,7 @@ class Playground(val grid: Grid, val layout: Layout, val layout2s: SecondLayout,
                     MOUNTAIN -> "山"
                     STONE -> "石"
                     LOCK -> "锁"
-                    STAIRVERTICAL -> "竖"
-                    STAIRHORIZONTAL -> "横"
+                    STAIR -> "梯"
                 }
             }
             else -> {

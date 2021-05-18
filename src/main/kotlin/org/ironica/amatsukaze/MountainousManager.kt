@@ -110,7 +110,7 @@ class MountainousManager(override val playground: Playground, override val debug
         val currentLevelLayout = MutableList(playground.layout2s.size) { MutableList(playground.layout2s[0].size) { 1 } }
         for (i in playground.layout2s.indices)
             for (j in playground.layout2s[0].indices) {
-                currentLevelLayout[i][j] = (playground.layout2s[i][j] as MountainTile).level
+                currentLevelLayout[i][j] = playground.layout2s[i][j].level
             }
         val currentPortals = MutableList(playground.portals.size) { Portal() }
         for (i in playground.portals.indices)

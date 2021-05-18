@@ -30,6 +30,7 @@ fun Route.getPlaygroundRoute(args: Pair<Boolean, Boolean>) {
                 convertJsonToMiscLayout(data.colors, data.levels, data.type, data.grid.size to data.grid[0].size),
                 data.portals,
                 data.locks,
+                data.stairs,
                 convertJsonToPlayers(data.players),
                 debug = debug,
                 stdout = stdout

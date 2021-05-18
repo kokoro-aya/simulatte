@@ -22,6 +22,7 @@ data class Data(
     val levels: List<List<Int>>,
     val portals: List<Portal>,
     val locks: List<Lock>,
+    val stairs: List<Stair>,
     val players: List<PlayerData>
 )
 
@@ -77,15 +78,15 @@ fun convertJsonToMiscLayout(colors: List<List<Color>>, levels: List<List<Int>>, 
     return when (using) {
         "colorful" -> {
             if (colors.size == defaultSize.first && colors[0].size == defaultSize.second)
-                colors.map { it.map { ColorfulTile(it) as Tile }.toMutableList() }.toMutableList()
+                colors.map { it.map { Tile(it) }.toMutableList() }.toMutableList()
             else
-                MutableList(defaultSize.first) { MutableList(defaultSize.second) { ColorfulTile(Color.WHITE) } }
+                MutableList(defaultSize.first) { MutableList(defaultSize.second) { Tile(Color.WHITE) } }
         }
         "mountainous" -> {
             if (levels.size == defaultSize.first && levels[0].size == defaultSize.second)
-                levels.map { it.map { MountainTile(it) as Tile }.toMutableList() }.toMutableList()
+                levels.map { it.map { Tile(level = it) }.toMutableList() }.toMutableList()
             else
-                MutableList(defaultSize.first) { MutableList(defaultSize.second) { MountainTile(1) } }
+                MutableList(defaultSize.first) { MutableList(defaultSize.second) { Tile() } }
         }
         "colorfulmountainous" -> {
             val cc = if (colors.size == defaultSize.first && colors[0].size == defaultSize.second) colors
@@ -94,7 +95,7 @@ fun convertJsonToMiscLayout(colors: List<List<Color>>, levels: List<List<Int>>, 
             else List(defaultSize.first) { List(defaultSize.second) { 1 } }
 
             cc.mapIndexed { i, line ->
-                line.mapIndexed { j, it -> ColorfulMountainTile(it, ll[i][j]) as Tile }.toMutableList()
+                line.mapIndexed { j, it -> Tile(it, ll[i][j]) }.toMutableList()
             }.toMutableList()
         }
         else -> throw Exception("Unsupported game module")
@@ -133,6 +134,7 @@ class AmatsukazeInterface(
     val miscLayout: SecondLayout,
     val portals: List<Portal>,
     val locks: List<Lock>,
+    val stairs: List<Stair>,
     val players: List<Player>,
     val debug: Boolean, val stdout: Boolean
 ) {
@@ -142,7 +144,7 @@ class AmatsukazeInterface(
         val tokens = CommonTokenStream(lexer)
         val parser = amatsukazeGrammarParser(tokens)
         val tree: ParseTree = parser.top_level()
-        val playground = Playground(grid, layout, miscLayout, portals, locks, players.toMutableList(), calculateInitialGem(layout))
+        val playground = Playground(grid, layout, miscLayout, portals, locks, stairs, players.toMutableList(), calculateInitialGem(layout))
         val manager = when (type) {
             "colorful" -> ColorfulManager(playground, debug, stdout)
             "mountainous" -> MountainousManager(playground, debug, stdout)
