@@ -16,31 +16,17 @@ data class PlayerData(val id: Int, val x: Int, val y: Int, val dir: String, val 
 data class Data(
     val type: String,
     val code: String,
-    val grid: List<List<String>>,
-    val layout: List<List<String>>,
+    val grid: List<List<Block>>,
+    val layout: List<List<Item>>,
     val colors: List<List<Color>>,
     val levels: List<List<Int>>,
     val portals: List<Portal>,
     val locks: List<Lock>,
+    val stairs: List<Stair>,
     val players: List<PlayerData>
 )
 
-fun convertJsonToGrid(array: List<List<String>>): Grid {
-    return array.map { it.map { when (it) {
-        "OPEN" -> Block.OPEN
-        "BLOCKED" -> Block.BLOCKED
-        "WATER" -> Block.WATER
-        "TREE" -> Block.TREE
-        "DESERT" -> Block.DESERT
-        "HOME" -> Block.HOME
-        "MOUNTAIN" -> Block.MOUNTAIN
-        "STONE" -> Block.STONE
-        "LOCK" -> Block.LOCK
-        else -> throw Exception("Cannot parse data to grid")
-    } }.toMutableList() }.toMutableList()
-}
-
-fun convertJsonToLayout(array: List<List<String>>): Layout {
+fun convertJsonToLayout(array: List<List<String>>): ItemLayout {
     return array.map { it.map { when (it) {
         "NONE" -> Item.NONE
         "GEM" -> Item.GEM
@@ -73,19 +59,19 @@ fun convertJsonToPlayers(array: List<PlayerData>): List<Player> {
     } }
 }
 
-fun convertJsonToMiscLayout(colors: List<List<Color>>, levels: List<List<Int>>, using: String, defaultSize: Pair<Int, Int>): SecondLayout {
+fun convertJsonToMiscLayout(colors: List<List<Color>>, levels: List<List<Int>>, using: String, defaultSize: Pair<Int, Int>): TileLayout {
     return when (using) {
         "colorful" -> {
             if (colors.size == defaultSize.first && colors[0].size == defaultSize.second)
-                colors.map { it.map { ColorfulTile(it) as Tile }.toMutableList() }.toMutableList()
+                colors.map { it.map { Tile(it) }.toMutableList() }.toMutableList()
             else
-                MutableList(defaultSize.first) { MutableList(defaultSize.second) { ColorfulTile(Color.WHITE) } }
+                MutableList(defaultSize.first) { MutableList(defaultSize.second) { Tile(Color.WHITE) } }
         }
         "mountainous" -> {
             if (levels.size == defaultSize.first && levels[0].size == defaultSize.second)
-                levels.map { it.map { MountainTile(it) as Tile }.toMutableList() }.toMutableList()
+                levels.map { it.map { Tile(level = it) }.toMutableList() }.toMutableList()
             else
-                MutableList(defaultSize.first) { MutableList(defaultSize.second) { MountainTile(1) } }
+                MutableList(defaultSize.first) { MutableList(defaultSize.second) { Tile() } }
         }
         "colorfulmountainous" -> {
             val cc = if (colors.size == defaultSize.first && colors[0].size == defaultSize.second) colors
@@ -94,7 +80,7 @@ fun convertJsonToMiscLayout(colors: List<List<Color>>, levels: List<List<Int>>, 
             else List(defaultSize.first) { List(defaultSize.second) { 1 } }
 
             cc.mapIndexed { i, line ->
-                line.mapIndexed { j, it -> ColorfulMountainTile(it, ll[i][j]) as Tile }.toMutableList()
+                line.mapIndexed { j, it -> Tile(it, ll[i][j]) }.toMutableList()
             }.toMutableList()
         }
         else -> throw Exception("Unsupported game module")
@@ -123,16 +109,17 @@ private fun convertDataToColor(data: String): Color {
     }
 }
 
-fun calculateInitialGem(layout: Layout): Int = layout.flatten().filter { it == Item.GEM }.size
+fun calculateInitialGem(itemLayout: ItemLayout): Int = itemLayout.flatten().filter { it == Item.GEM }.size
 
 class AmatsukazeInterface(
     val type: String,
     val code: String,
     val grid: Grid,
-    val layout: Layout,
-    val miscLayout: SecondLayout,
+    val itemLayout: ItemLayout,
+    val miscLayout: TileLayout,
     val portals: List<Portal>,
     val locks: List<Lock>,
+    val stairs: List<Stair>,
     val players: List<Player>,
     val debug: Boolean, val stdout: Boolean
 ) {
@@ -142,7 +129,7 @@ class AmatsukazeInterface(
         val tokens = CommonTokenStream(lexer)
         val parser = amatsukazeGrammarParser(tokens)
         val tree: ParseTree = parser.top_level()
-        val playground = Playground(grid, layout, miscLayout, portals, locks, players.toMutableList(), calculateInitialGem(layout))
+        val playground = Playground(grid, itemLayout, miscLayout, portals, locks, stairs, players.toMutableList(), calculateInitialGem(itemLayout))
         val manager = when (type) {
             "colorful" -> ColorfulManager(playground, debug, stdout)
             "mountainous" -> MountainousManager(playground, debug, stdout)

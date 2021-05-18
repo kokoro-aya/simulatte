@@ -17,24 +17,59 @@ fun main(args: Array<String>) {
     val parser = amatsukazeGrammarParser(tokens)
     val tree: ParseTree = parser.top_level()
 
+//    val grid = listOf(
+//        listOf(Block.OPEN, Block.OPEN, Block.OPEN, Block.DESERT, Block.OPEN, Block.OPEN, Block.OPEN, Block.DESERT, Block.DESERT),
+//        listOf(Block.BLOCKED, Block.TREE, Block.BLOCKED, Block.DESERT, Block.WATER, Block.OPEN, Block.WATER, Block.OPEN, Block.BLOCKED)
+//    )
+//    val layout = listOf(
+//        listOf(Item.NONE, Item.CLOSEDSWITCH, Item.NONE, Item.CLOSEDSWITCH, Item.NONE, Item.CLOSEDSWITCH, Item.NONE, Item.CLOSEDSWITCH, Item.NONE),
+//        listOf(Item.NONE, Item.GEM, Item.NONE, Item.GEM, Item.NONE, Item.GEM, Item.NONE, Item.GEM, Item.NONE)
+//    )
+//    val layout2s = List (2) { List (9) { Tile() } }
+
     val grid = listOf(
-        listOf(Block.OPEN, Block.OPEN, Block.OPEN, Block.DESERT, Block.OPEN, Block.OPEN, Block.OPEN, Block.DESERT, Block.DESERT),
-        listOf(Block.BLOCKED, Block.TREE, Block.BLOCKED, Block.DESERT, Block.WATER, Block.OPEN, Block.WATER, Block.OPEN, Block.BLOCKED)
+        listOf(Block.OPEN, Block.OPEN, Block.OPEN, Block.OPEN, Block.OPEN),
+        listOf(Block.OPEN, Block.OPEN, Block.STAIR, Block.OPEN, Block.OPEN),
+        listOf(Block.OPEN, Block.OPEN, Block.STAIR, Block.OPEN, Block.OPEN),
+        listOf(Block.OPEN, Block.OPEN, Block.STAIR, Block.OPEN, Block.OPEN)
     )
     val layout = listOf(
-        listOf(Item.NONE, Item.CLOSEDSWITCH, Item.NONE, Item.CLOSEDSWITCH, Item.NONE, Item.CLOSEDSWITCH, Item.NONE, Item.CLOSEDSWITCH, Item.NONE),
-        listOf(Item.NONE, Item.GEM, Item.NONE, Item.GEM, Item.NONE, Item.GEM, Item.NONE, Item.GEM, Item.NONE)
+        listOf(Item.NONE, Item.NONE, Item.NONE, Item.NONE, Item.NONE),
+        listOf(Item.NONE, Item.NONE, Item.NONE, Item.NONE, Item.NONE),
+        listOf(Item.NONE, Item.NONE, Item.NONE, Item.NONE, Item.NONE),
+        listOf(Item.NONE, Item.NONE, Item.NONE, Item.NONE, Item.GEM)
     )
-    val layout2s = List (2) { List (9) { ColorfulTile(Color.WHITE) as Tile } }
+    val colors = listOf(
+        listOf(Color.WHITE, Color.WHITE, Color.WHITE, Color.WHITE, Color.WHITE, ),
+        listOf(Color.WHITE, Color.WHITE, Color.WHITE, Color.WHITE, Color.WHITE, ),
+        listOf(Color.WHITE, Color.WHITE, Color.WHITE, Color.WHITE, Color.WHITE, ),
+        listOf(Color.WHITE, Color.WHITE, Color.WHITE, Color.WHITE, Color.WHITE, ),
+    )
+    val levels = listOf(
+        listOf(2, 2, 2, 2, 2),
+        listOf(1, 1, 3, 1 ,1),
+        listOf(1, 1, 3, 1, 1),
+        listOf(1, 1, 2, 1 ,1),
+    )
+
     val locks = listOf<Lock>()
     val portals = listOf<Portal>()
+    val stairs = listOf(
+        Stair(Coordinate(2, 1), Direction.UP),
+        Stair(Coordinate(2, 2), Direction.DOWN),
+        Stair(Coordinate(2, 3), Direction.DOWN),
+    )
     val players = listOf(Player(
         1,
-        Coordinate(0, 0),
-        Direction.RIGHT,
+        Coordinate(2, 0),
+        Direction.DOWN,
         1000
     ))
-    val playground = Playground(grid.convertToMutableList(), layout.convertToMutableList(), layout2s.convertToMutableList(), portals, locks, players.toMutableList(), 4)
+    val playground = Playground(
+        grid.convertToMutableList(),
+        layout.convertToMutableList(),
+        convertJsonToMiscLayout(colors, levels, "colorfulmountainous", grid.size to grid[0].size).convertToMutableList(),
+        portals, locks, stairs, players.toMutableList(), 4)
     val manager = ColorfulManager(playground,
         debug = true, stdout = true
     )

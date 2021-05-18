@@ -89,31 +89,29 @@ class ColorfulManager(override val playground: Playground, override val debug: B
 
     override fun printGrid() {
         if (debug) {
-            playground.layout2s.forEach { line ->
+            playground.tileLayout.forEach { line ->
                 line.forEach { tile ->
-                    if (tile is ColorfulTile) {
-                        val t = tile.color
-                        print(
-                            when (t) {
-                                Color.WHITE -> '白'
-                                Color.BLACK -> '黑'
-                                Color.SILVER -> '银'
-                                Color.GREY -> '灰'
-                                Color.RED -> '红'
-                                Color.ORANGE -> '橙'
-                                Color.GOLD -> '金'
-                                Color.PINK -> '粉'
-                                Color.YELLOW -> '黄'
-                                Color.BEIGE -> '米'
-                                Color.BROWN -> '棕'
-                                Color.GREEN -> '绿'
-                                Color.AZURE -> '碧'
-                                Color.CYAN -> '青'
-                                Color.ALICEBLUE -> '蓝'
-                                Color.PURPLE -> '紫'
-                            }
-                        )
-                    }
+                    val t = tile.color
+                    print(
+                        when (t) {
+                            Color.WHITE -> '白'
+                            Color.BLACK -> '黑'
+                            Color.SILVER -> '银'
+                            Color.GREY -> '灰'
+                            Color.RED -> '红'
+                            Color.ORANGE -> '橙'
+                            Color.GOLD -> '金'
+                            Color.PINK -> '粉'
+                            Color.YELLOW -> '黄'
+                            Color.BEIGE -> '米'
+                            Color.BROWN -> '棕'
+                            Color.GREEN -> '绿'
+                            Color.AZURE -> '碧'
+                            Color.CYAN -> '青'
+                            Color.ALICEBLUE -> '蓝'
+                            Color.PURPLE -> '紫'
+                        }
+                    )
                 }
                 println()
             }
@@ -128,15 +126,15 @@ class ColorfulManager(override val playground: Playground, override val debug: B
         for (i in playground.grid.indices)
             for (j in playground.grid[0].indices)
                 currentGrid[i][j] = playground.grid[i][j]
-        val currentLayout = MutableList(playground.layout.size) { MutableList(playground.layout[0].size) { Item.NONE } }
-        for (i in playground.layout.indices)
-            for (j in playground.layout[0].indices)
-                currentLayout[i][j] = playground.layout[i][j]
-        val currentColorLayout: MutableList<MutableList<Color>> = MutableList(playground.layout2s.size) { MutableList(playground.layout2s[0].size) { Color.WHITE } }
+        val currentLayout = MutableList(playground.itemLayout.size) { MutableList(playground.itemLayout[0].size) { Item.NONE } }
+        for (i in playground.itemLayout.indices)
+            for (j in playground.itemLayout[0].indices)
+                currentLayout[i][j] = playground.itemLayout[i][j]
+        val currentColorLayout: MutableList<MutableList<Color>> = MutableList(playground.tileLayout.size) { MutableList(playground.tileLayout[0].size) { Color.WHITE } }
         val currentLevelLayout = List(playground.grid.size) { List(playground.grid[0].size) { 1 } }
-        for (i in playground.layout2s.indices)
-            for (j in playground.layout2s[0].indices) {
-                currentColorLayout[i][j] = (playground.layout2s[i][j] as ColorfulTile).color
+        for (i in playground.tileLayout.indices)
+            for (j in playground.tileLayout[0].indices) {
+                currentColorLayout[i][j] = playground.tileLayout[i][j].color
             }
         val currentPortals = MutableList(playground.portals.size) { Portal() }
         for (i in playground.portals.indices)

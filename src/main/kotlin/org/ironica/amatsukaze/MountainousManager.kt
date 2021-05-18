@@ -102,15 +102,15 @@ class MountainousManager(override val playground: Playground, override val debug
         for (i in playground.grid.indices)
             for (j in playground.grid[0].indices)
                 currentGrid[i][j] = playground.grid[i][j]
-        val currentLayout = MutableList(playground.layout.size) { MutableList(playground.layout[0].size) { Item.NONE } }
-        for (i in playground.layout.indices)
-            for (j in playground.layout[0].indices)
-                currentLayout[i][j] = playground.layout[i][j]
-        val currentColorLayout = List(playground.layout2s.size) { List(playground.layout2s[0].size) { Color.WHITE } }
-        val currentLevelLayout = MutableList(playground.layout2s.size) { MutableList(playground.layout2s[0].size) { 1 } }
-        for (i in playground.layout2s.indices)
-            for (j in playground.layout2s[0].indices) {
-                currentLevelLayout[i][j] = (playground.layout2s[i][j] as MountainTile).level
+        val currentLayout = MutableList(playground.itemLayout.size) { MutableList(playground.itemLayout[0].size) { Item.NONE } }
+        for (i in playground.itemLayout.indices)
+            for (j in playground.itemLayout[0].indices)
+                currentLayout[i][j] = playground.itemLayout[i][j]
+        val currentColorLayout = List(playground.tileLayout.size) { List(playground.tileLayout[0].size) { Color.WHITE } }
+        val currentLevelLayout = MutableList(playground.tileLayout.size) { MutableList(playground.tileLayout[0].size) { 1 } }
+        for (i in playground.tileLayout.indices)
+            for (j in playground.tileLayout[0].indices) {
+                currentLevelLayout[i][j] = playground.tileLayout[i][j].level
             }
         val currentPortals = MutableList(playground.portals.size) { Portal() }
         for (i in playground.portals.indices)
