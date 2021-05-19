@@ -20,6 +20,14 @@ import org.ironica.amatsukaze.bridge.convertJsonToMiscLayout
 import org.ironica.amatsukaze.corelanguage.AmatsukazeVisitor
 import org.ironica.amatsukaze.manager.ColorfulManager
 import org.ironica.amatsukaze.playground.*
+import org.ironica.amatsukaze.playground.data.Coordinate
+import org.ironica.amatsukaze.playground.data.Lock
+import org.ironica.amatsukaze.playground.data.Portal
+import org.ironica.amatsukaze.playground.data.Stair
+import org.ironica.amatsukaze.playground.enums.Block
+import org.ironica.amatsukaze.playground.enums.Direction
+import org.ironica.amatsukaze.playground.enums.Item
+import org.ironica.amatsukaze.playground.characters.Player
 import java.io.FileInputStream
 import java.io.InputStream
 

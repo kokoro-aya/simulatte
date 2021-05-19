@@ -8,26 +8,12 @@
  *
  */
 
-package org.ironica.amatsukaze.bridge
+package org.ironica.amatsukaze.playground.payloads
 
 import kotlinx.serialization.Serializable
-import org.ironica.amatsukaze.playground.*
-import org.ironica.amatsukaze.playground.data.Lock
-import org.ironica.amatsukaze.playground.data.Portal
-import org.ironica.amatsukaze.playground.data.Stair
-import org.ironica.amatsukaze.playground.enums.Block
-import org.ironica.amatsukaze.playground.enums.Item
+import org.ironica.amatsukaze.playground.Color
+import org.ironica.amatsukaze.playground.data.Grid
+import org.ironica.amatsukaze.playground.data.ItemLayout
 
 @Serializable
-data class Data(
-    val type: String,
-    val code: String,
-    val grid: List<List<Block>>,
-    val layout: List<List<Item>>,
-    val colors: List<List<Color>>,
-    val levels: List<List<Int>>,
-    val portals: List<Portal>,
-    val locks: List<Lock>,
-    val stairs: List<Stair>,
-    val players: List<PlayerData>
-)
+data class SerializedPlayground(val grid: Grid, val itemLayout: ItemLayout, val colors: List<List<Color>>, val levels: List<List<Int>>)

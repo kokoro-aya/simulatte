@@ -11,6 +11,14 @@
 package org.ironica.amatsukaze.bridge
 
 import org.ironica.amatsukaze.playground.*
+import org.ironica.amatsukaze.playground.data.Coordinate
+import org.ironica.amatsukaze.playground.data.ItemLayout
+import org.ironica.amatsukaze.playground.data.Tile
+import org.ironica.amatsukaze.playground.data.TileLayout
+import org.ironica.amatsukaze.playground.enums.Direction
+import org.ironica.amatsukaze.playground.enums.Item
+import org.ironica.amatsukaze.playground.characters.Player
+import org.ironica.amatsukaze.playground.characters.Specialist
 
 fun convertJsonToLayout(array: List<List<String>>): ItemLayout {
     return array.map { it.map { when (it) {

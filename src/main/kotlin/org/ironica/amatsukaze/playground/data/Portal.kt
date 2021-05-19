@@ -8,24 +8,9 @@
  *
  */
 
-package org.ironica.amatsukaze.playground
+package org.ironica.amatsukaze.playground.data
 
-enum class Direction {
-    UP, DOWN, LEFT, RIGHT
-}
+import kotlinx.serialization.Serializable
 
-enum class Block {
-    OPEN, BLOCKED, WATER, TREE, DESERT, HOME, MOUNTAIN, STONE, LOCK, STAIR,
-}
-
-enum class Item {
-    NONE, GEM, CLOSEDSWITCH, OPENEDSWITCH, BEEPER, PORTAL, PLATFORM
-}
-
-enum class Color {
-    BLACK, SILVER, GREY, WHITE, RED, ORANGE, GOLD, PINK, YELLOW, BEIGE, BROWN, GREEN, AZURE, CYAN, ALICEBLUE, PURPLE
-}
-
-enum class Role {
-    PLAYER, SPECIALIST,
-}
+@Serializable
+data class Portal(val coo: Coordinate = Coordinate(0, 0), val dest: Coordinate = Coordinate(0, 0), var isActive: Boolean = false)

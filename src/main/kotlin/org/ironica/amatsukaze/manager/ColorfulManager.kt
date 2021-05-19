@@ -14,6 +14,15 @@ import org.ironica.amatsukaze.internal.PF
 import org.ironica.amatsukaze.internal.PFType
 import org.ironica.amatsukaze.internal.PlaygroundFunction
 import org.ironica.amatsukaze.playground.*
+import org.ironica.amatsukaze.playground.data.Portal
+import org.ironica.amatsukaze.playground.enums.Block
+import org.ironica.amatsukaze.playground.enums.Item
+import org.ironica.amatsukaze.playground.enums.Role
+import org.ironica.amatsukaze.playground.payloads.Payload
+import org.ironica.amatsukaze.playground.payloads.SerializedPlayer
+import org.ironica.amatsukaze.playground.payloads.SerializedPlayground
+import org.ironica.amatsukaze.playground.payloads.payloadStorage
+import org.ironica.amatsukaze.playground.characters.Specialist
 
 class ColorfulManager(override val playground: Playground, override val debug: Boolean, override val stdout: Boolean):
     AbstractManager {

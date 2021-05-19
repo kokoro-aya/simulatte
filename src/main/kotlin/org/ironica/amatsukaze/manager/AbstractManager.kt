@@ -10,7 +10,7 @@
 
 package org.ironica.amatsukaze.manager
 
-import org.ironica.amatsukaze.playground.Player
+import org.ironica.amatsukaze.playground.characters.Player
 import org.ironica.amatsukaze.playground.Playground
 
 interface AbstractManager {

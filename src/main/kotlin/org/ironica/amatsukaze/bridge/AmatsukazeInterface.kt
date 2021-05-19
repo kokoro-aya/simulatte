@@ -21,6 +21,8 @@ import org.ironica.amatsukaze.manager.ColorfulManager
 import org.ironica.amatsukaze.manager.ColorfulMountainManager
 import org.ironica.amatsukaze.manager.MountainousManager
 import org.ironica.amatsukaze.playground.*
+import org.ironica.amatsukaze.playground.data.*
+import org.ironica.amatsukaze.playground.characters.Player
 
 class AmatsukazeInterface(
     val type: String,

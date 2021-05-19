@@ -20,7 +20,7 @@ import org.ironica.amatsukaze.internal.PFType
 import org.ironica.amatsukaze.internal.PlaygroundFunction
 import org.ironica.amatsukaze.manager.AbstractManager
 import org.ironica.amatsukaze.playground.Color
-import org.ironica.amatsukaze.playground.Specialist
+import org.ironica.amatsukaze.playground.characters.Specialist
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.pow
