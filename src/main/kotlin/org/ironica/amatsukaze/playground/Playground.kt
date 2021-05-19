@@ -10,19 +10,22 @@
 
 package org.ironica.amatsukaze.playground
 
+import org.ironica.amatsukaze.bridge.LockData
+import org.ironica.amatsukaze.bridge.PortalData
+import org.ironica.amatsukaze.bridge.StairData
 import org.ironica.amatsukaze.playground.data.*
-import org.ironica.amatsukaze.playground.enums.Direction.*
-import org.ironica.amatsukaze.playground.enums.Block.*
-import org.ironica.amatsukaze.playground.enums.Item.*
+import org.ironica.amatsukaze.playground.Direction.*
+import org.ironica.amatsukaze.playground.Blocks.*
+import org.ironica.amatsukaze.playground.Items.*
 import org.ironica.amatsukaze.playground.characters.Player
 import org.ironica.amatsukaze.playground.characters.Specialist
 
 class Playground(val grid: Grid,
                  val itemLayout: ItemLayout,
                  val tileLayout: TileLayout,
-                 val portals: List<Portal>,
-                 val locks: List<Lock>,
-                 val stairs: List<Stair>,
+                 val portals: List<PortalData>,
+                 val locks: List<LockData>,
+                 val stairs: List<StairData>,
                  val players: MutableList<Player>,
                  private val initialGem: Int) {
 
@@ -96,6 +99,7 @@ class Playground(val grid: Grid,
                     STONE -> "石"
                     LOCK -> "锁"
                     STAIR -> "梯"
+                    VOID -> "无"
                 }
             }
             else -> {

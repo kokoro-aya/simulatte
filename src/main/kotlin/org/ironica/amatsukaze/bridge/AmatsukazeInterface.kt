@@ -30,9 +30,9 @@ class AmatsukazeInterface(
     val grid: Grid,
     val itemLayout: ItemLayout,
     val miscLayout: TileLayout,
-    val portals: List<Portal>,
-    val locks: List<Lock>,
-    val stairs: List<Stair>,
+    val portals: List<PortalData>,
+    val locks: List<LockData>,
+    val stairs: List<StairData>,
     val players: List<Player>,
     val debug: Boolean, val stdout: Boolean
 ) {

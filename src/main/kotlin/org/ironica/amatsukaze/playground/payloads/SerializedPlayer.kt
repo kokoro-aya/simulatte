@@ -11,8 +11,8 @@
 package org.ironica.amatsukaze.playground.payloads
 
 import kotlinx.serialization.Serializable
-import org.ironica.amatsukaze.playground.enums.Direction
-import org.ironica.amatsukaze.playground.enums.Role
+import org.ironica.amatsukaze.playground.Direction
+import org.ironica.amatsukaze.playground.Role
 
 @Serializable
 data class SerializedPlayer(val id: Int, val x: Int, val y: Int, val dir: Direction, val role: Role, val stamina: Int)

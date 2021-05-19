@@ -8,9 +8,8 @@
  *
  */
 
-package org.ironica.amatsukaze.playground.data
+package org.ironica.amatsukaze.playground
 
-import kotlinx.serialization.Serializable
-
-@Serializable
-data class Portal(val coo: Coordinate = Coordinate(0, 0), val dest: Coordinate = Coordinate(0, 0), var isActive: Boolean = false)
+enum class Direction {
+    UP, DOWN, LEFT, RIGHT
+}

@@ -8,8 +8,8 @@
  *
  */
 
-package org.ironica.amatsukaze.playground.enums
+package org.ironica.amatsukaze.playground
 
-enum class Item {
-    NONE, GEM, CLOSEDSWITCH, OPENEDSWITCH, BEEPER, PORTAL, PLATFORM
+enum class Biome {
+    SNOWY, COLD, VALLEY, PLAINS, SWAMP, DESERT, BADLANDS,
 }

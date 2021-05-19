@@ -8,30 +8,11 @@
  *
  */
 
-package org.ironica.amatsukaze.playground.payloads
+package org.ironica.amatsukaze.bridge
 
 import kotlinx.serialization.Serializable
-import org.ironica.amatsukaze.playground.Color
-import org.ironica.amatsukaze.playground.data.Grid
-import org.ironica.amatsukaze.playground.data.ItemLayout
-import org.ironica.amatsukaze.bridge.PortalData
+import org.ironica.amatsukaze.playground.data.Coordinate
+import org.ironica.amatsukaze.playground.Direction
 
 @Serializable
-data class Payload(
-    val grid: Grid,
-    val itemLayout: ItemLayout,
-    val colors: List<List<Color>>,
-    val levels: List<List<Int>>,
-    val players: List<SerializedPlayer>,
-    val portals: List<PortalData>,
-    val consoleLog: String,
-    val special: String
-    ) {
-    constructor(
-        players: List<SerializedPlayer>,
-        portals: List<PortalData>,
-        grid: SerializedPlayground,
-        consoleLog: String,
-        special: String
-    ): this(grid.grid, grid.itemLayout, grid.colors, grid.levels, players, portals, consoleLog, special)
-}
+data class StairData(val coo: Coordinate, val dir: Direction)

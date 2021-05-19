@@ -8,18 +8,23 @@
  *
  */
 
-@file:DependsOn("org.antlr:antlr4:4.9")
+package org.ironica.amatsukaze.playground.data
 
-import org.antlr.v4.Tool
-import java.io.File
+import org.ironica.amatsukaze.playground.Color
+import org.ironica.amatsukaze.playground.characters.Player
 
-job("Generate parser and recognizer and then build the project") {
-    container("openjdk:11") {
-        kotlinScript { api ->
-            Tool.main(arrayOf("-o", "gen", "-visitor", "-no-listener", "src/main/amatsukazeGrammar.g4"))
-            println("Grammar Recognizer generated.")
-            api.gradlew("build")
-            println("Build succeeded.")
-        }
-    }
-}
+sealed class Item
+data class Switch(var on: Boolean): Item()
+data class Gem(val disappearIn: Int = 0): Item()
+data class Beeper(val disappearIn: Int = 0): Item()
+data class Portal(
+    val coo: Coordinate,
+    val dest: Coordinate,
+    val color: Color,
+    var isActive: Boolean,
+    var energy: Int = 100
+): Item()
+data class Platform(
+    var level: Int,
+    val players: MutableList<Player> = mutableListOf()
+)

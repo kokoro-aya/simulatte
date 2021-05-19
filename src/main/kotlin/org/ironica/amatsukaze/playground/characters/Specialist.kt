@@ -11,20 +11,20 @@
 package org.ironica.amatsukaze.playground.characters
 
 import org.ironica.amatsukaze.playground.data.Coordinate
-import org.ironica.amatsukaze.playground.data.Lock
-import org.ironica.amatsukaze.playground.enums.Block
-import org.ironica.amatsukaze.playground.enums.Direction
+import org.ironica.amatsukaze.bridge.LockData
+import org.ironica.amatsukaze.playground.Blocks
+import org.ironica.amatsukaze.playground.Direction
 
 class Specialist(id: Int, coo: Coordinate, dir: Direction, stamina: Int?): Player(id, coo, dir, stamina) {
 
-    lateinit var locks: List<Lock>
+    lateinit var locks: List<LockData>
 
     val isBeforeLock = {
         when (this.dir) {
-            Direction.UP -> coo.y >= 1 && grid[coo.y - 1][coo.x] == Block.LOCK
-            Direction.DOWN -> coo.y <= grid.size - 2 && grid[coo.y + 1][coo.x] == Block.LOCK
-            Direction.LEFT -> coo.x >= 1 && grid[coo.y][coo.x - 1] == Block.LOCK
-            Direction.RIGHT -> coo.x <= grid[0].size - 2 && grid[coo.y][coo.x + 1] == Block.LOCK
+            Direction.UP -> coo.y >= 1 && grid[coo.y - 1][coo.x] == Blocks.LOCK
+            Direction.DOWN -> coo.y <= grid.size - 2 && grid[coo.y + 1][coo.x] == Blocks.LOCK
+            Direction.LEFT -> coo.x >= 1 && grid[coo.y][coo.x - 1] == Blocks.LOCK
+            Direction.RIGHT -> coo.x <= grid[0].size - 2 && grid[coo.y][coo.x + 1] == Blocks.LOCK
         }
     }
 

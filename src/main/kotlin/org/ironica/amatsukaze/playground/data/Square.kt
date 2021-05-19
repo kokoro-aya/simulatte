@@ -8,8 +8,21 @@
  *
  */
 
-package org.ironica.amatsukaze.playground.enums
+package org.ironica.amatsukaze.playground.data
 
-enum class Direction {
-    UP, DOWN, LEFT, RIGHT
-}
+import org.ironica.amatsukaze.bridge.PortalData
+import org.ironica.amatsukaze.playground.characters.Player
+import org.ironica.amatsukaze.playground.Biome
+import org.ironica.amatsukaze.playground.Blocks
+
+data class Square(
+    var block: Blocks,
+    var tile: Tile,
+    var biome: Biome,
+    var switch: Switch?,
+    var gem: Gem?,
+    var beeper: Beeper?,
+    var portal: PortalData?,
+    var platform: Platform?,
+    var players: MutableList<Player> = mutableListOf()
+)

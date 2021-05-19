@@ -10,9 +10,9 @@
 
 package org.ironica.amatsukaze.playground.data
 
-import org.ironica.amatsukaze.playground.enums.Block
-import org.ironica.amatsukaze.playground.enums.Item
+import org.ironica.amatsukaze.playground.Blocks
+import org.ironica.amatsukaze.playground.Items
 
-typealias Grid = MutableList<MutableList<Block>>
-typealias ItemLayout = MutableList<MutableList<Item>>
+typealias Grid = MutableList<MutableList<Blocks>>
+typealias ItemLayout = MutableList<MutableList<Items>>
 typealias TileLayout = MutableList<MutableList<Tile>>

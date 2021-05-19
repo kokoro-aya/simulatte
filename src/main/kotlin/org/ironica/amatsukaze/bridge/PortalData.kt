@@ -8,8 +8,10 @@
  *
  */
 
-package org.ironica.amatsukaze.playground.enums
+package org.ironica.amatsukaze.bridge
 
-enum class Block {
-    OPEN, BLOCKED, WATER, TREE, DESERT, HOME, MOUNTAIN, STONE, LOCK, STAIR,
-}
+import kotlinx.serialization.Serializable
+import org.ironica.amatsukaze.playground.data.Coordinate
+
+@Serializable
+data class PortalData(val coo: Coordinate = Coordinate(0, 0), val dest: Coordinate = Coordinate(0, 0), var isActive: Boolean = false)

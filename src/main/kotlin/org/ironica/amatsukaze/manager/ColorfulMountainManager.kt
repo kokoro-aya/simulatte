@@ -14,10 +14,10 @@ import org.ironica.amatsukaze.internal.PF
 import org.ironica.amatsukaze.internal.PFType
 import org.ironica.amatsukaze.internal.PlaygroundFunction
 import org.ironica.amatsukaze.playground.*
-import org.ironica.amatsukaze.playground.data.Portal
-import org.ironica.amatsukaze.playground.enums.Block
-import org.ironica.amatsukaze.playground.enums.Item
-import org.ironica.amatsukaze.playground.enums.Role
+import org.ironica.amatsukaze.bridge.PortalData
+import org.ironica.amatsukaze.playground.Blocks
+import org.ironica.amatsukaze.playground.Items
+import org.ironica.amatsukaze.playground.Role
 import org.ironica.amatsukaze.playground.payloads.Payload
 import org.ironica.amatsukaze.playground.payloads.SerializedPlayer
 import org.ironica.amatsukaze.playground.payloads.SerializedPlayground
@@ -133,11 +133,11 @@ class ColorfulMountainManager(override val playground: Playground, override val 
     override fun appendEntry() {
         if (payloadStorage.size > 1000)
             throw Exception("Too many entries!")
-        val currentGrid = MutableList(playground.grid.size) { MutableList(playground.grid[0].size) { Block.OPEN } }
+        val currentGrid = MutableList(playground.grid.size) { MutableList(playground.grid[0].size) { Blocks.OPEN } }
         for (i in playground.grid.indices)
             for (j in playground.grid[0].indices)
                 currentGrid[i][j] = playground.grid[i][j]
-        val currentLayout = MutableList(playground.itemLayout.size) { MutableList(playground.itemLayout[0].size) { Item.NONE } }
+        val currentLayout = MutableList(playground.itemLayout.size) { MutableList(playground.itemLayout[0].size) { Items.NONE } }
         for (i in playground.itemLayout.indices)
             for (j in playground.itemLayout[0].indices)
                 currentLayout[i][j] = playground.itemLayout[i][j]
@@ -149,7 +149,7 @@ class ColorfulMountainManager(override val playground: Playground, override val 
                     currentColorLayout[i][j] = it.color; currentLevelLayout[i][j] = it.level
                 }
             }
-        val currentPortals = MutableList(playground.portals.size) { Portal() }
+        val currentPortals = MutableList(playground.portals.size) { PortalData() }
         for (i in playground.portals.indices)
             currentPortals[i] = playground.portals[i]
         val serializedPlayers = playground.players.map {

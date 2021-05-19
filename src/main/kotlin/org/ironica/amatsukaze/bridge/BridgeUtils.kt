@@ -15,20 +15,20 @@ import org.ironica.amatsukaze.playground.data.Coordinate
 import org.ironica.amatsukaze.playground.data.ItemLayout
 import org.ironica.amatsukaze.playground.data.Tile
 import org.ironica.amatsukaze.playground.data.TileLayout
-import org.ironica.amatsukaze.playground.enums.Direction
-import org.ironica.amatsukaze.playground.enums.Item
+import org.ironica.amatsukaze.playground.Direction
+import org.ironica.amatsukaze.playground.Items
 import org.ironica.amatsukaze.playground.characters.Player
 import org.ironica.amatsukaze.playground.characters.Specialist
 
 fun convertJsonToLayout(array: List<List<String>>): ItemLayout {
     return array.map { it.map { when (it) {
-        "NONE" -> Item.NONE
-        "GEM" -> Item.GEM
-        "BEEPER" -> Item.BEEPER
-        "OPENEDSWITCH" -> Item.OPENEDSWITCH
-        "CLOSEDSWITCH" -> Item.CLOSEDSWITCH
-        "PORTAL" -> Item.PORTAL
-        "PLATFORM" -> Item.PLATFORM
+        "NONE" -> Items.NONE
+        "GEM" -> Items.GEM
+        "BEEPER" -> Items.BEEPER
+        "OPENEDSWITCH" -> Items.OPENEDSWITCH
+        "CLOSEDSWITCH" -> Items.CLOSEDSWITCH
+        "PORTAL" -> Items.PORTAL
+        "PLATFORM" -> Items.PLATFORM
         else -> throw Exception("Cannot parse data to layout")
     } }.toMutableList()}.toMutableList()
 }
@@ -107,4 +107,4 @@ private fun convertDataToColor(data: String): Color {
     }
 }
 
-fun calculateInitialGem(itemLayout: ItemLayout): Int = itemLayout.flatten().filter { it == Item.GEM }.size
+fun calculateInitialGem(itemLayout: ItemLayout): Int = itemLayout.flatten().filter { it == Items.GEM }.size

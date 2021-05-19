@@ -8,8 +8,8 @@
  *
  */
 
-package org.ironica.amatsukaze.playground.enums
+package org.ironica.amatsukaze.playground
 
-enum class Role {
-    PLAYER, SPECIALIST,
+enum class Items {
+    NONE, GEM, CLOSEDSWITCH, OPENEDSWITCH, BEEPER, PORTAL, PLATFORM
 }

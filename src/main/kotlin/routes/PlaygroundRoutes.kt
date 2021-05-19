@@ -19,10 +19,10 @@ import io.ktor.routing.post
 import io.ktor.routing.route
 import io.ktor.routing.routing
 import org.ironica.amatsukaze.bridge.AmatsukazeInterface
-import org.ironica.amatsukaze.bridge.Data
+import org.ironica.amatsukaze.bridge.IncomingData
 import org.ironica.amatsukaze.bridge.convertJsonToMiscLayout
 import org.ironica.amatsukaze.bridge.convertJsonToPlayers
-import org.ironica.amatsukaze.playground.enums.Item
+import org.ironica.amatsukaze.playground.Items
 import org.ironica.amatsukaze.playground.payloads.ErrorMessage
 import org.ironica.amatsukaze.playground.payloads.NormalMessage
 import org.ironica.amatsukaze.playground.payloads.Status
@@ -32,7 +32,7 @@ import java.lang.Exception
 fun Route.getPlaygroundRoute(args: Pair<Boolean, Boolean>) {
     route("/paidiki-xara") {
         post {
-            val data = call.receive<Data>()
+            val data = call.receive<IncomingData>()
             payloadStorage.clear()
             val debug = args.first
             val stdout = args.second
@@ -43,7 +43,7 @@ fun Route.getPlaygroundRoute(args: Pair<Boolean, Boolean>) {
                 data.layout.let {
                     if (it.size == data.grid.size && it[0].size == data.grid[0].size) it.map { it.toMutableList() }.toMutableList()
                     else with (data.grid) {
-                        MutableList(this.size) { MutableList(this[0].size) { Item.NONE } }
+                        MutableList(this.size) { MutableList(this[0].size) { Items.NONE } }
                     } },
                 convertJsonToMiscLayout(data.colors, data.levels, data.type, data.grid.size to data.grid[0].size),
                 data.portals,

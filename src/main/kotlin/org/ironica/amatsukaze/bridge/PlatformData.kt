@@ -8,9 +8,10 @@
  *
  */
 
-package org.ironica.amatsukaze.playground.data
+package org.ironica.amatsukaze.bridge
 
 import kotlinx.serialization.Serializable
+import org.ironica.amatsukaze.playground.data.Coordinate
 
 @Serializable
-data class Lock(val coo: Coordinate, val controlled: List<Coordinate>)
+data class PlatformData(val coo: Coordinate, val level: Int)

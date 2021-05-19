@@ -21,12 +21,12 @@ import org.ironica.amatsukaze.corelanguage.AmatsukazeVisitor
 import org.ironica.amatsukaze.manager.ColorfulManager
 import org.ironica.amatsukaze.playground.*
 import org.ironica.amatsukaze.playground.data.Coordinate
-import org.ironica.amatsukaze.playground.data.Lock
-import org.ironica.amatsukaze.playground.data.Portal
-import org.ironica.amatsukaze.playground.data.Stair
-import org.ironica.amatsukaze.playground.enums.Block
-import org.ironica.amatsukaze.playground.enums.Direction
-import org.ironica.amatsukaze.playground.enums.Item
+import org.ironica.amatsukaze.bridge.LockData
+import org.ironica.amatsukaze.bridge.PortalData
+import org.ironica.amatsukaze.bridge.StairData
+import org.ironica.amatsukaze.playground.Blocks
+import org.ironica.amatsukaze.playground.Direction
+import org.ironica.amatsukaze.playground.Items
 import org.ironica.amatsukaze.playground.characters.Player
 import java.io.FileInputStream
 import java.io.InputStream
@@ -50,16 +50,16 @@ fun main(args: Array<String>) {
 //    val layout2s = List (2) { List (9) { Tile() } }
 
     val grid = listOf(
-        listOf(Block.OPEN, Block.OPEN, Block.OPEN, Block.OPEN, Block.OPEN),
-        listOf(Block.OPEN, Block.OPEN, Block.STAIR, Block.OPEN, Block.OPEN),
-        listOf(Block.OPEN, Block.OPEN, Block.STAIR, Block.OPEN, Block.OPEN),
-        listOf(Block.OPEN, Block.OPEN, Block.STAIR, Block.OPEN, Block.OPEN)
+        listOf(Blocks.OPEN, Blocks.OPEN, Blocks.OPEN, Blocks.OPEN, Blocks.OPEN),
+        listOf(Blocks.OPEN, Blocks.OPEN, Blocks.STAIR, Blocks.OPEN, Blocks.OPEN),
+        listOf(Blocks.OPEN, Blocks.OPEN, Blocks.STAIR, Blocks.OPEN, Blocks.OPEN),
+        listOf(Blocks.OPEN, Blocks.OPEN, Blocks.STAIR, Blocks.OPEN, Blocks.OPEN)
     )
     val layout = listOf(
-        listOf(Item.NONE, Item.NONE, Item.NONE, Item.NONE, Item.NONE),
-        listOf(Item.NONE, Item.NONE, Item.NONE, Item.NONE, Item.NONE),
-        listOf(Item.NONE, Item.NONE, Item.NONE, Item.NONE, Item.NONE),
-        listOf(Item.NONE, Item.NONE, Item.NONE, Item.NONE, Item.GEM)
+        listOf(Items.NONE, Items.NONE, Items.NONE, Items.NONE, Items.NONE),
+        listOf(Items.NONE, Items.NONE, Items.NONE, Items.NONE, Items.NONE),
+        listOf(Items.NONE, Items.NONE, Items.NONE, Items.NONE, Items.NONE),
+        listOf(Items.NONE, Items.NONE, Items.NONE, Items.NONE, Items.GEM)
     )
     val colors = listOf(
         listOf(Color.WHITE, Color.WHITE, Color.WHITE, Color.WHITE, Color.WHITE, ),
@@ -74,12 +74,12 @@ fun main(args: Array<String>) {
         listOf(1, 1, 2, 1 ,1),
     )
 
-    val locks = listOf<Lock>()
-    val portals = listOf<Portal>()
+    val locks = listOf<LockData>()
+    val portals = listOf<PortalData>()
     val stairs = listOf(
-        Stair(Coordinate(2, 1), Direction.UP),
-        Stair(Coordinate(2, 2), Direction.DOWN),
-        Stair(Coordinate(2, 3), Direction.DOWN),
+        StairData(Coordinate(2, 1), Direction.UP),
+        StairData(Coordinate(2, 2), Direction.DOWN),
+        StairData(Coordinate(2, 3), Direction.DOWN),
     )
     val players = listOf(
         Player(

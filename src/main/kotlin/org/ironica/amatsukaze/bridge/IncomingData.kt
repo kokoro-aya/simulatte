@@ -8,10 +8,24 @@
  *
  */
 
-package org.ironica.amatsukaze.playground.data
+package org.ironica.amatsukaze.bridge
 
 import kotlinx.serialization.Serializable
-import org.ironica.amatsukaze.playground.enums.Direction
+import org.ironica.amatsukaze.playground.*
+import org.ironica.amatsukaze.playground.Blocks
+import org.ironica.amatsukaze.playground.Items
 
 @Serializable
-data class Stair(val coo: Coordinate, val dir: Direction)
+data class IncomingData(
+    val type: String,
+    val code: String,
+    val grid: List<List<Blocks>>,
+    val layout: List<List<Items>>,
+    val colors: List<List<Color>>,
+    val levels: List<List<Int>>,
+    val portals: List<PortalData>,
+    val locks: List<LockData>,
+    val stairs: List<StairData>,
+    val platforms: List<PlatformData>,
+    val players: List<PlayerData>
+)
