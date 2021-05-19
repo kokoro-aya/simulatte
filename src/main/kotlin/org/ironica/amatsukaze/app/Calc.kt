@@ -1,4 +1,14 @@
-package org.ironica.amatsukaze
+/*
+ * Copyright (c) 2020-2021. kokoro-aya. All right reserved.
+ * Amatsukaze - A Playground Server implemented with ANTLR or Kotlin DSL
+ *
+ * This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+ * You should have received a copy of the GNU Affero General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
+package org.ironica.amatsukaze.app
 
 import amatsukazeGrammarLexer
 import amatsukazeGrammarParser
@@ -6,6 +16,10 @@ import org.antlr.v4.runtime.CharStream
 import org.antlr.v4.runtime.CharStreams.fromStream
 import org.antlr.v4.runtime.CommonTokenStream
 import org.antlr.v4.runtime.tree.ParseTree
+import org.ironica.amatsukaze.bridge.convertJsonToMiscLayout
+import org.ironica.amatsukaze.corelanguage.AmatsukazeVisitor
+import org.ironica.amatsukaze.manager.ColorfulManager
+import org.ironica.amatsukaze.playground.*
 import java.io.FileInputStream
 import java.io.InputStream
 
@@ -59,12 +73,14 @@ fun main(args: Array<String>) {
         Stair(Coordinate(2, 2), Direction.DOWN),
         Stair(Coordinate(2, 3), Direction.DOWN),
     )
-    val players = listOf(Player(
+    val players = listOf(
+        Player(
         1,
         Coordinate(2, 0),
         Direction.DOWN,
         1000
-    ))
+    )
+    )
     val playground = Playground(
         grid.convertToMutableList(),
         layout.convertToMutableList(),

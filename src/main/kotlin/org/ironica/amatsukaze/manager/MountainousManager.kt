@@ -1,35 +1,51 @@
-package org.ironica.amatsukaze
+/*
+ * Copyright (c) 2020-2021. kokoro-aya. All right reserved.
+ * Amatsukaze - A Playground Server implemented with ANTLR or Kotlin DSL
+ *
+ * This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+ * You should have received a copy of the GNU Affero General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
 
-class ColorfulMountainManager(override val playground: Playground, override val debug: Boolean, override val stdout: Boolean): AbstractManager {
+package org.ironica.amatsukaze.manager
+
+import org.ironica.amatsukaze.internal.PF
+import org.ironica.amatsukaze.internal.PFType
+import org.ironica.amatsukaze.internal.PlaygroundFunction
+import org.ironica.amatsukaze.playground.*
+
+class MountainousManager(override val playground: Playground, override val debug: Boolean,
+                         override val stdout: Boolean): AbstractManager {
 
     override var consoleLog: String = ""
     override var special: String = ""
 
     override val firstId = playground.players.map { it.id }.sorted()[0]
 
-    @PlaygroundFunction(type = PF.Property, ret = PFType.Bool ,self = PFType.Self, arg1 = PFType.None, arg2 = PFType.None)
+    @PlaygroundFunction(type = PF.Property, ret = PFType.Bool,self = PFType.Self, arg1 = PFType.None, arg2 = PFType.None)
     override fun isOnGem(id: Int) = getPlayer(id).isOnGem
-    @PlaygroundFunction(type = PF.Property, ret = PFType.Bool ,self = PFType.Self, arg1 = PFType.None, arg2 = PFType.None)
+    @PlaygroundFunction(type = PF.Property, ret = PFType.Bool,self = PFType.Self, arg1 = PFType.None, arg2 = PFType.None)
     override fun isOnOpenedSwitch(id: Int) = getPlayer(id).isOnOpenedSwitch
-    @PlaygroundFunction(type = PF.Property, ret = PFType.Bool ,self = PFType.Self, arg1 = PFType.None, arg2 = PFType.None)
+    @PlaygroundFunction(type = PF.Property, ret = PFType.Bool,self = PFType.Self, arg1 = PFType.None, arg2 = PFType.None)
     override fun isOnClosedSwitch(id: Int) = getPlayer(id).isOnClosedSwitch
-    @PlaygroundFunction(type = PF.Property, ret = PFType.Bool ,self = PFType.Self, arg1 = PFType.None, arg2 = PFType.None)
+    @PlaygroundFunction(type = PF.Property, ret = PFType.Bool,self = PFType.Self, arg1 = PFType.None, arg2 = PFType.None)
     override fun isOnBeeper(id: Int) = getPlayer(id).isOnBeeper
-    @PlaygroundFunction(type = PF.Property, ret = PFType.Bool ,self = PFType.Self, arg1 = PFType.None, arg2 = PFType.None)
+    @PlaygroundFunction(type = PF.Property, ret = PFType.Bool,self = PFType.Self, arg1 = PFType.None, arg2 = PFType.None)
     override fun isAtHome(id: Int) = getPlayer(id).isAtHome
-    @PlaygroundFunction(type = PF.Property, ret = PFType.Bool ,self = PFType.Self, arg1 = PFType.None, arg2 = PFType.None)
+    @PlaygroundFunction(type = PF.Property, ret = PFType.Bool,self = PFType.Self, arg1 = PFType.None, arg2 = PFType.None)
     override fun isInDesert(id: Int) = getPlayer(id).isInDesert
-    @PlaygroundFunction(type = PF.Property, ret = PFType.Bool ,self = PFType.Self, arg1 = PFType.None, arg2 = PFType.None)
+    @PlaygroundFunction(type = PF.Property, ret = PFType.Bool,self = PFType.Self, arg1 = PFType.None, arg2 = PFType.None)
     override fun isInForest(id: Int) = getPlayer(id).isInForest
-    @PlaygroundFunction(type = PF.Property, ret = PFType.Bool ,self = PFType.Self, arg1 = PFType.None, arg2 = PFType.None)
+    @PlaygroundFunction(type = PF.Property, ret = PFType.Bool,self = PFType.Self, arg1 = PFType.None, arg2 = PFType.None)
     override fun isOnPortal(id: Int) = getPlayer(id).isOnPortal
-    @PlaygroundFunction(type = PF.Property, ret = PFType.Bool ,self = PFType.Self, arg1 = PFType.None, arg2 = PFType.None)
+    @PlaygroundFunction(type = PF.Property, ret = PFType.Bool,self = PFType.Self, arg1 = PFType.None, arg2 = PFType.None)
     override fun isBlocked(id: Int) = getPlayer(id).isBlocked
-    @PlaygroundFunction(type = PF.Property, ret = PFType.Bool ,self = PFType.Self, arg1 = PFType.None, arg2 = PFType.None)
+    @PlaygroundFunction(type = PF.Property, ret = PFType.Bool,self = PFType.Self, arg1 = PFType.None, arg2 = PFType.None)
     override fun isBlockedLeft(id: Int) = getPlayer(id).isBlockedLeft
-    @PlaygroundFunction(type = PF.Property, ret = PFType.Bool ,self = PFType.Self, arg1 = PFType.None, arg2 = PFType.None)
+    @PlaygroundFunction(type = PF.Property, ret = PFType.Bool,self = PFType.Self, arg1 = PFType.None, arg2 = PFType.None)
     override fun isBlockedRight(id: Int) = getPlayer(id).isBlockedRight
-    @PlaygroundFunction(type = PF.Property, ret = PFType.Bool ,self = PFType.Self, arg1 = PFType.None, arg2 = PFType.None)
+    @PlaygroundFunction(type = PF.Property, ret = PFType.Bool,self = PFType.Self, arg1 = PFType.None, arg2 = PFType.None)
     override fun collectedGem(id: Int) = getPlayer(id).collectedGem
 
     @PlaygroundFunction(type = PF.Method, ret = PFType.None, self = PFType.Self, arg1 = PFType.None, arg2 = PFType.None)
@@ -78,6 +94,7 @@ class ColorfulMountainManager(override val playground: Playground, override val 
         appendEntry()
     }
 
+
     @PlaygroundFunction(type = PF.Method, ret = PFType.None, self = PFType.Self, arg1 = PFType.None, arg2 = PFType.None)
     fun turnLockUp(id: Int) {
         if (getPlayer(id) !is Specialist) throw Exception("Only specialist could turn locks up")
@@ -93,18 +110,6 @@ class ColorfulMountainManager(override val playground: Playground, override val 
         appendEntry()
     }
 
-    @PlaygroundFunction(type = PF.Method, ret = PFType.None, self = PFType.Self, arg1 = PFType.Color, arg2 = PFType.None)
-    fun changeColor(id: Int, c: Color) {
-        getPlayer(id).changeColor(c)
-        printGrid()
-        appendEntry()
-    }
-
-
-//    override fun printGrid() {
-        // TODO ("TBA")
-//    }
-
     override fun appendEntry() {
         if (payloadStorage.size > 1000)
             throw Exception("Too many entries!")
@@ -116,13 +121,11 @@ class ColorfulMountainManager(override val playground: Playground, override val 
         for (i in playground.itemLayout.indices)
             for (j in playground.itemLayout[0].indices)
                 currentLayout[i][j] = playground.itemLayout[i][j]
-        val currentColorLayout: MutableList<MutableList<Color>> = MutableList(playground.tileLayout.size) { MutableList(playground.tileLayout[0].size) { Color.WHITE } }
-        val currentLevelLayout: MutableList<MutableList<Int>> = MutableList(playground.tileLayout.size) { MutableList(playground.tileLayout[0].size) { 1 } }
+        val currentColorLayout = List(playground.tileLayout.size) { List(playground.tileLayout[0].size) { Color.WHITE } }
+        val currentLevelLayout = MutableList(playground.tileLayout.size) { MutableList(playground.tileLayout[0].size) { 1 } }
         for (i in playground.tileLayout.indices)
             for (j in playground.tileLayout[0].indices) {
-                (playground.tileLayout[i][j]).let {
-                    currentColorLayout[i][j] = it.color; currentLevelLayout[i][j] = it.level
-                }
+                currentLevelLayout[i][j] = playground.tileLayout[i][j].level
             }
         val currentPortals = MutableList(playground.portals.size) { Portal() }
         for (i in playground.portals.indices)
@@ -139,4 +142,5 @@ class ColorfulMountainManager(override val playground: Playground, override val 
         payloadStorage.add(payload)
         this.special = ""
     }
+
 }
