@@ -1,4 +1,17 @@
-package org.ironica.amatsukaze
+/*
+ * Copyright (c) 2020-2021. kokoro-aya. All right reserved.
+ * Amatsukaze - A Playground Server implemented with ANTLR or Kotlin DSL
+ *
+ * This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+ * You should have received a copy of the GNU Affero General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
+package org.ironica.amatsukaze.manager
+
+import org.ironica.amatsukaze.playground.characters.Player
+import org.ironica.amatsukaze.playground.Playground
 
 interface AbstractManager {
     val playground: Playground
@@ -10,7 +23,7 @@ interface AbstractManager {
     val stdout: Boolean
 
     fun getPlayer(id: Int): Player {
-        val player = playground.players.filter { it.id == id }
+        val player = playground.characters.keys.filter { it.id == id }
         if (player.isEmpty()) throw Exception("No player with given id found")
         return player[0]
     }
@@ -59,7 +72,7 @@ interface AbstractManager {
     }
 
     fun dead(): Boolean {
-        return if (playground.players.isEmpty()) {
+        return if (playground.characters.keys.all { it.isDead }) {
             special = "GAMEOVER"
             appendEntry()
             true
@@ -67,11 +80,11 @@ interface AbstractManager {
     }
 
     fun gemCount(): Int {
-        return playground.gemCount()
+        return playground.allGemCollected
     }
 
     fun switchCount(): Int {
-        return playground.switchCount()
+        return playground.allOpenedSwitch
     }
 
     fun appendEntry()

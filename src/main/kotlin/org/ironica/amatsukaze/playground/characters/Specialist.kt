@@ -8,18 +8,20 @@
  *
  */
 
-@file:DependsOn("org.antlr:antlr4:4.9")
+package org.ironica.amatsukaze.playground.characters
 
-import org.antlr.v4.Tool
-import java.io.File
+import org.ironica.amatsukaze.playground.data.Coordinate
+import org.ironica.amatsukaze.bridge.LockData
+import org.ironica.amatsukaze.playground.Blocks
+import org.ironica.amatsukaze.playground.Direction
 
-job("Generate parser and recognizer and then build the project") {
-    container("openjdk:11") {
-        kotlinScript { api ->
-            Tool.main(arrayOf("-o", "gen", "-visitor", "-no-listener", "src/main/amatsukazeGrammar.g4"))
-            println("Grammar Recognizer generated.")
-            api.gradlew("build")
-            println("Build succeeded.")
-        }
-    }
+class Specialist(id: Int, coo: Coordinate, dir: Direction, stamina: Int): Player(id, dir, stamina) {
+
+    lateinit var locks: List<LockData>
+
+    val isBeforeLock = { playground.specialistIsBeforeLock(this) }
+
+    fun turnLockUp() = playground.specialistTurnLockUp(this)
+
+    fun turnLockDown() = playground.specialistTurnLockDown(this)
 }

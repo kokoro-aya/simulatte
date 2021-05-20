@@ -8,18 +8,15 @@
  *
  */
 
-@file:DependsOn("org.antlr:antlr4:4.9")
+package org.ironica.amatsukaze.playground.data
 
-import org.antlr.v4.Tool
-import java.io.File
+import kotlinx.serialization.Serializable
 
-job("Generate parser and recognizer and then build the project") {
-    container("openjdk:11") {
-        kotlinScript { api ->
-            Tool.main(arrayOf("-o", "gen", "-visitor", "-no-listener", "src/main/amatsukazeGrammar.g4"))
-            println("Grammar Recognizer generated.")
-            api.gradlew("build")
-            println("Build succeeded.")
-        }
-    }
+@Serializable
+data class Coordinate(var x: Int, var y: Int) {
+    fun incrementX() { x += 1 }
+    fun decrementX() { x -= 1 }
+    fun incrementY() { y += 1 }
+    fun decrementY() { y -= 1 }
+
 }

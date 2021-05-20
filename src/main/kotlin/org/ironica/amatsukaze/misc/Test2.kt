@@ -8,18 +8,14 @@
  *
  */
 
-@file:DependsOn("org.antlr:antlr4:4.9")
+package org.ironica.amatsukaze.misc
 
-import org.antlr.v4.Tool
-import java.io.File
+open class ABC
 
-job("Generate parser and recognizer and then build the project") {
-    container("openjdk:11") {
-        kotlinScript { api ->
-            Tool.main(arrayOf("-o", "gen", "-visitor", "-no-listener", "src/main/amatsukazeGrammar.g4"))
-            println("Grammar Recognizer generated.")
-            api.gradlew("build")
-            println("Build succeeded.")
-        }
-    }
+class DEF: ABC()
+
+fun main() {
+    val a = DEF()
+    val b = listOf(a)
+    b.filterIsInstance<ABC>()
 }

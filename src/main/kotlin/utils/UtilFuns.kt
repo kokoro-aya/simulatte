@@ -8,18 +8,22 @@
  *
  */
 
-@file:DependsOn("org.antlr:antlr4:4.9")
+package utils
 
-import org.antlr.v4.Tool
-import java.io.File
-
-job("Generate parser and recognizer and then build the project") {
-    container("openjdk:11") {
-        kotlinScript { api ->
-            Tool.main(arrayOf("-o", "gen", "-visitor", "-no-listener", "src/main/amatsukazeGrammar.g4"))
-            println("Grammar Recognizer generated.")
-            api.gradlew("build")
-            println("Build succeeded.")
+fun <A, B, C, D>zip(
+    first: List<List<A>>,
+    second: List<List<B>>,
+    third: List<List<C>>,
+    with: (A, B, C) -> D
+): List<List<D>> {
+    val x = first.size
+    val y = first[0].size
+    assert (second.size == x && third.size == x
+            && second[0].size == y && third[0].size == y
+    ) { "three arrays should have same dimensions" }
+    return first.mapIndexed { i1, p ->
+        p.mapIndexed { i2, a ->
+            with(a, second[i1][i2], third[i1][i2])
         }
     }
 }

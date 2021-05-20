@@ -8,18 +8,22 @@
  *
  */
 
-@file:DependsOn("org.antlr:antlr4:4.9")
+package org.ironica.amatsukaze.playground.data
 
-import org.antlr.v4.Tool
-import java.io.File
+import org.ironica.amatsukaze.playground.Direction
 
-job("Generate parser and recognizer and then build the project") {
-    container("openjdk:11") {
-        kotlinScript { api ->
-            Tool.main(arrayOf("-o", "gen", "-visitor", "-no-listener", "src/main/amatsukazeGrammar.g4"))
-            println("Grammar Recognizer generated.")
-            api.gradlew("build")
-            println("Build succeeded.")
-        }
-    }
+sealed class Block
+object Open: Block()
+object Hill: Block()
+object Water: Block()
+object Tree: Block()
+object Desert: Block()
+data class Home(val id: Int): Block() {
+
 }
+object Mountain: Block()
+object Stone: Block()
+data class Lock(val controlled: MutableList<Coordinate>, var isActive: Boolean, var energy: Int): Block()
+// TODO add rules on lock energy and deactivation
+data class Stair(val dir: Direction): Block()
+object Void: Block()

@@ -8,18 +8,20 @@
  *
  */
 
-@file:DependsOn("org.antlr:antlr4:4.9")
+package org.ironica.amatsukaze.corelanguage
 
-import org.antlr.v4.Tool
-import java.io.File
-
-job("Generate parser and recognizer and then build the project") {
-    container("openjdk:11") {
-        kotlinScript { api ->
-            Tool.main(arrayOf("-o", "gen", "-visitor", "-no-listener", "src/main/amatsukazeGrammar.g4"))
-            println("Grammar Recognizer generated.")
-            api.gradlew("build")
-            println("Build succeeded.")
-        }
-    }
-}
+sealed class DataType
+object _SOME: DataType() // TODO just a placeholder for complicated array type, should be fixed
+object _INT: DataType()
+object _DOUBLE: DataType()
+object _CHARACTER: DataType()
+object _STRING: DataType()
+object _BOOL: DataType()
+object _VOID: DataType()
+object _CALL: DataType()
+object _FUNCTION: DataType()
+object _STRUCT: DataType()
+object _ENUM: DataType()
+object _PLAYER: DataType()
+object _SPECIALIST: DataType()
+data class _ARRAY(val type: DataType): DataType()

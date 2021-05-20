@@ -8,18 +8,14 @@
  *
  */
 
-@file:DependsOn("org.antlr:antlr4:4.9")
+package org.ironica.amatsukaze.playground.data
 
-import org.antlr.v4.Tool
-import java.io.File
+import org.ironica.amatsukaze.playground.Color
 
-job("Generate parser and recognizer and then build the project") {
-    container("openjdk:11") {
-        kotlinScript { api ->
-            Tool.main(arrayOf("-o", "gen", "-visitor", "-no-listener", "src/main/amatsukazeGrammar.g4"))
-            println("Grammar Recognizer generated.")
-            api.gradlew("build")
-            println("Build succeeded.")
+data class AdditionalTileInfo(var color: Color = Color.WHITE, var level: Int = 1) {
+    init {
+        if (level < 0) {
+            level = 0
         }
     }
 }

@@ -1,10 +1,26 @@
-package org.ironica.amatsukaze
+/*
+ * Copyright (c) 2020-2021. kokoro-aya. All right reserved.
+ * Amatsukaze - A Playground Server implemented with ANTLR or Kotlin DSL
+ *
+ * This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+ * You should have received a copy of the GNU Affero General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
+package org.ironica.amatsukaze.corelanguage
 
 import amatsukazeGrammarVisitor
 import org.antlr.v4.runtime.tree.ErrorNode
 import org.antlr.v4.runtime.tree.ParseTree
 import org.antlr.v4.runtime.tree.RuleNode
 import org.antlr.v4.runtime.tree.TerminalNode
+import org.ironica.amatsukaze.internal.PF
+import org.ironica.amatsukaze.internal.PFType
+import org.ironica.amatsukaze.internal.PlaygroundFunction
+import org.ironica.amatsukaze.manager.AbstractManager
+import org.ironica.amatsukaze.playground.Color
+import org.ironica.amatsukaze.playground.characters.Specialist
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.pow
@@ -12,97 +28,9 @@ import kotlin.math.round
 import kotlin.reflect.full.declaredFunctions
 import kotlin.reflect.full.findAnnotation
 
-enum class SpecialRetVal {
-    Interr, Loop, Statements, Declaration, Branch, Empty, ReDef, NotDef
-}
-
-enum class Variability {
-    VAR, CST
-}
-
-data class TerminatedReturn(override val message: String?): Throwable()
-
-sealed class DataType
-object _SOME: DataType() // TODO just a placeholder for complicated array type, should be fixed
-object _INT: DataType()
-object _DOUBLE: DataType()
-object _CHARACTER: DataType()
-object _STRING: DataType()
-object _BOOL: DataType()
-object _VOID: DataType()
-object _CALL: DataType()
-object _FUNCTION: DataType()
-object _STRUCT: DataType()
-object _ENUM: DataType()
-object _PLAYER: DataType()
-object _SPECIALIST: DataType()
-data class _ARRAY(val type: DataType): DataType()
-
 private fun DataType.typeEquals(other: DataType): Boolean {
     return if (this !is _ARRAY) this == other
     else other is _ARRAY
-}
-
-sealed class Proto {
-    abstract val prototype: Proto?
-}
-sealed class Literal(): Proto() {
-    abstract val variability: Variability
-}
-data class IntegerLiteral(override val variability: Variability, var content: Int, override val prototype: Prototype): Literal()
-data class DoubleLiteral(override val variability: Variability, var content: Double, override val prototype: Prototype): Literal()
-data class BooleanLiteral(override val variability: Variability, var content: Boolean, override val prototype: Prototype): Literal()
-data class CharacterLiteral(override val variability: Variability, var content: Char, override val prototype: Prototype): Literal()
-data class StringLiteral(override val variability: Variability, var content: String, override val prototype: Prototype): Literal()
-
-data class ReturnedLiteral(val content: Any): Throwable()
-data class StructLiteral(override val variability: Variability, var body: MutableMap<String, Literal>, override var prototype: Prototype): Literal()
-data class FunctionLiteral(override val variability: Variability, var head: FuncHead, var body: ParseTree, var closureScope: List<Scope>, override var prototype: Prototype): Literal()
-data class ArrayLiteral(override val variability: Variability, var subType: DataType, var content: MutableList<Literal> = mutableListOf(), override var prototype: Prototype): Literal()
-data class Prototype (
-    val members: MutableMap<String, Literal>,
-    override var prototype: Proto? = null,
-    var ctor: Literal? = null
-): Proto()
-
-data class PlayerLiteral(override val variability: Variability, var id: Int, override val prototype: Prototype): Literal()
-data class SpecialistLiteral(override val variability: Variability, var id: Int, override val prototype: Prototype): Literal()
-
-data class FuncHead(var name: String, val params: List<String>, val types: List<DataType>, val refs: List<Boolean>, val ret: DataType) {
-
-    fun pseudoEquals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as FuncHead
-
-        if (name != other.name) return false
-        if (refs != other.refs) return false
-        if (types != other.types) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = name.hashCode()
-        result = 31 * result + types.hashCode()
-        return result
-    }
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as FuncHead
-
-        if (name != other.name) return false
-        if (params != other.params) return false
-        if (types != other.types) return false
-        if (refs != other.refs) return false
-        if (ret != other.ret) return false
-
-        return true
-    }
 }
 
 typealias Scope = MutableMap<String, Literal>
@@ -160,7 +88,7 @@ class AmatsukazeVisitor(private val manager: AbstractManager): amatsukazeGrammar
         return anonymousFuncIndices[level]++
     }
 
-    var playerList = manager.playground.players.toMutableList()
+    var playerList = manager.playground.characters.keys.toMutableList()
 
     /*
         default: print, typeof, isSame(a, b)
@@ -304,7 +232,8 @@ class AmatsukazeVisitor(private val manager: AbstractManager): amatsukazeGrammar
                 || right is ArrayLiteral && type is _ARRAY
 
                 || right is PlayerLiteral && type is _PLAYER
-                || right is SpecialistLiteral && type is _SPECIALIST) type else null
+                || right is SpecialistLiteral && type is _SPECIALIST
+        ) type else null
     }
 
     private fun checkTypeOfLiteralsIdentical(left: Literal, right: Literal): Boolean {
@@ -655,7 +584,8 @@ class AmatsukazeVisitor(private val manager: AbstractManager): amatsukazeGrammar
         if (!(left[0].isLetter() || left[0] == '_')) throw Exception("Illegal variable name")
         var right = visit(ctx?.expression())
         if (right is BooleanLiteral) {
-            val newright = if (right.content) IntegerLiteral(Variability.CST, 1, typeTable["Integer"]!!) else IntegerLiteral(Variability.CST, 0, typeTable["Integer"]!!)
+            val newright = if (right.content) IntegerLiteral(Variability.CST, 1, typeTable["Integer"]!!) else IntegerLiteral(
+                Variability.CST, 0, typeTable["Integer"]!!)
             right = newright
         }
         val lvar = queryVariableTable(left)
@@ -1410,7 +1340,8 @@ class AmatsukazeVisitor(private val manager: AbstractManager): amatsukazeGrammar
             } else {
                 val copiedFuncArgu = funcArgument.mapIndexed { i, l -> if (!refs[i]) copyOnFunctionCall(l) else l }
                 val funcHead = FuncHead(
-                    functionName, listOf(), literalsToDataType(copiedFuncArgu.toTypedArray()), refs, _CALL)
+                    functionName, listOf(), literalsToDataType(copiedFuncArgu.toTypedArray()), refs, _CALL
+                )
                 for (key in functionTable.keys)
                     if (funcHead.pseudoEquals(key))
                         return handleFunctionCallVisit(key, copiedFuncArgu, functionTable[key]!!.first)
@@ -1431,6 +1362,7 @@ class AmatsukazeVisitor(private val manager: AbstractManager): amatsukazeGrammar
                 return SpecialRetVal.NotDef
             }
         } catch (e: Exception) {
+            e.printStackTrace()
             throw Exception("Something went wrong while passing function call: \n    ${e.message}")
         }
     }

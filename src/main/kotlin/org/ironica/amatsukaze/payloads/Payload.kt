@@ -8,18 +8,27 @@
  *
  */
 
-@file:DependsOn("org.antlr:antlr4:4.9")
+package org.ironica.amatsukaze.payloads
 
-import org.antlr.v4.Tool
-import java.io.File
+import kotlinx.serialization.Serializable
+import org.ironica.amatsukaze.playground.Color
+import org.ironica.amatsukaze.playground.Blocks
+import org.ironica.amatsukaze.playground.data.Coordinate
 
-job("Generate parser and recognizer and then build the project") {
-    container("openjdk:11") {
-        kotlinScript { api ->
-            Tool.main(arrayOf("-o", "gen", "-visitor", "-no-listener", "src/main/amatsukazeGrammar.g4"))
-            println("Grammar Recognizer generated.")
-            api.gradlew("build")
-            println("Build succeeded.")
-        }
-    }
+@Serializable
+data class Payload(
+    val grid: List<List<Blocks>>,
+    val colors: List<List<Color>>,
+    val levels: List<List<Int>>,
+    val gems: List<Coordinate>,
+    val beepers: List<Coordinate>,
+    val switches: List<SerializedSwitch>,
+    val portals: List<SerializedPortalOrLock>,
+    val platforms: List<SerializedPlatform>,
+    val locks: List<SerializedPortalOrLock>,
+    val players: List<SerializedPlayer>,
+    val consoleLog: String,
+    val special: String
+    ) {
 }
+
