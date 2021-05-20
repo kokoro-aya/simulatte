@@ -88,7 +88,7 @@ class AmatsukazeVisitor(private val manager: AbstractManager): amatsukazeGrammar
         return anonymousFuncIndices[level]++
     }
 
-    var playerList = manager.playground.players.toMutableList()
+    var playerList = manager.playground.characters.keys.toMutableList()
 
     /*
         default: print, typeof, isSame(a, b)
@@ -1362,6 +1362,7 @@ class AmatsukazeVisitor(private val manager: AbstractManager): amatsukazeGrammar
                 return SpecialRetVal.NotDef
             }
         } catch (e: Exception) {
+            e.printStackTrace()
             throw Exception("Something went wrong while passing function call: \n    ${e.message}")
         }
     }

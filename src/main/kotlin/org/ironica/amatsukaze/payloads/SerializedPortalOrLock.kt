@@ -8,11 +8,14 @@
  *
  */
 
-package org.ironica.amatsukaze.playground.payloads
+package org.ironica.amatsukaze.payloads
 
 import kotlinx.serialization.Serializable
-import org.ironica.amatsukaze.playground.Direction
-import org.ironica.amatsukaze.playground.Role
+import org.ironica.amatsukaze.playground.data.Coordinate
 
 @Serializable
-data class SerializedPlayer(val id: Int, val x: Int, val y: Int, val dir: Direction, val role: Role, val stamina: Int)
+data class SerializedPortalOrLock(
+    val coo: Coordinate,
+    val isActive: Boolean,
+    val energy: Int,
+)

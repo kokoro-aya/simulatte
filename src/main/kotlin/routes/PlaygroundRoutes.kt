@@ -20,10 +20,10 @@ import io.ktor.routing.route
 import io.ktor.routing.routing
 import org.ironica.amatsukaze.bridge.AmatsukazeBridge
 import org.ironica.amatsukaze.bridge.IncomingData
-import org.ironica.amatsukaze.playground.payloads.ErrorMessage
-import org.ironica.amatsukaze.playground.payloads.NormalMessage
-import org.ironica.amatsukaze.playground.payloads.Status
-import org.ironica.amatsukaze.playground.payloads.payloadStorage
+import org.ironica.amatsukaze.payloads.ErrorMessage
+import org.ironica.amatsukaze.payloads.NormalMessage
+import org.ironica.amatsukaze.payloads.Status
+import org.ironica.amatsukaze.payloads.payloadStorage
 import java.lang.Exception
 
 fun Route.getPlaygroundRoute(args: Pair<Boolean, Boolean>) {

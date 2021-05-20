@@ -14,7 +14,9 @@ import org.ironica.amatsukaze.playground.data.*
 import org.ironica.amatsukaze.playground.Direction.*
 import org.ironica.amatsukaze.playground.characters.Player
 import org.ironica.amatsukaze.playground.characters.Specialist
+import java.lang.reflect.AccessibleObject
 import kotlin.reflect.KFunction
+import kotlin.reflect.jvm.isAccessible
 
 class Playground(val squares: List<List<Square>>,
                  val portals: MutableMap<Portal, Coordinate>,
@@ -181,7 +183,7 @@ class Playground(val squares: List<List<Square>>,
         return (t.level != f.level)
     }
 
-    private fun findAPath(from: Coordinate, to: Coordinate): Pair<PlayerReceiver?, PlayerReceiver?> {
+    fun findAPath(from: Coordinate, to: Coordinate): Pair<PlayerReceiver?, PlayerReceiver?> {
         assert(isAdjacent(from, to)) { "Playground:: Must move from a square to an adjacent square [A]" }
         if (!isMoveBlocked(from, to)) return PlayerReceiver.TILE to PlayerReceiver.TILE
         if (!isMoveFromPlatformToPlatformBlocked(from, to)) return PlayerReceiver.PLATFORM to PlayerReceiver.PLATFORM
@@ -192,19 +194,32 @@ class Playground(val squares: List<List<Square>>,
 
     private val Coordinate.up: Coordinate
         get() = Coordinate(this.x, this.y - 1)
-    private fun<T> Coordinate.up(func: KFunction<T>, vararg others: Any): T = func.call(this, this.up, others)
+    private fun<T> Coordinate.up(func: KFunction<T>, vararg others: Any?): T {
+        // Need to set accessible the function to invoke, otherwise the reflect library will refuse to check safety
+        AccessibleObject.setAccessible(this.javaClass.declaredFields.filter { it.name == func.name }.toTypedArray(), true)
+        return func.call(this, this.up, *others)
+    }
 
     private val Coordinate.down: Coordinate
         get() = Coordinate(this.x, this.y + 1)
-    private fun<T> Coordinate.down(func: KFunction<T>, vararg others: Any): T = func.call(this, this.down, others)
+    private fun<T> Coordinate.down(func: KFunction<T>, vararg others: Any?): T {
+        AccessibleObject.setAccessible(this.javaClass.declaredFields.filter { it.name == func.name }.toTypedArray(), true)
+        return func.call(this, this.down, *others)
+    }
 
     private val Coordinate.left: Coordinate
         get() = Coordinate(this.x - 1, this.y)
-    private fun<T> Coordinate.left(func: KFunction<T>, vararg others: Any): T = func.call(this, this.left, others)
+    private fun<T> Coordinate.left(func: KFunction<T>, vararg others: Any?): T {
+        AccessibleObject.setAccessible(this.javaClass.declaredFields.filter { it.name == func.name }.toTypedArray(), true)
+        return func.call(this, this.left, *others)
+    }
 
-    private val Coordinate.right: Coordinate
+    val Coordinate.right: Coordinate
         get() = Coordinate(this.x + 1, this.y)
-    private fun<T> Coordinate.right(func: KFunction<T>, vararg others: Any): T = func.call(this, this.right, others)
+    private fun<T> Coordinate.right(func: KFunction<T>, vararg others: Any?): T {
+        AccessibleObject.setAccessible(this.javaClass.declaredFields.filter { it.name == func.name }.toTypedArray(), true)
+        return func.call(this, this.right, *others)
+    }
 
 
     private fun findPathTowardYPlus(char: Player): Pair<PlayerReceiver?, PlayerReceiver?> = char.getCoo.up(::findAPath)
@@ -212,7 +227,7 @@ class Playground(val squares: List<List<Square>>,
     private fun findPathTowardXMinus(char: Player): Pair<PlayerReceiver?, PlayerReceiver?> = char.getCoo.left(::findAPath)
     private fun findPathTowardXPlus(char: Player): Pair<PlayerReceiver?, PlayerReceiver?> = char.getCoo.right(::findAPath)
 
-    private fun move(from: Coordinate, to: Coordinate, char: Player, path: Pair<PlayerReceiver?, PlayerReceiver?>) {
+    fun move(from: Coordinate, to: Coordinate, char: Player, path: Pair<PlayerReceiver?, PlayerReceiver?>, action: () -> Unit) {
         when (path.first!!) {
             PlayerReceiver.TILE -> when (path.second!!) {
                 PlayerReceiver.TILE -> {
@@ -231,6 +246,7 @@ class Playground(val squares: List<List<Square>>,
                 }
             }
         }
+        action.invoke()
     }
 
     // Need to update reference of this player in the characters list, also entry point for movement
@@ -495,7 +511,7 @@ class Playground(val squares: List<List<Square>>,
     fun specialistIsBeforeLock(char: Specialist): Boolean {
         if (char.isDead) return false
         val coo = char.getCoo
-        val (x, y) = coo.asPairXY
+        val (x, y) = coo
         return when (char.dir) {
             UP -> y >= 1 && coo.up.asSquare.block is Lock
             DOWN -> y <= squares.size - 2 && coo.down.asSquare.block is Lock

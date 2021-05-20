@@ -66,7 +66,7 @@ class AmatsukazeBridge(
 
         portals = portaldatas.associate { Portal(it.coo, it.dest, isActive = true, color = Color.WHITE) to it.coo }
         // TODO add colors on portals
-        locks = lockdatas.associate { Lock(it.controlled.toMutableList()) to it.coo }
+        locks = lockdatas.associate { Lock(it.controlled.toMutableList(), isActive = true, energy = 15) to it.coo }
 
         players = playerdatas.associate { Player(it.id, it.dir, it.stamina) to Coordinate(it.x, it.y) }
 
@@ -186,7 +186,7 @@ class AmatsukazeBridge(
             portals!!.toMutableMap(),
             locks!!.toMutableMap(),
             players!!.toMutableMap(),
-            calculateInitialGem(itemLayout)) // TODO Fix this with future incoming data
+            ) // TODO Fix this with future incoming data
         val manager = when (type) {
             "colorful" -> ColorfulManager(playground, debug, stdout)
             "mountainous" -> MountainousManager(playground, debug, stdout)

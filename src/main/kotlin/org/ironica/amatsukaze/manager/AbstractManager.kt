@@ -23,7 +23,7 @@ interface AbstractManager {
     val stdout: Boolean
 
     fun getPlayer(id: Int): Player {
-        val player = playground.players.filter { it.id == id }
+        val player = playground.characters.keys.filter { it.id == id }
         if (player.isEmpty()) throw Exception("No player with given id found")
         return player[0]
     }
@@ -72,7 +72,7 @@ interface AbstractManager {
     }
 
     fun dead(): Boolean {
-        return if (playground.players.isEmpty()) {
+        return if (playground.characters.keys.all { it.isDead }) {
             special = "GAMEOVER"
             appendEntry()
             true
@@ -80,11 +80,11 @@ interface AbstractManager {
     }
 
     fun gemCount(): Int {
-        return playground.gemCount()
+        return playground.allGemCollected
     }
 
     fun switchCount(): Int {
-        return playground.switchCount()
+        return playground.allOpenedSwitch
     }
 
     fun appendEntry()

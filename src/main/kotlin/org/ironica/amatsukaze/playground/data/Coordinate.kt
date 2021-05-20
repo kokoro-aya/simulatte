@@ -19,6 +19,4 @@ data class Coordinate(var x: Int, var y: Int) {
     fun incrementY() { y += 1 }
     fun decrementY() { y -= 1 }
 
-    val asPairXY: Pair<Int, Int>
-        get() = x to y
 }

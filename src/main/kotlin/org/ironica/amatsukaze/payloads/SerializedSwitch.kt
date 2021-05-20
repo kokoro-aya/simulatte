@@ -8,22 +8,13 @@
  *
  */
 
-package org.ironica.amatsukaze.playground.data
+package org.ironica.amatsukaze.payloads
 
-import org.ironica.amatsukaze.playground.Direction
+import kotlinx.serialization.Serializable
+import org.ironica.amatsukaze.playground.data.Coordinate
 
-sealed class Block
-object Open: Block()
-object Hill: Block()
-object Water: Block()
-object Tree: Block()
-object Desert: Block()
-data class Home(val id: Int): Block() {
-
-}
-object Mountain: Block()
-object Stone: Block()
-data class Lock(val controlled: MutableList<Coordinate>, var isActive: Boolean, var energy: Int): Block()
-// TODO add rules on lock energy and deactivation
-data class Stair(val dir: Direction): Block()
-object Void: Block()
+@Serializable
+data class SerializedSwitch(
+    val coo: Coordinate,
+    val on: Boolean,
+)

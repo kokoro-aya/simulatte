@@ -8,30 +8,15 @@
  *
  */
 
-package org.ironica.amatsukaze.playground.payloads
+package org.ironica.amatsukaze.payloads
 
 import kotlinx.serialization.Serializable
-import org.ironica.amatsukaze.playground.Color
-import org.ironica.amatsukaze.playground.data.Grid
-import org.ironica.amatsukaze.playground.data.ItemLayout
-import org.ironica.amatsukaze.bridge.PortalData
 
 @Serializable
-data class Payload(
-    val grid: Grid,
-    val itemLayout: ItemLayout,
-    val colors: List<List<Color>>,
-    val levels: List<List<Int>>,
-    val players: List<SerializedPlayer>,
-    val portals: List<PortalData>,
-    val consoleLog: String,
-    val special: String
-    ) {
-    constructor(
-        players: List<SerializedPlayer>,
-        portals: List<PortalData>,
-        grid: SerializedPlayground,
-        consoleLog: String,
-        special: String
-    ): this(grid.grid, grid.itemLayout, grid.colors, grid.levels, players, portals, consoleLog, special)
-}
+sealed class Message
+
+@Serializable
+data class NormalMessage(val status: Status, val payload: List<Payload>): Message()
+
+@Serializable
+data class ErrorMessage(val status: Status, val msg: String): Message()

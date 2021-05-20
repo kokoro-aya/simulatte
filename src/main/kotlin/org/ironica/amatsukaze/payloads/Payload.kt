@@ -8,12 +8,27 @@
  *
  */
 
-package org.ironica.amatsukaze.playground.payloads
+package org.ironica.amatsukaze.payloads
 
 import kotlinx.serialization.Serializable
 import org.ironica.amatsukaze.playground.Color
-import org.ironica.amatsukaze.playground.data.Grid
-import org.ironica.amatsukaze.playground.data.ItemLayout
+import org.ironica.amatsukaze.playground.Blocks
+import org.ironica.amatsukaze.playground.data.Coordinate
 
 @Serializable
-data class SerializedPlayground(val grid: Grid, val itemLayout: ItemLayout, val colors: List<List<Color>>, val levels: List<List<Int>>)
+data class Payload(
+    val grid: List<List<Blocks>>,
+    val colors: List<List<Color>>,
+    val levels: List<List<Int>>,
+    val gems: List<Coordinate>,
+    val beepers: List<Coordinate>,
+    val switches: List<SerializedSwitch>,
+    val portals: List<SerializedPortalOrLock>,
+    val platforms: List<SerializedPlatform>,
+    val locks: List<SerializedPortalOrLock>,
+    val players: List<SerializedPlayer>,
+    val consoleLog: String,
+    val special: String
+    ) {
+}
+

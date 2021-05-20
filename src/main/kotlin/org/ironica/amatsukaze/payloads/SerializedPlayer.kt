@@ -8,15 +8,11 @@
  *
  */
 
-package org.ironica.amatsukaze.playground.payloads
+package org.ironica.amatsukaze.payloads
 
 import kotlinx.serialization.Serializable
+import org.ironica.amatsukaze.playground.Direction
+import org.ironica.amatsukaze.playground.Role
 
 @Serializable
-sealed class Message
-
-@Serializable
-data class NormalMessage(val status: Status, val payload: List<Payload>): Message()
-
-@Serializable
-data class ErrorMessage(val status: Status, val msg: String): Message()
+data class SerializedPlayer(val id: Int, val x: Int, val y: Int, val dir: Direction, val role: Role, val stamina: Int)

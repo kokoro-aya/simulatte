@@ -8,6 +8,7 @@
  *
  */
 
-package org.ironica.amatsukaze.playground.payloads
+package org.ironica.amatsukaze.payloads
 
-enum class Status { OK, ERROR }
+val payloadStorage = mutableListOf<Payload>()
+

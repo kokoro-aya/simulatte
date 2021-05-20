@@ -8,7 +8,13 @@
  *
  */
 
-package org.ironica.amatsukaze.playground.payloads
+package org.ironica.amatsukaze.payloads
 
-val payloadStorage = mutableListOf<Payload>()
+import kotlinx.serialization.Serializable
+import org.ironica.amatsukaze.playground.data.Coordinate
 
+@Serializable
+data class SerializedPlatform(
+    val coo: Coordinate,
+    val level: Int,
+)

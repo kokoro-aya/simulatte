@@ -15,14 +15,12 @@ import org.ironica.amatsukaze.internal.PFType
 import org.ironica.amatsukaze.internal.PlaygroundFunction
 import org.ironica.amatsukaze.playground.*
 import org.ironica.amatsukaze.bridge.PortalData
+import org.ironica.amatsukaze.payloads.*
 import org.ironica.amatsukaze.playground.Blocks
 import org.ironica.amatsukaze.playground.Items
 import org.ironica.amatsukaze.playground.Role
-import org.ironica.amatsukaze.playground.payloads.Payload
-import org.ironica.amatsukaze.playground.payloads.SerializedPlayer
-import org.ironica.amatsukaze.playground.payloads.SerializedPlayground
-import org.ironica.amatsukaze.playground.payloads.payloadStorage
 import org.ironica.amatsukaze.playground.characters.Specialist
+import org.ironica.amatsukaze.playground.data.*
 
 class ColorfulManager(override val playground: Playground, override val debug: Boolean, override val stdout: Boolean):
     AbstractManager {
@@ -30,7 +28,7 @@ class ColorfulManager(override val playground: Playground, override val debug: B
     override var consoleLog: String = ""
     override var special: String = ""
 
-    override val firstId = playground.players.map { it.id }.sorted()[0]
+    override val firstId = playground.characters.keys.map { it.id }.sorted()[0]
 
     @PlaygroundFunction(type = PF.Property, ret = PFType.Bool,self = PFType.Self, arg1 = PFType.None, arg2 = PFType.None)
     override fun isOnGem(id: Int) = getPlayer(id).isOnGem
@@ -114,7 +112,7 @@ class ColorfulManager(override val playground: Playground, override val debug: B
 
     override fun printGrid() {
         if (debug) {
-            playground.tileLayout.forEach { line ->
+            playground.squares.forEach { line ->
                 line.forEach { tile ->
                     val t = tile.color
                     print(
@@ -147,33 +145,59 @@ class ColorfulManager(override val playground: Playground, override val debug: B
     override fun appendEntry() {
         if (payloadStorage.size > 1000)
             throw Exception("Too many entries!")
-        val currentGrid = MutableList(playground.grid.size) { MutableList(playground.grid[0].size) { Blocks.OPEN } }
-        for (i in playground.grid.indices)
-            for (j in playground.grid[0].indices)
-                currentGrid[i][j] = playground.grid[i][j]
-        val currentLayout = MutableList(playground.itemLayout.size) { MutableList(playground.itemLayout[0].size) { Items.NONE } }
-        for (i in playground.itemLayout.indices)
-            for (j in playground.itemLayout[0].indices)
-                currentLayout[i][j] = playground.itemLayout[i][j]
-        val currentColorLayout: MutableList<MutableList<Color>> = MutableList(playground.tileLayout.size) { MutableList(playground.tileLayout[0].size) { Color.WHITE } }
-        val currentLevelLayout = List(playground.grid.size) { List(playground.grid[0].size) { 1 } }
-        for (i in playground.tileLayout.indices)
-            for (j in playground.tileLayout[0].indices) {
-                currentColorLayout[i][j] = playground.tileLayout[i][j].color
+
+        with (playground.squares) {
+            val currentGrid = this.map { it.map {
+                when (it.block) {
+                    Desert -> Blocks.DESERT
+                    Hill -> Blocks.HILL
+                    is Home -> Blocks.HOME
+                    is Lock -> Blocks.LOCK
+                    Mountain -> Blocks.MOUNTAIN
+                    Open -> Blocks.OPEN
+                    is Stair -> Blocks.STAIR
+                    Stone -> Blocks.STONE
+                    Tree -> Blocks.TREE
+                    Void -> Blocks.VOID
+                    Water -> Blocks.WATER
+                }
+            } }
+            val currentColors = this.map { it.map { it.color } }
+            val currentLevels = this.map { it.map { it.level } }
+            val gems = this.mapIndexed { i, line ->
+                line.mapIndexed { j, sq -> Coordinate(j, i) to sq.gem }.filter { it.second != null }
+            }.flatten().map { it.first }
+            val beepers = this.mapIndexed { i, line ->
+                line.mapIndexed { j, sq -> Coordinate(j, i) to sq.beeper }.filter { it.second != null }
+            }.flatten().map { it.first }
+            val switches = this.mapIndexed { i, line ->
+                line.mapIndexed { j, sq -> Coordinate(j, i) to sq.switch }.filter { it.second != null }
+            }.flatten().map { SerializedSwitch(it.first, it.second!!.on) }
+            val portals = this.mapIndexed { i, line ->
+                line.mapIndexed { j, sq -> Coordinate(j, i) to sq.portal }.filter { it.second != null }
+            }.flatten().map { SerializedPortalOrLock(it.first, it.second!!.isActive, it.second!!.energy) }
+            val platforms = this.mapIndexed { i, line ->
+                line.mapIndexed { j, sq -> Coordinate(j, i) to sq.platform }.filter { it.second != null }
+            }.flatten().map { SerializedPlatform(it.first, it.second!!.level) }
+            val locks = playground.locks.map { SerializedPortalOrLock(it.value, it.key.isActive, it.key.energy) }
+            val players = playground.characters.map {
+                val (x, y) = it.value
+                with (it.key) {
+                    SerializedPlayer(
+                        this.id, x, y, this.dir,
+                        if (this is Specialist) Role.SPECIALIST else Role.PLAYER,
+                            this.stamina,
+                    )
+                }
             }
-        val currentPortals = MutableList(playground.portals.size) { PortalData() }
-        for (i in playground.portals.indices)
-            currentPortals[i] = playground.portals[i]
-        val serializedPlayers = playground.players.map {
-            SerializedPlayer(it.id, it.coo.x, it.coo.y, it.dir, if (it is Specialist) Role.SPECIALIST else Role.PLAYER, it.stamina ?: 0) }
-        val payload = Payload(
-            serializedPlayers,
-            currentPortals,
-            SerializedPlayground(currentGrid, currentLayout, currentColorLayout, currentLevelLayout),
-            this.consoleLog,
-            this.special
-        )
-        payloadStorage.add(payload)
-        this.special = ""
+            val payload = Payload(
+                currentGrid, currentColors, currentLevels,
+                gems, beepers, switches, portals, platforms, locks,
+                players, this@ColorfulManager.consoleLog, this@ColorfulManager.special
+            )
+
+            payloadStorage.add(payload)
+            this@ColorfulManager.special = ""
+        }
     }
 }
