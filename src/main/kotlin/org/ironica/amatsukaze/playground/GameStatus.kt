@@ -8,20 +8,8 @@
  *
  */
 
-package org.ironica.amatsukaze.playground.characters
+package org.ironica.amatsukaze.playground
 
-import org.ironica.amatsukaze.playground.data.Coordinate
-import org.ironica.amatsukaze.bridge.LockData
-import org.ironica.amatsukaze.playground.Blocks
-import org.ironica.amatsukaze.playground.Direction
-
-class Specialist(id: Int, coo: Coordinate, dir: Direction, stamina: Int): Player(id, dir, stamina) {
-
-    lateinit var locks: List<LockData>
-
-    val isBeforeLock = { playground.specialistIsBeforeLock(this) }
-
-    fun turnLockUp() = playground.specialistTurnLockUp(this)
-
-    fun turnLockDown() = playground.specialistTurnLockDown(this)
+enum class GameStatus {
+    WIN, LOST, PENDING,
 }

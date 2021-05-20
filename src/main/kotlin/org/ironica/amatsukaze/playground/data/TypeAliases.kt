@@ -15,4 +15,4 @@ import org.ironica.amatsukaze.playground.Items
 
 typealias Grid = MutableList<MutableList<Blocks>>
 typealias ItemLayout = MutableList<MutableList<Items>>
-typealias TileLayout = MutableList<MutableList<Tile>>
+typealias TileLayout = MutableList<MutableList<AdditionalTileInfo>>

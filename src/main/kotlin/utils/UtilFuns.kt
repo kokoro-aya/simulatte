@@ -8,20 +8,22 @@
  *
  */
 
-package org.ironica.amatsukaze.playground.characters
+package utils
 
-import org.ironica.amatsukaze.playground.data.Coordinate
-import org.ironica.amatsukaze.bridge.LockData
-import org.ironica.amatsukaze.playground.Blocks
-import org.ironica.amatsukaze.playground.Direction
-
-class Specialist(id: Int, coo: Coordinate, dir: Direction, stamina: Int): Player(id, dir, stamina) {
-
-    lateinit var locks: List<LockData>
-
-    val isBeforeLock = { playground.specialistIsBeforeLock(this) }
-
-    fun turnLockUp() = playground.specialistTurnLockUp(this)
-
-    fun turnLockDown() = playground.specialistTurnLockDown(this)
+fun <A, B, C, D>zip(
+    first: List<List<A>>,
+    second: List<List<B>>,
+    third: List<List<C>>,
+    with: (A, B, C) -> D
+): List<List<D>> {
+    val x = first.size
+    val y = first[0].size
+    assert (second.size == x && third.size == x
+            && second[0].size == y && third[0].size == y
+    ) { "three arrays should have same dimensions" }
+    return first.mapIndexed { i1, p ->
+        p.mapIndexed { i2, a ->
+            with(a, second[i1][i2], third[i1][i2])
+        }
+    }
 }

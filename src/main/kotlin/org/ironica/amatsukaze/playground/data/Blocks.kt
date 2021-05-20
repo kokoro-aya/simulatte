@@ -10,4 +10,19 @@
 
 package org.ironica.amatsukaze.playground.data
 
-sealed class Blocks
+import org.ironica.amatsukaze.playground.Direction
+
+sealed class Block
+object Open: Block()
+object Hill: Block()
+object Water: Block()
+object Tree: Block()
+object Desert: Block()
+data class Home(val id: Int): Block() {
+
+}
+object Mountain: Block()
+object Stone: Block()
+data class Lock(val controlled: MutableList<Coordinate>): Block()
+data class Stair(val dir: Direction): Block()
+object Void: Block()

@@ -13,63 +13,26 @@ package org.ironica.amatsukaze.bridge
 import org.ironica.amatsukaze.playground.*
 import org.ironica.amatsukaze.playground.data.Coordinate
 import org.ironica.amatsukaze.playground.data.ItemLayout
-import org.ironica.amatsukaze.playground.data.Tile
+import org.ironica.amatsukaze.playground.data.AdditionalTileInfo
 import org.ironica.amatsukaze.playground.data.TileLayout
 import org.ironica.amatsukaze.playground.Direction
 import org.ironica.amatsukaze.playground.Items
 import org.ironica.amatsukaze.playground.characters.Player
 import org.ironica.amatsukaze.playground.characters.Specialist
 
-fun convertJsonToLayout(array: List<List<String>>): ItemLayout {
-    return array.map { it.map { when (it) {
-        "NONE" -> Items.NONE
-        "GEM" -> Items.GEM
-        "BEEPER" -> Items.BEEPER
-        "OPENEDSWITCH" -> Items.OPENEDSWITCH
-        "CLOSEDSWITCH" -> Items.CLOSEDSWITCH
-        "PORTAL" -> Items.PORTAL
-        "PLATFORM" -> Items.PLATFORM
-        else -> throw Exception("Cannot parse data to layout")
-    } }.toMutableList()}.toMutableList()
-}
-
-fun convertJsonToPlayers(array: List<PlayerData>): List<Player> {
-    return array.map { when(it.role) {
-        "PLAYER" -> Player(
-            it.id, Coordinate(it.x, it.y), when (it.dir) {
-                "UP" -> Direction.UP
-                "DOWN" -> Direction.DOWN
-                "LEFT" -> Direction.LEFT
-                "RIGHT" -> Direction.RIGHT
-                else -> throw Exception("Cannot parse data to player")
-            }, it.stamina.toIntOrNull()
-        )
-        "SPECIALIST" -> Specialist(
-            it.id, Coordinate(it.x, it.y), when (it.dir) {
-                "UP" -> Direction.UP
-                "DOWN" -> Direction.DOWN
-                "LEFT" -> Direction.LEFT
-                "RIGHT" -> Direction.RIGHT
-                else -> throw Exception("Cannot parse data to specialist")
-            }, it.stamina.toIntOrNull()
-        )
-        else -> throw Exception("Cannot parse data to player list")
-    } }
-}
-
 fun convertJsonToMiscLayout(colors: List<List<Color>>, levels: List<List<Int>>, using: String, defaultSize: Pair<Int, Int>): TileLayout {
     return when (using) {
         "colorful" -> {
             if (colors.size == defaultSize.first && colors[0].size == defaultSize.second)
-                colors.map { it.map { Tile(it) }.toMutableList() }.toMutableList()
+                colors.map { it.map { AdditionalTileInfo(it) }.toMutableList() }.toMutableList()
             else
-                MutableList(defaultSize.first) { MutableList(defaultSize.second) { Tile(Color.WHITE) } }
+                MutableList(defaultSize.first) { MutableList(defaultSize.second) { AdditionalTileInfo(Color.WHITE) } }
         }
         "mountainous" -> {
             if (levels.size == defaultSize.first && levels[0].size == defaultSize.second)
-                levels.map { it.map { Tile(level = it) }.toMutableList() }.toMutableList()
+                levels.map { it.map { AdditionalTileInfo(level = it) }.toMutableList() }.toMutableList()
             else
-                MutableList(defaultSize.first) { MutableList(defaultSize.second) { Tile() } }
+                MutableList(defaultSize.first) { MutableList(defaultSize.second) { AdditionalTileInfo() } }
         }
         "colorfulmountainous" -> {
             val cc = if (colors.size == defaultSize.first && colors[0].size == defaultSize.second) colors
@@ -78,32 +41,10 @@ fun convertJsonToMiscLayout(colors: List<List<Color>>, levels: List<List<Int>>, 
             else List(defaultSize.first) { List(defaultSize.second) { 1 } }
 
             cc.mapIndexed { i, line ->
-                line.mapIndexed { j, it -> Tile(it, ll[i][j]) }.toMutableList()
+                line.mapIndexed { j, it -> AdditionalTileInfo(it, ll[i][j]) }.toMutableList()
             }.toMutableList()
         }
         else -> throw Exception("Unsupported game module")
-    }
-}
-
-private fun convertDataToColor(data: String): Color {
-    return when (data) {
-        "BLACK" -> Color.BLACK
-        "SILVER" -> Color.SILVER
-        "GREY" -> Color.GREY
-        "WHITE" -> Color.WHITE
-        "RED" -> Color.RED
-        "ORANGE" -> Color.ORANGE
-        "GOLD" -> Color.GOLD
-        "PINK" -> Color.PINK
-        "YELLOW" -> Color.YELLOW
-        "BEIGE" -> Color.BEIGE
-        "BROWN" -> Color.BROWN
-        "GREEN" -> Color.GREEN
-        "AZURE" -> Color.AZURE
-        "CYAN" -> Color.CYAN
-        "ALICEBLUE" -> Color.ALICEBLUE
-        "PURPLE" -> Color.PURPLE
-        else -> throw Exception("Cannot parse data to color")
     }
 }
 

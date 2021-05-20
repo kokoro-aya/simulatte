@@ -8,14 +8,8 @@
  *
  */
 
-package org.ironica.amatsukaze.playground.data
+package org.ironica.amatsukaze.playground
 
-import org.ironica.amatsukaze.playground.Color
-
-data class Tile(var color: Color = Color.WHITE, var level: Int = 1) {
-    init {
-        if (level < 0) {
-            level = 0
-        }
-    }
+enum class PlayerReceiver {
+    TILE, PLATFORM
 }

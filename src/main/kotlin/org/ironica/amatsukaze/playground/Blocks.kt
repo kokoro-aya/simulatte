@@ -11,5 +11,5 @@
 package org.ironica.amatsukaze.playground
 
 enum class Blocks {
-    OPEN, BLOCKED, WATER, TREE, DESERT, HOME, MOUNTAIN, STONE, LOCK, STAIR, VOID,
+    OPEN, HILL, WATER, TREE, DESERT, HOME, MOUNTAIN, STONE, LOCK, STAIR, VOID,
 }

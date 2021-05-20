@@ -11,6 +11,8 @@
 package org.ironica.amatsukaze.bridge
 
 import kotlinx.serialization.Serializable
+import org.ironica.amatsukaze.playground.Direction
+import org.ironica.amatsukaze.playground.Role
 
 @Serializable
-data class PlayerData(val id: Int, val x: Int, val y: Int, val dir: String, val role: String, val stamina: String)
+data class PlayerData(val id: Int, val x: Int, val y: Int, val dir: Direction, val role: Role, val stamina: Int)

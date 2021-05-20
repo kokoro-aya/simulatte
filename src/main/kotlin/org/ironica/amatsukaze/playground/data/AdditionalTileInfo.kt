@@ -8,20 +8,14 @@
  *
  */
 
-package org.ironica.amatsukaze.playground.characters
+package org.ironica.amatsukaze.playground.data
 
-import org.ironica.amatsukaze.playground.data.Coordinate
-import org.ironica.amatsukaze.bridge.LockData
-import org.ironica.amatsukaze.playground.Blocks
-import org.ironica.amatsukaze.playground.Direction
+import org.ironica.amatsukaze.playground.Color
 
-class Specialist(id: Int, coo: Coordinate, dir: Direction, stamina: Int): Player(id, dir, stamina) {
-
-    lateinit var locks: List<LockData>
-
-    val isBeforeLock = { playground.specialistIsBeforeLock(this) }
-
-    fun turnLockUp() = playground.specialistTurnLockUp(this)
-
-    fun turnLockDown() = playground.specialistTurnLockDown(this)
+data class AdditionalTileInfo(var color: Color = Color.WHITE, var level: Int = 1) {
+    init {
+        if (level < 0) {
+            level = 0
+        }
+    }
 }

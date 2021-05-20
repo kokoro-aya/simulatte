@@ -10,19 +10,19 @@
 
 package org.ironica.amatsukaze.playground.data
 
-import org.ironica.amatsukaze.bridge.PortalData
 import org.ironica.amatsukaze.playground.characters.Player
 import org.ironica.amatsukaze.playground.Biome
-import org.ironica.amatsukaze.playground.Blocks
+import org.ironica.amatsukaze.playground.Color
 
 data class Square(
-    var block: Blocks,
-    var tile: Tile,
+    var block: Block,
+    var color: Color,
+    var level: Int,
     var biome: Biome,
     var switch: Switch?,
     var gem: Gem?,
     var beeper: Beeper?,
-    var portal: PortalData?,
+    var portal: Portal?,
     var platform: Platform?,
     var players: MutableList<Player> = mutableListOf()
 )

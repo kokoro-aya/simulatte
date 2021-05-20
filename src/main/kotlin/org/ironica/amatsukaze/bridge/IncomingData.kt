@@ -23,6 +23,7 @@ data class IncomingData(
     val layout: List<List<Items>>,
     val colors: List<List<Color>>,
     val levels: List<List<Int>>,
+    val biomes: List<List<Biome>>,
     val portals: List<PortalData>,
     val locks: List<LockData>,
     val stairs: List<StairData>,
