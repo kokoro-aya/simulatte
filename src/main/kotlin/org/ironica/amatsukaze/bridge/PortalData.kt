@@ -14,4 +14,4 @@ import kotlinx.serialization.Serializable
 import org.ironica.amatsukaze.playground.data.Coordinate
 
 @Serializable
-data class PortalData(val coo: Coordinate = Coordinate(0, 0), val dest: Coordinate = Coordinate(0, 0), var isActive: Boolean = false)
+data class PortalData(val coo: Coordinate, val dest: Coordinate, var isActive: Boolean = false)

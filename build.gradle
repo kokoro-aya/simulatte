@@ -40,7 +40,7 @@ repositories {
     }
 }
 
-mainClassName = 'org.ironica.amatsukaze.ApplicationKt'
+mainClassName = 'org.ironica.amatsukaze.app.ApplicationKt'
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
