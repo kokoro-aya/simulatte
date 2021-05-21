@@ -1,5 +1,4 @@
 # amatsukaze
-**The project will continue [here](https://github.com/Ironica/server)**
 
 A Playground server implemented with ANTLR and/or Kotlin DSL.
 
