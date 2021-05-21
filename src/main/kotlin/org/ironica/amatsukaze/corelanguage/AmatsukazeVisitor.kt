@@ -21,6 +21,7 @@ import org.ironica.amatsukaze.internal.PlaygroundFunction
 import org.ironica.amatsukaze.manager.AbstractManager
 import org.ironica.amatsukaze.playground.Color
 import org.ironica.amatsukaze.playground.characters.Specialist
+import java.lang.reflect.InvocationTargetException
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.pow
@@ -891,7 +892,11 @@ class AmatsukazeVisitor(private val manager: AbstractManager): amatsukazeGrammar
                     else -> throw Exception("Not implemented methods for object")
                 }
                 throw Exception("Unsupported methods for object")
-            } catch (e: Exception) {
+            } catch (e: InvocationTargetException) {
+//                e.cause?.printStackTrace()
+                throw Exception("Something went wrong while passing method call: \n    ${e.message}")
+            }
+            catch (e: Exception) {
                 throw Exception("Something went wrong while passing method call: \n    ${e.message}")
             }
         }
@@ -1362,7 +1367,6 @@ class AmatsukazeVisitor(private val manager: AbstractManager): amatsukazeGrammar
                 return SpecialRetVal.NotDef
             }
         } catch (e: Exception) {
-            e.printStackTrace()
             throw Exception("Something went wrong while passing function call: \n    ${e.message}")
         }
     }

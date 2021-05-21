@@ -11,12 +11,13 @@
 package org.ironica.amatsukaze.payloads
 
 import kotlinx.serialization.Serializable
+import org.ironica.amatsukaze.playground.GameStatus
 
 @Serializable
 sealed class Message
 
 @Serializable
-data class NormalMessage(val status: Status, val payload: List<Payload>): Message()
+data class NormalMessage(val status: Status, val payload: List<Payload>, val game: GameStatus): Message()
 
 @Serializable
 data class ErrorMessage(val status: Status, val msg: String): Message()

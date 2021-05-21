@@ -18,7 +18,7 @@ fun <A, B, C, D>zip(
 ): List<List<D>> {
     val x = first.size
     val y = first[0].size
-    assert (second.size == x && third.size == x
+    check (second.size == x && third.size == x
             && second[0].size == y && third[0].size == y
     ) { "three arrays should have same dimensions" }
     return first.mapIndexed { i1, p ->

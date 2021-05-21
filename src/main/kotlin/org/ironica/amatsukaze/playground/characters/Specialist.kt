@@ -15,7 +15,7 @@ import org.ironica.amatsukaze.bridge.LockData
 import org.ironica.amatsukaze.playground.Blocks
 import org.ironica.amatsukaze.playground.Direction
 
-class Specialist(id: Int, coo: Coordinate, dir: Direction, stamina: Int): Player(id, dir, stamina) {
+class Specialist(id: Int, dir: Direction, stamina: Int): Player(id, dir, stamina) {
 
     lateinit var locks: List<LockData>
 

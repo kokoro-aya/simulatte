@@ -20,7 +20,7 @@ import kotlin.reflect.jvm.isAccessible
 
 class Playground(val squares: List<List<Square>>,
                  val portals: MutableMap<Portal, Coordinate>,
-                 val locks: MutableMap<Lock, Coordinate>,
+                 val locks: MutableMap<Coordinate, Lock>,
                  val characters: MutableMap<Player, Coordinate>,
 
                  val canSwim: Boolean = false,
@@ -59,8 +59,8 @@ class Playground(val squares: List<List<Square>>,
         player.stamina = Int.MIN_VALUE / 2
     }
 
-    fun win(): Boolean = status == GameStatus.WIN
-    fun lose(): Boolean = status == GameStatus.LOST
+    fun win(): Boolean = status == GameStatus.WIN // TODO implement win conditions
+    fun lose(): Boolean = status == GameStatus.LOST // TODO implement lost conditions
     fun pending(): Boolean = status == GameStatus.PENDING
 
     private val Player.getCoo: Coordinate
@@ -68,7 +68,7 @@ class Playground(val squares: List<List<Square>>,
 
     private val Coordinate.asSquare: Square
         get() {
-            assert(y in squares.indices && x in squares[0].indices) {
+            check(y in squares.indices && x in squares[0].indices) {
                 "Playground:: attempt to convert a coordinate to a square but it's out of bounds"
             }
             return squares[y][x]
@@ -137,7 +137,7 @@ class Playground(val squares: List<List<Square>>,
      * Will also check the difference of height
      */
     private fun hasStairToward(from: Coordinate, to: Coordinate): Boolean {
-        assert (isAdjacent(from, to)) { "Playground:: Must move from a square to an adjacent square" }
+        check (isAdjacent(from, to)) { "Playground:: Must move from a square to an adjacent square" }
         to.asSquare.block.let {
             if (it !is Stair) return false
             if (from.y + 1 == to.y) return it.dir == UP
@@ -149,7 +149,7 @@ class Playground(val squares: List<List<Square>>,
     }
 
     private fun isMoveBlocked(from: Coordinate, to: Coordinate): Boolean {
-        assert(isAdjacent(from, to)) { "Playground:: Must move from a square to an adjacent square [1]" }
+        check(isAdjacent(from, to)) { "Playground:: Must move from a square to an adjacent square [1]" }
         val f = from.asSquare; val t = to.asSquare
         if (!isTileAccessible(t.block)) return true
         if (userCollision && t.players.isNotEmpty()) return true
@@ -160,7 +160,7 @@ class Playground(val squares: List<List<Square>>,
     }
 
     private fun isMoveFromPlatformToPlatformBlocked(from: Coordinate, to: Coordinate): Boolean {
-        assert(isAdjacent(from, to)) { "Playground:: Must move from a square to an adjacent square [2]" }
+        check(isAdjacent(from, to)) { "Playground:: Must move from a square to an adjacent square [2]" }
         val f = from.asSquare.platform; val t = to.asSquare.platform
         if (!(f != null && t != null)) return true
         if (userCollision && t.players.isNotEmpty()) return true
@@ -168,7 +168,7 @@ class Playground(val squares: List<List<Square>>,
     }
 
     private fun isMoveFromPlatformBlocked(from: Coordinate, to: Coordinate): Boolean {
-        assert(isAdjacent(from, to)) { "Playground:: Must move from a square to an adjacent square [3]" }
+        check(isAdjacent(from, to)) { "Playground:: Must move from a square to an adjacent square [3]" }
         val f = from.asSquare.platform; val t = to.asSquare
         if (f == null) return true
         if (userCollision && t.players.isNotEmpty()) return true
@@ -176,21 +176,26 @@ class Playground(val squares: List<List<Square>>,
     }
 
     private fun isMoveToPlatformBlocked(from: Coordinate, to: Coordinate): Boolean {
-        assert(isAdjacent(from, to)) { "Playground:: Must move from a square to an adjacent square [4]" }
+        check(isAdjacent(from, to)) { "Playground:: Must move from a square to an adjacent square [4]" }
         val f = from.asSquare; val t = to.asSquare.platform
         if (t == null) return true
         if (userCollision && t.players.isNotEmpty()) return true
         return (t.level != f.level)
     }
 
+    // Must be public in order to use reflect on this method
     fun findAPath(from: Coordinate, to: Coordinate): Pair<PlayerReceiver?, PlayerReceiver?> {
-        assert(isAdjacent(from, to)) { "Playground:: Must move from a square to an adjacent square [A]" }
+        if (!to.isInPlayground) return null to null
+        check(isAdjacent(from, to)) { "Playground:: Must move from a square to an adjacent square [A]" }
         if (!isMoveBlocked(from, to)) return PlayerReceiver.TILE to PlayerReceiver.TILE
         if (!isMoveFromPlatformToPlatformBlocked(from, to)) return PlayerReceiver.PLATFORM to PlayerReceiver.PLATFORM
         if (!isMoveFromPlatformBlocked(from, to)) return PlayerReceiver.PLATFORM to PlayerReceiver.TILE
         if (!isMoveToPlatformBlocked(from, to)) return PlayerReceiver.TILE to PlayerReceiver.PLATFORM
         return null to null
     }
+
+    private val Coordinate.isInPlayground: Boolean
+        get() = this.y in this@Playground.squares.indices && this.x in this@Playground.squares[0].indices
 
     private val Coordinate.up: Coordinate
         get() = Coordinate(this.x, this.y - 1)
@@ -227,6 +232,7 @@ class Playground(val squares: List<List<Square>>,
     private fun findPathTowardXMinus(char: Player): Pair<PlayerReceiver?, PlayerReceiver?> = char.getCoo.left(::findAPath)
     private fun findPathTowardXPlus(char: Player): Pair<PlayerReceiver?, PlayerReceiver?> = char.getCoo.right(::findAPath)
 
+    // Must be public in order to use reflect on this method
     fun move(from: Coordinate, to: Coordinate, char: Player, path: Pair<PlayerReceiver?, PlayerReceiver?>, action: () -> Unit) {
         when (path.first!!) {
             PlayerReceiver.TILE -> when (path.second!!) {
@@ -521,7 +527,7 @@ class Playground(val squares: List<List<Square>>,
     }
 
     private fun turnLock(coo: Coordinate, up: Boolean) {
-        with (locks.entries.firstOrNull { it.value == coo }?.key
+        with (locks[coo]
             ?: throw Exception("Playground:: No lock of the coordinate found")) {
             this.controlled.forEach {
                 with (it.asSquare) {
@@ -535,7 +541,7 @@ class Playground(val squares: List<List<Square>>,
     }
 
     private fun lockPos(char: Specialist): Coordinate {
-        assert (specialistIsBeforeLock(char))
+        check (specialistIsBeforeLock(char))
         return when (char.dir) {
             UP -> char.getCoo.up
             DOWN -> char.getCoo.down

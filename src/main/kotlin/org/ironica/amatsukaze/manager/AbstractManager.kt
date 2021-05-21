@@ -10,6 +10,8 @@
 
 package org.ironica.amatsukaze.manager
 
+import org.ironica.amatsukaze.payloads.statusStorage
+import org.ironica.amatsukaze.playground.GameStatus
 import org.ironica.amatsukaze.playground.characters.Player
 import org.ironica.amatsukaze.playground.Playground
 
@@ -65,15 +67,15 @@ interface AbstractManager {
 
     fun win(): Boolean {
         return if (playground.win()) {
-            special = "WIN"
+            statusStorage.set(GameStatus.WIN)
             appendEntry()
             true
         } else false
     }
 
     fun dead(): Boolean {
-        return if (playground.characters.keys.all { it.isDead }) {
-            special = "GAMEOVER"
+        return if (playground.lose()) {
+            statusStorage.set(GameStatus.LOST)
             appendEntry()
             true
         } else false

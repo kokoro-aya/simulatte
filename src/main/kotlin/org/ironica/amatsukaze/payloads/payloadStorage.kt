@@ -10,5 +10,9 @@
 
 package org.ironica.amatsukaze.payloads
 
-val payloadStorage = mutableListOf<Payload>()
+import org.ironica.amatsukaze.playground.GameStatus
+
+val payloadStorage = ThreadLocal<MutableList<Payload>>()
+
+var statusStorage = ThreadLocal<GameStatus>()
 

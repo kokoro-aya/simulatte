@@ -23,7 +23,7 @@ data class Home(val id: Int): Block() {
 }
 object Mountain: Block()
 object Stone: Block()
-data class Lock(val controlled: MutableList<Coordinate>, var isActive: Boolean, var energy: Int): Block()
+data class Lock(val id: Int, val controlled: MutableList<Coordinate>, var isActive: Boolean, var energy: Int): Block()
 // TODO add rules on lock energy and deactivation
 data class Stair(val dir: Direction): Block()
 object Void: Block()

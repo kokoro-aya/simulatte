@@ -20,31 +20,35 @@ import org.ironica.amatsukaze.corelanguage.AmatsukazeVisitor
 import org.ironica.amatsukaze.manager.ColorfulManager
 import org.ironica.amatsukaze.manager.ColorfulMountainManager
 import org.ironica.amatsukaze.manager.MountainousManager
+import org.ironica.amatsukaze.payloads.payloadStorage
+import org.ironica.amatsukaze.payloads.statusStorage
 import org.ironica.amatsukaze.playground.*
 import org.ironica.amatsukaze.playground.data.*
 import org.ironica.amatsukaze.playground.characters.Player
+import org.ironica.amatsukaze.playground.characters.Specialist
 import utils.zip
 
 class AmatsukazeBridge(
-    val type: String,
-    val code: String,
-    val grid: Grid,
-    val itemLayout: ItemLayout,
-    val colors: List<List<Color>>,
-    val levels: List<List<Int>>,
-    val biomes: List<List<Biome>>,
-    val portaldatas: List<PortalData>,
-    val lockdatas: List<LockData>,
-    val stairdatas: List<StairData>,
-    val platformdatas: List<PlatformData>,
-    val playerdatas: List<PlayerData>,
+    private val type: String,
+    private val code: String,
+    private val grid: Grid,
+    private val itemLayout: ItemLayout,
+    private val colors: List<List<Color>>,
+    private val levels: List<List<Int>>,
+    private val biomes: List<List<Biome>>,
+    private val portaldatas: List<PortalData>,
+    private val lockdatas: List<LockData>,
+    private val stairdatas: List<StairData>,
+    private val platformdatas: List<PlatformData>,
+    playerdatas: List<PlayerData>,
     val debug: Boolean, val stdout: Boolean,
-
-    var squares: List<List<Square>>? = null, // TODO need to improve this
-    var locks: Map<Lock, Coordinate>? = null,
-    var portals: Map<Portal, Coordinate>? = null,
-    var players: Map<Player, Coordinate>? = null,
 ) {
+
+    var squares: List<List<Square>>
+    var locks: Map<Coordinate, Lock>
+    var portals: Map<Portal, Coordinate>
+    var players: Map<Player, Coordinate>
+
     // Pre-initialization of data structures to be passed to playground
     // = Pre-init Checks
     //   - Dimension check -
@@ -64,11 +68,17 @@ class AmatsukazeBridge(
     init {
         preInitChecks()
 
+        var lockIds = 0 // To distinguish different locks with the same controlled platforms (and eventually same colors)
+
         portals = portaldatas.associate { Portal(it.coo, it.dest, isActive = true, color = Color.WHITE) to it.coo }
         // TODO add colors on portals
-        locks = lockdatas.associate { Lock(it.controlled.toMutableList(), isActive = true, energy = 15) to it.coo }
+        locks = lockdatas.associate { it.coo to Lock(lockIds++, it.controlled.toMutableList(), isActive = true, energy = 15) }
 
-        players = playerdatas.associate { Player(it.id, it.dir, it.stamina) to Coordinate(it.x, it.y) }
+        players = playerdatas.associate {
+            (if (it.role == Role.SPECIALIST) Specialist(it.id, it.dir, it.stamina)
+                else Player(it.id, it.dir, it.stamina)).let {
+                p -> p to Coordinate(it.x, it.y)
+            } }
 
         val platforms = platformdatas.associate { Platform(it.level) to it.coo }
 
@@ -84,7 +94,7 @@ class AmatsukazeBridge(
                     Blocks.HOME -> Home(homeId++)
                     Blocks.MOUNTAIN -> Mountain
                     Blocks.STONE -> Stone
-                    Blocks.LOCK -> locks!!.entries.firstOrNull { it.value == Coordinate(j, i) }?.key
+                    Blocks.LOCK -> locks[Coordinate(j, i)]
                         ?: throw Exception("Initialization:: A tile declared as Lock without lock info registered")
                     Blocks.STAIR -> stairdatas.firstOrNull { it.coo == Coordinate(j, i) }?.let { Stair(it.dir) }
                         ?: throw Exception("Initialization:: A tile declared as Stair without Stair info registered")
@@ -104,69 +114,74 @@ class AmatsukazeBridge(
                 when (it) {
                     Items.NONE -> {
                     }
-                    Items.GEM -> squares!![i][j].gem = Gem()
-                    Items.CLOSEDSWITCH -> squares!![i][j].switch = Switch(on = false)
-                    Items.OPENEDSWITCH -> squares!![i][j].switch = Switch(on = true)
-                    Items.BEEPER -> squares!![i][j].beeper = Beeper()
-                    Items.PORTAL -> squares!![i][j].portal = portals?.entries?.firstOrNull {
+                    Items.GEM -> squares[i][j].gem = Gem()
+                    Items.CLOSEDSWITCH -> squares[i][j].switch = Switch(on = false)
+                    Items.OPENEDSWITCH -> squares[i][j].switch = Switch(on = true)
+                    Items.BEEPER -> squares[i][j].beeper = Beeper()
+                    Items.PORTAL -> squares[i][j].portal = portals.entries.firstOrNull {
                         it.value == Coordinate(j, i)
                     }?.key
-                    Items.PLATFORM -> squares!![i][j].platform = platforms?.entries?.firstOrNull {
+                    Items.PLATFORM -> squares[i][j].platform = platforms.entries.firstOrNull {
                         it.value == Coordinate(j, i)
                     }?.key
                 }
             }
         }
 
-        players!!.forEach { squares!![it.value.x][it.value.y].players.add(it.key) }
+        players.forEach { squares[it.value.y][it.value.x].players.add(it.key) }
 
     }
 
     private fun preInitChecks() {
-        assert (grid.size == itemLayout.size && grid.size == colors.size && grid.size == levels.size
-                && grid[0].size == itemLayout[0].size && grid[0].size == colors[0].size && grid[0].size == levels[0].size
-        ) { "Initialization:: grid, itemlayout and misclayout must have same dimension!" }
+        check (grid.size == itemLayout.size && grid[0].size == itemLayout[0].size)
+        { "Initialization:: layouts must have same dimension [0]" }
+        check (grid.size == colors.size && grid[0].size == colors[0].size)
+        { "Initialization:: layouts must have same dimension [1]" }
+        check (grid.size == levels.size && grid[0].size == levels[0].size)
+        { "Initialization:: layouts must have same dimension [2]" }
+        check (grid.size == biomes.size && grid[0].size == biomes[0].size)
+        { "Initialization:: layouts must have same dimension [3]" }
 
-        assert (lockdatas.all { it.coo.let { grid[it.y][it.x] == Blocks.LOCK } }) {
+        check (lockdatas.all { it.coo.let { grid[it.y][it.x] == Blocks.LOCK } }) {
             "Initialization:: A Lock registration corresponding to a tile which is not a Lock"
         }
 
-        assert (platformdatas.all { it.coo.let { itemLayout[it.y][it.x] == Items.PLATFORM } }) {
+        check (platformdatas.all { it.coo.let { itemLayout[it.y][it.x] == Items.PLATFORM } }) {
             "Initialization:: A Platform registration corresponding to a coordinate which has no Platform"
         }
 
-        assert (lockdatas.all { it.controlled.all { itemLayout[it.y][it.x] == Items.PLATFORM } }) {
+        check (lockdatas.all { it.controlled.all { itemLayout[it.y][it.x] == Items.PLATFORM } }) {
             "Initialization:: A coordinate controlled by a Lock has no Platform"
         }
 
-        assert (portaldatas.all { it.coo.let { itemLayout[it.y][it.x] == Items.PORTAL } }) {
+        check (portaldatas.all { it.coo.let { itemLayout[it.y][it.x] == Items.PORTAL } }) {
             "Initialization:: A Portal registration corresponding to a coordinate which has no portal"
         }
 
-        assert (stairdatas.all { it.coo.let { grid[it.y][it.x] == Blocks.STAIR } }) {
+        check (stairdatas.all { it.coo.let { grid[it.y][it.x] == Blocks.STAIR } }) {
             "Initialization:: A Stair registration corresponding to a tile which is not a Stair"
         }
 
         grid.forEachIndexed { i, line ->
             line.forEachIndexed { j, _ ->
                 if (grid[i][j] == Blocks.LOCK) {
-                    assert (lockdatas.any { it.coo.x == j && it.coo.y == i }) {
+                    check (lockdatas.any { it.coo.x == j && it.coo.y == i }) {
                         "Initialization:: A tile Lock has no corresponding registration in data"
                     }
                 }
                 if (grid[i][j] == Blocks.STAIR) {
-                    assert (stairdatas.any { it.coo.x == j && it.coo.y == i }) {
+                    check (stairdatas.any { it.coo.x == j && it.coo.y == i }) {
                         "Initialization:: A tile Stair has no corresponding registration in data"
                     }
                 }
                 if (itemLayout[i][j] == Items.PORTAL) {
-                    assert (portaldatas.any { it.coo.x == j && it.coo.y == i }) {
+                    check (portaldatas.any { it.coo.x == j && it.coo.y == i }) {
                         "Initialization:: A coordinate contains Portal but not registered in data"
                     }
                 }
 
                 if (itemLayout[i][j] == Items.PLATFORM) {
-                    assert (platformdatas.any { it.coo.x == j && it.coo.y == i }) {
+                    check (platformdatas.any { it.coo.x == j && it.coo.y == i }) {
                         "Initialization:: A coordinate contains Platform but not registered in data"
                     }
                 }
@@ -182,10 +197,10 @@ class AmatsukazeBridge(
         val parser = amatsukazeGrammarParser(tokens)
         val tree: ParseTree = parser.top_level()
         val playground = Playground(
-            squares!!,
-            portals!!.toMutableMap(),
-            locks!!.toMutableMap(),
-            players!!.toMutableMap(),
+            squares,
+            portals.toMutableMap(),
+            locks.toMutableMap(),
+            players.toMutableMap(),
             ) // TODO Fix this with future incoming data
         val manager = when (type) {
             "colorful" -> ColorfulManager(playground, debug, stdout)
@@ -193,6 +208,8 @@ class AmatsukazeBridge(
             "colorfulmountainous" -> ColorfulMountainManager(playground, debug, stdout)
             else -> throw Exception("Unsupported game module")
         }
+        statusStorage.set(GameStatus.PENDING) // Set initial game status to PENDING
+        payloadStorage.set(mutableListOf()) // Set initial payload storage array into ThreadLocal storage
         manager.appendEntry() // Store the initial state of playground into payload list
         val exec = AmatsukazeVisitor(manager)
         exec.visit(tree)

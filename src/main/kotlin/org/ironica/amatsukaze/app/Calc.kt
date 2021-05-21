@@ -61,7 +61,7 @@ fun main(args: Array<String>) {
      1 1 1  1 1
      */
     val portals = mutableMapOf<Portal, Coordinate>()
-    val locks = mutableMapOf<Lock, Coordinate>()
+    val locks = mutableMapOf<Coordinate, Lock>()
     val players = mutableMapOf(player to Coordinate(0, 0))
 
     val playground = Playground(squares, portals, locks, players)

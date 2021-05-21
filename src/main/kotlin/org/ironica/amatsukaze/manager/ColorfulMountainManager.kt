@@ -129,7 +129,7 @@ class ColorfulMountainManager(override val playground: Playground, override val 
 //    }
 
     override fun appendEntry() {
-        if (payloadStorage.size > 1000)
+        if (payloadStorage.get().size > 1000)
             throw Exception("Too many entries!")
 
         with (playground.squares) {
@@ -165,7 +165,7 @@ class ColorfulMountainManager(override val playground: Playground, override val 
             val platforms = this.mapIndexed { i, line ->
                 line.mapIndexed { j, sq -> Coordinate(j, i) to sq.platform }.filter { it.second != null }
             }.flatten().map { SerializedPlatform(it.first, it.second!!.level) }
-            val locks = playground.locks.map { SerializedPortalOrLock(it.value, it.key.isActive, it.key.energy) }
+            val locks = playground.locks.map { SerializedPortalOrLock(it.key, it.value.isActive, it.value.energy) }
             val players = playground.characters.map {
                 val (x, y) = it.value
                 with (it.key) {
@@ -182,7 +182,7 @@ class ColorfulMountainManager(override val playground: Playground, override val 
                 players, this@ColorfulMountainManager.consoleLog, this@ColorfulMountainManager.special
             )
 
-            payloadStorage.add(payload)
+            payloadStorage.get().add(payload)
             this@ColorfulMountainManager.special = ""
         }
     }

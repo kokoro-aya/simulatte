@@ -20,17 +20,13 @@ import io.ktor.routing.route
 import io.ktor.routing.routing
 import org.ironica.amatsukaze.bridge.AmatsukazeBridge
 import org.ironica.amatsukaze.bridge.IncomingData
-import org.ironica.amatsukaze.payloads.ErrorMessage
-import org.ironica.amatsukaze.payloads.NormalMessage
-import org.ironica.amatsukaze.payloads.Status
-import org.ironica.amatsukaze.payloads.payloadStorage
+import org.ironica.amatsukaze.payloads.*
 import java.lang.Exception
 
 fun Route.getPlaygroundRoute(args: Pair<Boolean, Boolean>) {
     route("/paidiki-xara") {
         post {
             val data = call.receive<IncomingData>()
-            payloadStorage.clear()
             val debug = args.first
             val stdout = args.second
             val playgroundInterface = AmatsukazeBridge(
@@ -52,7 +48,7 @@ fun Route.getPlaygroundRoute(args: Pair<Boolean, Boolean>) {
             try {
                 playgroundInterface.start()
                 val moves = payloadStorage
-                call.respond(NormalMessage(Status.OK, moves))
+                call.respond(NormalMessage(Status.OK, moves.get(), statusStorage.get()))
                 println("Proceeded succesfully a request.")
             } catch (e: Exception) {
                 call.respond(ErrorMessage(Status.ERROR, e.message ?: ""))
