@@ -57,10 +57,6 @@ class Playground(val squares: List<List<Square>>,
     val allClosedSwitch: Int
         get() = squares.flatten().filter { it.switch?.on == false }.size
 
-    fun kill(player: AbstractCharacter) {
-        player.stamina = Int.MIN_VALUE / 2
-    }
-
     fun win(): Boolean = status == GameStatus.WIN // TODO implement win conditions
     fun lose(): Boolean = status == GameStatus.LOST // TODO implement lost conditions
     fun pending(): Boolean = status == GameStatus.PENDING

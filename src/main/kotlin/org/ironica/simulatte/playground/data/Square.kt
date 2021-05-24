@@ -29,18 +29,18 @@ data class Square(
     var players: MutableList<AbstractCharacter> = mutableListOf()
 ): StringRepresentable {
     override val stringRepresentation: String
-        get() = "\t\tSquare(" +
-                "\n\t\t" + this.block + ", " +
-                "\n\t\t" + this.color + ", " + this.level + ", " + this.biome + ", " +
-                "\n\t\t" + if (this.switch == null) "null, " else "Switch(${this.switch!!.on}), " +
-                "\n\t\t" + if (this.gem == null) "null, " else "Gem(), " +
-                "\n\t\t" + if (this.beeper == null) "null, " else "Beeper(), " +
-                "\n\t\t" + if (this.portal == null) "null, " else "Portal(" + this.portal!!.let {
+        get() = "\tSquare(" +
+                "\n\t\t" + this.block.stringRepresentation + ", " +
+                "\n\t\t" + this.color.stringRepresentation + ", " + this.level + ", " + this.biome.stringRepresentation + ", " +
+                "\n\t\t" + (if (this.switch == null) "null, " else "Switch(${this.switch!!.on}), ") +
+                "\n\t\t" + (if (this.gem == null) "null, " else "Gem(), ") +
+                "\n\t\t" + (if (this.beeper == null) "null, " else "Beeper(), ") +
+                "\n\t\t" + (if (this.portal == null) "null, " else "Portal(" + this.portal!!.let {
             "${it.coo.stringRepresentation}, ${it.dest.stringRepresentation}, ${it.color}, ${it.isActive}, ${it.energy}"
-        } + "), " +
-                "\n\t\t" + if (this.platform == null) "null, " else "Platform(" + this.platform!!.let {
-            "${it.level}, ${it.players.stringRepresentation}"
-        } + "), " +
-                "\n\t\t" + players.stringRepresentation +
-                "\t\t)"
+        } + "), ") +
+                "\n\t\t" + (if (this.platform == null) "null, " else "Platform(" + this.platform!!.let {
+            "${it.level}, mutableListOf(${it.players.map { "${it.stringRepresentation}, " }})"
+        } + "), ") +
+                "\n\t\t" + "mutableListOf(" + this.players.map { "${it.stringRepresentation}, " } + ")" +
+                ")"
 }

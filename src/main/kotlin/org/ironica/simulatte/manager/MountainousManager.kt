@@ -24,5 +24,11 @@ class MountainousManager(override val playground: Playground, override val debug
     override var special: String = ""
 
     override val firstId = playground.characters.keys.map { it.id }.sorted()[0]
+    override var attributedPlayerId: Int = -1
+    override var attributedSpecialistId: Int = -1
+
+    override fun changeColor(id: Int, c: Color) {
+        throw NotImplementedError("MountainousManager:: This action is not supported")
+    }
 
 }

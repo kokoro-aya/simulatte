@@ -24,6 +24,16 @@ class ColorfulManager(override val playground: Playground, override val debug: B
     override var special: String = ""
 
     override val firstId = playground.characters.keys.map { it.id }.sorted()[0]
+    override var attributedPlayerId: Int = -1
+    override var attributedSpecialistId: Int = -1
+
+    override fun turnLockDown(id: Int) {
+        throw NotImplementedError("ColorfulManager:: This action is not supported")
+    }
+
+    override fun turnLockUp(id: Int) {
+        throw NotImplementedError("ColorfulManager:: This action is not supported")
+    }
 
     override fun printGrid() {
         if (debug) {

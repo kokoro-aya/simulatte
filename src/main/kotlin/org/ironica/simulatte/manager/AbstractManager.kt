@@ -21,9 +21,28 @@ interface AbstractManager {
     var consoleLog: String
     var special: String
 
-    val firstId: Int
+    val firstId: Int // Conventionally all character's first id must be 0
     val debug: Boolean
     val stdout: Boolean
+
+    var attributedPlayerId: Int
+    var attributedSpecialistId: Int
+
+    val nextPlayerId: Int
+        get() {
+            val next = playground.characters.keys.firstOrNull { it.id > attributedPlayerId }?.id
+                ?: throw NoSuchElementException("AbstractManager:: No slot for new player available")
+            attributedPlayerId = next
+            return next
+        }
+
+    val nextSpecialistId: Int
+        get() {
+            val next = playground.characters.keys.firstOrNull { it.id > attributedSpecialistId }?.id
+                ?: throw NoSuchElementException("AbstractManager:: No slot for new specialist available")
+            attributedSpecialistId = next
+            return next
+        }
 
     fun getPlayer(id: Int): AbstractCharacter {
         val player = playground.characters.keys.filter { it.id == id }
@@ -43,7 +62,9 @@ interface AbstractManager {
     fun isAtHome(id: Int) = getPlayer(id).isAtHome()
     fun isInDesert(id: Int) = getPlayer(id).isInDesert()
     fun isInForest(id: Int) = getPlayer(id).isInForest()
+    fun isOnHill(id: Int) = getPlayer(id).isOnHill()
     fun isOnPortal(id: Int) = getPlayer(id).isOnPortal()
+    fun isOnPlatform(id: Int) = getPlayer(id).isOnPlatform()
     fun isBlocked(id: Int) = getPlayer(id).isBlocked()
     fun isBlockedLeft(id: Int) = getPlayer(id).isBlockedLeft()
     fun isBlockedRight(id: Int) = getPlayer(id).isBlockedRight()
@@ -51,6 +72,11 @@ interface AbstractManager {
 
     fun turnLeft(id: Int) {
         getPlayer(id).turnLeft()
+        printGrid()
+        appendEntry()
+    }
+    fun turnRight(id: Int) {
+        getPlayer(id).turnRight()
         printGrid()
         appendEntry()
     }
@@ -125,8 +151,28 @@ interface AbstractManager {
         return playground.allGemCollected
     }
 
+    fun gemLeft(): Int {
+        return playground.allGemLeft
+    }
+
+    fun beeperCount(): Int {
+        return playground.allBeeperCollected
+    }
+
+    fun beeperLeft(): Int {
+        return playground.allBeeperLeft
+    }
+
     fun switchCount(): Int {
         return playground.allOpenedSwitch
+    }
+
+    fun closedSwitchCount(): Int {
+        return playground.allClosedSwitch
+    }
+
+    fun kill(id: Int) {
+        getPlayer(id).kill()
     }
 
 

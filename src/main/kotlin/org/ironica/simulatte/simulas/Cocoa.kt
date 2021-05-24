@@ -99,8 +99,11 @@ class Cocoa {
     }
 
     private fun List<List<Square>>.generateTemplate(): String {
-        return "listOf(\n" +
-                this.map { it.stringRepresentation + "," } + ")"
+        return ("listOf(\n" +
+                this.map { it.stringRepresentation + "," } + ")")
+            .replace("[", "")
+            .replace("]", "")
+            .replace(",,", ",")
     }
 
     fun generate(out: Appendable) {
@@ -112,7 +115,7 @@ fun String.wrapCode(): String {
     return buildString {
         appendLine("runBlocking { ")
         appendLine("\tval ___game = play(manager) { ")
-        appendLine(this.split("\n").joinToString("\n") { "\t\t$it" })
+        appendLine(this@wrapCode.split("\n").joinToString("\n") { "\t\t$it" })
         appendLine("\t}.launch()\n")
         appendLine("\tprintln(___game)")
         appendLine("}")

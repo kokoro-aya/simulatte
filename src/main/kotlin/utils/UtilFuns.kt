@@ -34,14 +34,20 @@ fun <A, B, C, D>zip(
 
 val <E: StringRepresentable> List<E>.stringRepresentation: String
     get() = buildString {
-        appendLine("listOf(")
-        this@stringRepresentation.forEach {
-            append("\t")
-            append(it.stringRepresentation)
-            appendLine(", ")
+        if (this@stringRepresentation::class == MutableList::class){
+            appendLine("mutableListOf(")
+        } else {
+            appendLine("listOf(")
         }
-        appendLine(")")
+        this@stringRepresentation.forEachIndexed { i, line ->
+            append("\t")
+            append(line.stringRepresentation)
+            if (i < this@stringRepresentation.size - 1) appendLine(", ")
+        }
+        appendLine("\t)")
     }
+
+
 
 val Direction.stringRepresentation: String
     get() = "Direction.$this"

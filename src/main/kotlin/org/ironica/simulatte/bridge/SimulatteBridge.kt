@@ -72,7 +72,7 @@ class SimulatteBridge(
             (if (it.role == Role.SPECIALIST) InstantializedSpecialist(it.id, it.dir, it.stamina)
                 else InstantializedPlayer(it.id, it.dir, it.stamina)).let {
                 p -> p to Coordinate(it.x, it.y)
-            } }
+            } }.toList().sortedBy { it.first.id }.toMap()
 
         val platforms = platformdatas.associate { Platform(it.level) to it.coo }
 
