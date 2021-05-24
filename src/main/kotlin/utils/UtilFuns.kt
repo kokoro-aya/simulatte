@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2020-2021. kokoro-aya. All right reserved.
- * Amatsukaze - A Playground Server implemented with ANTLR or Kotlin DSL
+ * Simulatte - A Playground Server implemented with Kotlin DSL
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
@@ -9,6 +9,10 @@
  */
 
 package utils
+
+import org.ironica.simulatte.playground.Biome
+import org.ironica.simulatte.playground.Color
+import org.ironica.simulatte.playground.Direction
 
 fun <A, B, C, D>zip(
     first: List<List<A>>,
@@ -27,3 +31,34 @@ fun <A, B, C, D>zip(
         }
     }
 }
+
+val <E: StringRepresentable> List<E>.stringRepresentation: String
+    get() = buildString {
+        appendLine("listOf(")
+        this@stringRepresentation.forEach {
+            append("\t")
+            append(it.stringRepresentation)
+            appendLine(", ")
+        }
+        appendLine(")")
+    }
+
+val Direction.stringRepresentation: String
+    get() = "Direction.$this"
+
+val Color.stringRepresentation: String
+    get() = "Color.$this"
+
+val Biome.stringRepresentation: String
+    get() = "Biome.$this"
+
+val <E: StringRepresentable, F: StringRepresentable> Map<E, F>.stringRepresentation: String
+    get() = buildString {
+        appendLine("mapOf(")
+        this@stringRepresentation.forEach {
+            append("\t")
+            append("${it.key.stringRepresentation} to ${it.value.stringRepresentation}")
+            appendLine(", ")
+        }
+        appendLine(")")
+    }
