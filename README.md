@@ -1,10 +1,17 @@
-# amatsukaze
+# Simulatte
+=======
 
-A Playground server implemented with ANTLR and/or Kotlin DSL.
+A Playground server implemented with Kotlin DSL.
 
-In the final release you will be able to choose from using my home made DSL or using Kotlin DSL.
+This project is part of the Project ironica.
 
-The project is currently under refactoring using the Kotlin DSL in lieu of homemade DSL using ANTLR.
+Build with
+
+- Kotlin
+- Ktor
+- Kotlin serialization
+- Kotlin Poet
+- Ki-Shell
 
 For more information please review [the Wiki](https://github.com/kokoro-aya/amatsukaze/wiki) of this repo.
 

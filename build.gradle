@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2020-2021. kokoro-aya. All right reserved.
- * Amatsukaze - A Playground Server implemented with ANTLR or Kotlin DSL
+ * Simulatte - A Playground Server implemented with Kotlin DSL
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
@@ -14,24 +14,14 @@ plugins {
     id 'org.jetbrains.kotlin.jvm' version "1.5.0"
     id 'org.jetbrains.kotlin.plugin.serialization' version "1.5.0"
     id 'com.github.johnrengelman.shadow' version '5.2.0'
+    id 'io.gitlab.arturbosch.detekt' version '1.17.0'
     id 'application'
 }
 
-
 group 'org.ironica'
-version '1.6.3-SNAPSHOT'
+version '2.1.0-SNAPSHOT'
 
 sourceCompatibility = 11
-
-final GRAMMAR_DIR = "gen/src/main"
-final LOCAL_GRAMMAR_DIR = "src/main/gen"
-
-sourceSets {
-    main {
-        java { srcDirs += GRAMMAR_DIR }
-        java { srcDirs += LOCAL_GRAMMAR_DIR }
-    }
-}
 
 repositories {
     mavenCentral()
@@ -40,14 +30,15 @@ repositories {
     }
 }
 
-mainClassName = 'org.ironica.amatsukaze.ApplicationKt'
+mainClassName = 'org.ironica.simulatte.app.ApplicationKt'
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib"
     implementation "org.jetbrains.kotlin:kotlin-reflect:1.5.0"
-    testCompile group: 'junit', name: 'junit', version: '4.12'
-    // https://mvnrepository.com/artifact/org.antlr/antlr4
-    implementation "org.antlr:antlr4:4.9.1"
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+
+    compile group: 'org.antlr', name: 'antlr4', version: '4.9.1'
 
     implementation "io.ktor:ktor-server-core:1.5.4"
     implementation "io.ktor:ktor-server-netty:1.5.4"
@@ -56,6 +47,9 @@ dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-core:1.2.0"
 
     testImplementation "io.ktor:ktor-server-tests:1.5.4"
+
+    implementation group: 'com.squareup', name: 'kotlinpoet', version: '1.8.0'
+    implementation 'org.jetbrains.kotlinx:ki-shell:0.3.3'
 }
 
 compileKotlin {
