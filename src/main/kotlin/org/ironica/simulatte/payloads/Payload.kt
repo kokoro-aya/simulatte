@@ -29,6 +29,6 @@ data class Payload(
     val players: List<SerializedPlayer>,
     val consoleLog: String,
     val special: String
-    ) {
+    ): java.io.Serializable {
 }
 

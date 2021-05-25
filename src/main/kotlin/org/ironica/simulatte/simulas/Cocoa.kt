@@ -119,11 +119,15 @@ class Cocoa {
 
 fun String.wrapCode(): String {
     return buildString {
+        appendLine("payloadStorage.set(mutableListOf())\n" +
+                "        statusStorage.set(GameStatus.PENDING)")
+
         appendLine("runBlocking { ")
         appendLine("\tval ___game = play(manager) { ")
         appendLine(this@wrapCode.split("\n").joinToString("\n") { "\t\t$it" })
-        appendLine("\t}.start()\n")
-        appendLine("\tprintln(___game)")
+        appendLine("\t}.run()\n")
+        appendLine("\t// println(___game.size)")
         appendLine("}")
+        appendLine("payloadStorage.get() to statusStorage.get()")
     }
 }

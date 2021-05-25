@@ -11,7 +11,10 @@
 package org.ironica.simulatte.internal
 
 import org.ironica.simulatte.manager.AbstractManager
+import org.ironica.simulatte.payloads.Payload
+import org.ironica.simulatte.payloads.returnedPayloads
 import org.ironica.simulatte.playground.GameStatus
+import org.ironica.simulatte.playground.Playground
 
 class SimulatteBuilder(private val manager: AbstractManager) {
 
@@ -44,8 +47,12 @@ class SimulatteBuilder(private val manager: AbstractManager) {
         manager.kill(player.id)
     }
 
-    fun start(): GameStatus {
-        return manager.playground.status
+    fun run(): List<Payload> {
+        return returnedPayloads()
+    }
+
+    fun test(): Playground {
+        return manager.playground
     }
 }
 

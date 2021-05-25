@@ -66,7 +66,7 @@ fun main(args: Array<String>) {
 
     val gen = codeGen.toString()
 
-    println(gen)
+    if (debug) println(gen)
 
     EvalRunner.evalSnippet(gen).let {
         println(it.first)

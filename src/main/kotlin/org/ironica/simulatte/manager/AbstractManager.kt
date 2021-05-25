@@ -15,6 +15,7 @@ import org.ironica.simulatte.playground.*
 import org.ironica.simulatte.playground.characters.AbstractCharacter
 import org.ironica.simulatte.playground.characters.InstantializedSpecialist
 import org.ironica.simulatte.playground.datas.*
+import utils.deepCopy
 
 interface AbstractManager {
     val playground: Playground
@@ -197,7 +198,7 @@ interface AbstractManager {
     }
 
     fun appendEntry() {
-        if (payloadStorage.get().size > 1000)
+        if (payloadStorage.get().size > 5000)
             throw Exception("Too many entries!")
 
         with (playground.squares) {

@@ -24,7 +24,7 @@ import org.ironica.simulatte.payloads.*
 import java.lang.Exception
 
 fun Route.getPlaygroundRoute(args: Pair<Boolean, Boolean>) {
-    route("/paidiki-xara") {
+    route("/simulatte") {
         post {
             val data = call.receive<IncomingData>()
             val debug = args.first
@@ -46,13 +46,13 @@ fun Route.getPlaygroundRoute(args: Pair<Boolean, Boolean>) {
                 stdout = stdout
             )
             try {
-                playgroundInterface.start()
-                val moves = payloadStorage
-                call.respond(NormalMessage(Status.OK, moves.get(), statusStorage.get()))
+                val resp = playgroundInterface.start()
+                call.respond(NormalMessage(resp.third, resp.first, resp.second))
                 println("Proceeded succesfully a request.")
             } catch (e: Exception) {
                 call.respond(ErrorMessage(Status.ERROR, e.message ?: ""))
                 println("Encountered an error.")
+                e.printStackTrace()
             }
         }
     }
