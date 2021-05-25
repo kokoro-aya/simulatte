@@ -57,7 +57,7 @@ object Stone: Block() {
 
 data class Lock(val id: Int, val controlled: MutableList<Coordinate>, var isActive: Boolean, var energy: Int): Block() {
     override val stringRepresentation: String
-        get() = "Lock($id, ${controlled.stringRepresentation})"
+        get() = "Lock($id, mutableL${controlled.stringRepresentation.drop(1)}, $isActive, $energy)"
 }
 
 // TODO add rules on lock energy and deactivation

@@ -23,12 +23,14 @@ import routes.registerPlaygroundRoutes
 fun main(args: Array<String>): Unit {
     val debug = "-P:debug=${args.any{ it.lowercase() == "debug" }}"
     val stdout = "-P:stdout=${args.any { it.lowercase() == "stdout" }}"
-    io.ktor.server.netty.EngineMain.main(arrayOf(*args, debug, stdout))
+    val output = "-P:output=${args.any { it.lowercase() == "output" }}"
+    io.ktor.server.netty.EngineMain.main(arrayOf(*args, debug, stdout, output))
 }
 
 fun Application.module(testing: Boolean = false) {
     val debug = environment.config.property("debug").getString().toBoolean()
     val stdout = environment.config.property("stdout").getString().toBoolean()
+    val output = environment.config.property("output").getString().toBoolean()
     install(CORS) {
         method(HttpMethod.Get)
         method(HttpMethod.Post)
@@ -39,5 +41,5 @@ fun Application.module(testing: Boolean = false) {
     install(ContentNegotiation) {
         json()
     }
-    registerPlaygroundRoutes(debug to stdout)
+    registerPlaygroundRoutes(Triple(debug, stdout, output))
 }

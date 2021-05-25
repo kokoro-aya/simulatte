@@ -21,14 +21,16 @@ import io.ktor.routing.routing
 import org.ironica.simulatte.bridge.SimulatteBridge
 import org.ironica.simulatte.bridge.IncomingData
 import org.ironica.simulatte.payloads.*
-import java.lang.Exception
+import org.ironica.simulatte.playground.GameStatus
+import kotlin.Exception
 
-fun Route.getPlaygroundRoute(args: Pair<Boolean, Boolean>) {
+fun Route.getPlaygroundRoute(args: Triple<Boolean, Boolean, Boolean>) {
     route("/simulatte") {
         post {
             val data = call.receive<IncomingData>()
             val debug = args.first
             val stdout = args.second
+            val output = args.third
             val playgroundInterface = SimulatteBridge(
                 data.type,
                 data.code,
@@ -43,11 +45,38 @@ fun Route.getPlaygroundRoute(args: Pair<Boolean, Boolean>) {
                 data.platforms,
                 data.players,
                 debug = debug,
-                stdout = stdout
+                stdout = stdout,
+                output = output,
             )
             try {
                 val resp = playgroundInterface.start()
-                call.respond(NormalMessage(resp.third, resp.first, resp.second))
+                when (resp.second) {
+                    Status.OK -> {
+                        when (val rsf = resp.first) {
+                            is Pair<*, *> -> {
+                                call.respond(
+                                    NormalMessage(
+                                        resp.second,
+                                        (rsf as Pair<List<Payload>, GameStatus>).first,
+                                        (rsf as Pair<List<Payload>, GameStatus>).second
+                                    )
+                                )
+                            }
+                            is String -> {
+                                call.respond(
+                                    ErrorMessage(resp.second, rsf)
+                                )
+                            }
+                            else -> {
+                                throw Exception("PlaygroundRoutes:: this is impossible")
+                            }
+                        }
+                    }
+                    Status.ERROR -> call.respond(ErrorMessage(
+                        resp.second, resp.first as String))
+                    Status.INCOMPLETE -> call.respond(ErrorMessage(
+                        resp.second, resp.first as String))
+                }
                 println("Proceeded succesfully a request.")
             } catch (e: Exception) {
                 call.respond(ErrorMessage(Status.ERROR, e.message ?: ""))
@@ -58,7 +87,7 @@ fun Route.getPlaygroundRoute(args: Pair<Boolean, Boolean>) {
     }
 }
 
-fun Application.registerPlaygroundRoutes(args: Pair<Boolean, Boolean>) {
+fun Application.registerPlaygroundRoutes(args: Triple<Boolean, Boolean, Boolean>) {
     routing {
         getPlaygroundRoute(args)
     }

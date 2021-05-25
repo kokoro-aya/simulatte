@@ -189,7 +189,7 @@ class SimulatteBridge(
         // In the future we might remove the itemLayout and introduce new arrays for each items
     }
 
-    fun start(): Triple<List<Payload>, GameStatus, Status> {
+    fun start(): Pair<Any?, Status> {
         val codeGen = StringBuilder()
         val cocoa = Cocoa()
         cocoa.feed(squares)
@@ -216,11 +216,7 @@ class SimulatteBridge(
                 Status.INCOMPLETE -> "[3]The code is not complete"
             })
 
-            return Triple(
-                (it.first as Pair<List<Payload>, GameStatus>).first,
-                (it.first as Pair<List<Payload>, GameStatus>).second,
-                it.second)
+            return it
         }
-
     }
 }

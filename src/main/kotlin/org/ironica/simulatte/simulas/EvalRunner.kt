@@ -69,8 +69,7 @@ object EvalRunner {
         "org.ironica.simulatte.playground.*",
         "org.ironica.simulatte.playground.datas.*",
         "org.ironica.simulatte.playground.characters.*",
-        "org.ironica.simulatte.internal.SimulatteBuilder",
-        "org.ironica.simulatte.internal.play",
+        "org.ironica.simulatte.internal.*",
         "org.ironica.simulatte.payloads.payloadStorage",
         "org.ironica.simulatte.payloads.statusStorage",
 

@@ -47,7 +47,7 @@ data class Square(
                 this@Square.portal?.let {
                     append("${it.coo.stringRepresentation}, ")
                     append("${it.dest.stringRepresentation}, ")
-                    append("${it.color}, ")
+                    append("${it.color.stringRepresentation}, ")
                     append("${it.isActive}, ")
                     append("${it.energy}")
                 }
@@ -63,7 +63,7 @@ data class Square(
                         append(e.stringRepresentation)
                         if (i < it.players.size - 1) append(", ")
                     }
-                    append("), ")
+                    append(")), ")
                 }
             }
             append("mutableListOf(")
