@@ -10,12 +10,33 @@
 
 package org.ironica.simulatte.misc
 
-open class ABC
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
-class DEF: ABC()
+suspend fun func1() {
+    delay(2000L)
+    println("World 2")
+}
+
+suspend fun func2() {
+    delay(1000L)
+    println("World 1")
+}
+
+suspend fun doSomething() = coroutineScope {
+    launch {
+        func1()
+    }
+    launch {
+        func2()
+    }
+    println("Hello")
+}
 
 fun main() {
-    val a = DEF()
-    val b = listOf(a)
-    b.filterIsInstance<ABC>()
+    runBlocking {
+        doSomething()
+    }
 }

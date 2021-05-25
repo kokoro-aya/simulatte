@@ -44,7 +44,7 @@ val <E: StringRepresentable> List<E>.stringRepresentation: String
             append(line.stringRepresentation)
             if (i < this@stringRepresentation.size - 1) appendLine(", ")
         }
-        appendLine("\t)")
+        appendLine(")")
     }
 
 

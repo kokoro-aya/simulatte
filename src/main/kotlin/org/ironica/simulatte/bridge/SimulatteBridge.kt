@@ -13,7 +13,7 @@ package org.ironica.simulatte.bridge
 import org.ironica.simulatte.payloads.Status
 import org.ironica.simulatte.playground.*
 import org.ironica.simulatte.playground.characters.AbstractCharacter
-import org.ironica.simulatte.playground.data.*
+import org.ironica.simulatte.playground.datas.*
 import org.ironica.simulatte.playground.characters.InstantializedPlayer
 import org.ironica.simulatte.playground.characters.InstantializedSpecialist
 import org.ironica.simulatte.simulas.Cocoa
@@ -192,7 +192,7 @@ class SimulatteBridge(
             .feed(portals)
             .feed(locks)
             .feed(players)
-            .feed(type, debug, stdout)
+            .thenFeed(type, debug, stdout)
             .generate(codeGen)
         codeGen.append("\n")
         codeGen.append(code.wrapCode())

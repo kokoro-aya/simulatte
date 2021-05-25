@@ -10,7 +10,7 @@
 
 package org.ironica.simulatte.playground
 
-import org.ironica.simulatte.playground.data.*
+import org.ironica.simulatte.playground.datas.*
 import org.ironica.simulatte.playground.Direction.*
 import org.ironica.simulatte.playground.characters.AbstractCharacter
 import org.ironica.simulatte.playground.characters.InstantializedSpecialist

@@ -11,7 +11,7 @@
 package org.ironica.simulatte.payloads
 
 import kotlinx.serialization.Serializable
-import org.ironica.simulatte.playground.data.Coordinate
+import org.ironica.simulatte.playground.datas.Coordinate
 
 @Serializable
 data class SerializedPortalOrLock(

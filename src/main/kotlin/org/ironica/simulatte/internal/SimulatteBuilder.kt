@@ -44,7 +44,7 @@ class SimulatteBuilder(private val manager: AbstractManager) {
         manager.kill(player.id)
     }
 
-    fun launch(): GameStatus {
+    fun start(): GameStatus {
         return manager.playground.status
     }
 }

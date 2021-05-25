@@ -14,7 +14,7 @@ import org.ironica.simulatte.payloads.*
 import org.ironica.simulatte.playground.*
 import org.ironica.simulatte.playground.characters.AbstractCharacter
 import org.ironica.simulatte.playground.characters.InstantializedSpecialist
-import org.ironica.simulatte.playground.data.*
+import org.ironica.simulatte.playground.datas.*
 
 interface AbstractManager {
     val playground: Playground

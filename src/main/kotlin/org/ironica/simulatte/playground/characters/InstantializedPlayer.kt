@@ -14,6 +14,7 @@ import org.ironica.simulatte.playground.Color
 import org.ironica.simulatte.playground.Playground
 import org.ironica.simulatte.playground.Direction
 import utils.StringRepresentable
+import utils.stringRepresentation
 
 data class InstantializedPlayer(override val id: Int, override var dir: Direction, override var stamina: Int): AbstractCharacter, StringRepresentable {
 
@@ -26,5 +27,5 @@ data class InstantializedPlayer(override val id: Int, override var dir: Directio
     override var inLavaForTurns: Int = 0
 
     override val stringRepresentation: String
-        get() = "Player($id, $dir, $stamina)"
+        get() = "InstantializedPlayer($id, ${dir.stringRepresentation}, $stamina)"
 }

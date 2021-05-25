@@ -19,14 +19,17 @@ import org.ironica.simulatte.manager.ColorfulMountainManager
 import org.ironica.simulatte.manager.MountainousManager
 import org.ironica.simulatte.playground.Playground
 import org.ironica.simulatte.playground.characters.AbstractCharacter
-import org.ironica.simulatte.playground.data.Coordinate
-import org.ironica.simulatte.playground.data.Lock
-import org.ironica.simulatte.playground.data.Portal
-import org.ironica.simulatte.playground.data.Square
+import org.ironica.simulatte.playground.datas.Coordinate
+import org.ironica.simulatte.playground.datas.Lock
+import org.ironica.simulatte.playground.datas.Portal
+import org.ironica.simulatte.playground.datas.Square
 import utils.*
 
 class Cocoa {
     private val fs = FileSpec.builder("org.ironica.simulatte.Simulatte", "Simulatte")
+
+    init {
+    }
 
     @JvmName("feedSquares")
     fun feed(squares: List<List<Square>>): Cocoa {
@@ -76,7 +79,7 @@ class Cocoa {
         return this
     }
 
-    fun feed(managerType: String, debug: Boolean, stdout: Boolean): Cocoa {
+    fun thenFeed(managerType: String, debug: Boolean, stdout: Boolean): Cocoa {
         fs.addProperty(PropertySpec.builder("playground", Playground::class)
             .initializer("Playground(squares, portals.toMutableMap(), locks.toMutableMap(), players.toMutableMap())")
             .build()
@@ -99,11 +102,14 @@ class Cocoa {
     }
 
     private fun List<List<Square>>.generateTemplate(): String {
-        return ("listOf(\n" +
-                this.map { it.stringRepresentation + "," } + ")")
-            .replace("[", "")
-            .replace("]", "")
-            .replace(",,", ",")
+        return buildString {
+            appendLine("listOf(")
+            this@generateTemplate.forEachIndexed { i, l ->
+                append(l.stringRepresentation)
+                if (i < this@generateTemplate.size - 1) appendLine(", ")
+            }
+            appendLine(")")
+        }
     }
 
     fun generate(out: Appendable) {
@@ -116,7 +122,7 @@ fun String.wrapCode(): String {
         appendLine("runBlocking { ")
         appendLine("\tval ___game = play(manager) { ")
         appendLine(this@wrapCode.split("\n").joinToString("\n") { "\t\t$it" })
-        appendLine("\t}.launch()\n")
+        appendLine("\t}.start()\n")
         appendLine("\tprintln(___game)")
         appendLine("}")
     }

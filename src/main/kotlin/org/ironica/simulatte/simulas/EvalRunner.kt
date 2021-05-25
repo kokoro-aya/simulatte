@@ -66,7 +66,11 @@ object EvalRunner {
     )
 
     private val defaultImportSimulattePackage = listOf(
-        "org.ironica.simulatte.*",
+        "org.ironica.simulatte.playground.*",
+        "org.ironica.simulatte.playground.datas.*",
+        "org.ironica.simulatte.playground.characters.*",
+        "org.ironica.simulatte.internal.SimulatteBuilder",
+        "org.ironica.simulatte.internal.play",
     )
 
     private val shell = Shell(

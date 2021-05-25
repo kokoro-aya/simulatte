@@ -8,7 +8,7 @@
  *
  */
 
-package org.ironica.simulatte.playground.data
+package org.ironica.simulatte.playground.datas
 
 import org.ironica.simulatte.playground.Blocks
 import org.ironica.simulatte.playground.Items

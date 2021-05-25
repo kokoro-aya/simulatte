@@ -11,7 +11,7 @@
 package org.ironica.simulatte.bridge
 
 import kotlinx.serialization.Serializable
-import org.ironica.simulatte.playground.data.Coordinate
+import org.ironica.simulatte.playground.datas.Coordinate
 import org.ironica.simulatte.playground.Direction
 
 @Serializable
