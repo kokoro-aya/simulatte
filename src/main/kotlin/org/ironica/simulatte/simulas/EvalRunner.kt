@@ -23,7 +23,7 @@ import kotlin.script.experimental.util.LinkedSnippet
 /**
  * Implementation of Eval Runner with help of @author Dylech30th
  */
-object EvalRunner {
+class EvalRunner {
 
     private val defaultImportKotlinPackages = listOf(
         "kotlin.collections.*",
@@ -66,8 +66,14 @@ object EvalRunner {
     )
 
     private val defaultImportSimulattePackage = listOf(
-        "org.ironica.simulatte.*",
-    )
+        "org.ironica.simulatte.playground.*",
+        "org.ironica.simulatte.playground.datas.*",
+        "org.ironica.simulatte.playground.characters.*",
+        "org.ironica.simulatte.internal.*",
+        "org.ironica.simulatte.payloads.payloadStorage",
+        "org.ironica.simulatte.payloads.statusStorage",
+
+        )
 
     private val shell = Shell(
         KotlinShell.configuration(),
@@ -91,14 +97,14 @@ object EvalRunner {
         shell.initEngine()
     }
 
-    fun evalSnippet(source: String): Pair<String?, Status> {
+    fun evalSnippet(source: String): Pair<Any?, Status> {
         val time = System.nanoTime()
         val result = shell.eval(source)
         shell.evaluationTimeMillis = (System.nanoTime() - time) / 1_000_000
         return when (result.getStatus()) {
             ResultWrapper.Status.SUCCESS -> {
                 shell.incompleteLines.clear()
-                handleSuccess(result.result as ResultWithDiagnostics.Success<*>) to Status.OK
+                handleSuccessSub(result.result as ResultWithDiagnostics.Success<*>) to Status.OK
             }
             ResultWrapper.Status.ERROR -> {
                 shell.incompleteLines.clear()
@@ -116,6 +122,17 @@ object EvalRunner {
         shell.eventManager.emitEvent(OnEval(snippets))
         return when (val evalResultValue = snippets.get().result) {
             is ResultValue.Value -> "${evalResultValue.name}${shell.renderResultType(evalResultValue)} = ${evalResultValue.value}".bound(shell.settings.maxResultLength)
+            is ResultValue.Error -> renderError(evalResultValue)
+            is ResultValue.Unit -> "Kotlin.Unit"
+            ResultValue.NotEvaluated -> null
+        }
+    }
+
+    private fun handleSuccessSub(result: ResultWithDiagnostics.Success<*>): Any? {
+        val snippets = result.value as LinkedSnippet<KJvmEvaluatedSnippet>
+        shell.eventManager.emitEvent(OnEval(snippets))
+        return when (val evalResultValue = snippets.get().result) {
+            is ResultValue.Value -> evalResultValue.value
             is ResultValue.Error -> renderError(evalResultValue)
             is ResultValue.Unit -> "Kotlin.Unit"
             ResultValue.NotEvaluated -> null

@@ -13,6 +13,10 @@ package utils
 import org.ironica.simulatte.playground.Biome
 import org.ironica.simulatte.playground.Color
 import org.ironica.simulatte.playground.Direction
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.ObjectInputStream
+import java.io.ObjectOutputStream
 
 fun <A, B, C, D>zip(
     first: List<List<A>>,
@@ -34,14 +38,20 @@ fun <A, B, C, D>zip(
 
 val <E: StringRepresentable> List<E>.stringRepresentation: String
     get() = buildString {
-        appendLine("listOf(")
-        this@stringRepresentation.forEach {
+        if (this@stringRepresentation::class == MutableList::class){
+            appendLine("mutableListOf(")
+        } else {
+            appendLine("listOf(")
+        }
+        this@stringRepresentation.forEachIndexed { i, line ->
             append("\t")
-            append(it.stringRepresentation)
-            appendLine(", ")
+            append(line.stringRepresentation)
+            if (i < this@stringRepresentation.size - 1) appendLine(", ")
         }
         appendLine(")")
     }
+
+
 
 val Direction.stringRepresentation: String
     get() = "Direction.$this"
@@ -62,3 +72,28 @@ val <E: StringRepresentable, F: StringRepresentable> Map<E, F>.stringRepresentat
         }
         appendLine(")")
     }
+
+fun String.prettyPrint() {
+    this.split("\n").mapIndexed { i, line ->
+        println(((i+1).justify(3) + "|\t" + line))
+    }
+}
+
+internal fun Int.justify(digit: Int): String {
+    return "%${digit}d".format(this)
+}
+
+/**
+ * Deepcopy method
+ * @author https://rosettacode.org/wiki/Deepcopy#Kotlin
+ */
+fun <T : java.io.Serializable> deepCopy(obj: T?): T? {
+    if (obj == null) return null
+    val baos = ByteArrayOutputStream()
+    val oos  = ObjectOutputStream(baos)
+    oos.writeObject(obj)
+    oos.close()
+    val bais = ByteArrayInputStream(baos.toByteArray())
+    val ois  = ObjectInputStream(bais)
+    return ois.readObject() as T
+}

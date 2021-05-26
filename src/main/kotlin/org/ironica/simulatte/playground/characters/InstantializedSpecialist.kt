@@ -14,8 +14,17 @@ import org.ironica.simulatte.bridge.LockData
 import org.ironica.simulatte.playground.Direction
 import org.ironica.simulatte.playground.Playground
 import utils.StringRepresentable
+import utils.stringRepresentation
 
-data class InstantializedSpecialist(override val id: Int, override var dir: Direction, override var stamina: Int): AbstractCharacter, StringRepresentable {
+data class InstantializedSpecialist(override val id: Int): AbstractCharacter, StringRepresentable {
+
+    override var dir: Direction = Direction.UP
+    override var stamina: Int = 500
+
+    constructor(id: Int, dir: Direction, stamina: Int) : this(id) {
+        this.dir = dir
+        this.stamina = stamina
+    }
 
     override var playground: Playground? = null
 
@@ -32,5 +41,5 @@ data class InstantializedSpecialist(override val id: Int, override var dir: Dire
     fun turnLockDown() = playground?.specialistTurnLockDown(this) ?: NullPointerException("Specialist:: Uninitialized character")
 
     override val stringRepresentation: String
-        get() = "Specialist($id, $dir, $stamina)"
+        get() = "InstantializedSpecialist($id, ${dir.stringRepresentation}, $stamina)"
 }

@@ -11,9 +11,9 @@
 package org.ironica.simulatte.bridge
 
 import org.ironica.simulatte.playground.*
-import org.ironica.simulatte.playground.data.ItemLayout
-import org.ironica.simulatte.playground.data.AdditionalTileInfo
-import org.ironica.simulatte.playground.data.TileLayout
+import org.ironica.simulatte.playground.datas.ItemLayout
+import org.ironica.simulatte.playground.datas.AdditionalTileInfo
+import org.ironica.simulatte.playground.datas.TileLayout
 import org.ironica.simulatte.playground.Items
 
 fun convertJsonToMiscLayout(colors: List<List<Color>>, levels: List<List<Int>>, using: String, defaultSize: Pair<Int, Int>): TileLayout {

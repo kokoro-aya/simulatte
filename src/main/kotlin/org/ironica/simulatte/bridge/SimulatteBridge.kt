@@ -10,15 +10,19 @@
 
 package org.ironica.simulatte.bridge
 
+import org.ironica.simulatte.payloads.Payload
 import org.ironica.simulatte.payloads.Status
+import org.ironica.simulatte.payloads.payloadStorage
+import org.ironica.simulatte.payloads.statusStorage
 import org.ironica.simulatte.playground.*
 import org.ironica.simulatte.playground.characters.AbstractCharacter
-import org.ironica.simulatte.playground.data.*
+import org.ironica.simulatte.playground.datas.*
 import org.ironica.simulatte.playground.characters.InstantializedPlayer
 import org.ironica.simulatte.playground.characters.InstantializedSpecialist
 import org.ironica.simulatte.simulas.Cocoa
 import org.ironica.simulatte.simulas.EvalRunner
 import org.ironica.simulatte.simulas.wrapCode
+import utils.prettyPrint
 import utils.zip
 
 class SimulatteBridge(
@@ -34,7 +38,7 @@ class SimulatteBridge(
     private val stairdatas: List<StairData>,
     private val platformdatas: List<PlatformData>,
     playerdatas: List<PlayerData>,
-    val debug: Boolean, val stdout: Boolean,
+    val debug: Boolean, val stdout: Boolean, val output: Boolean
 ) {
 
     var squares: List<List<Square>>
@@ -72,7 +76,7 @@ class SimulatteBridge(
             (if (it.role == Role.SPECIALIST) InstantializedSpecialist(it.id, it.dir, it.stamina)
                 else InstantializedPlayer(it.id, it.dir, it.stamina)).let {
                 p -> p to Coordinate(it.x, it.y)
-            } }
+            } }.toList().sortedBy { it.first.id }.toMap()
 
         val platforms = platformdatas.associate { Platform(it.level) to it.coo }
 
@@ -185,25 +189,34 @@ class SimulatteBridge(
         // In the future we might remove the itemLayout and introduce new arrays for each items
     }
 
-    fun start(): Status {
+    fun start(): Pair<Any?, Status> {
         val codeGen = StringBuilder()
         val cocoa = Cocoa()
         cocoa.feed(squares)
             .feed(portals)
             .feed(locks)
             .feed(players)
-            .feed(type, debug, stdout)
+            .thenFeed(type, debug, stdout)
             .generate(codeGen)
         codeGen.append("\n")
         codeGen.append(code.wrapCode())
 
         val gen = codeGen.toString()
 
-        println(gen)
+        println("Processing request, please wait...")
 
-        EvalRunner.evalSnippet(gen).let {
-            println(it.first)
-            return it.second
+        if (output) gen.prettyPrint()
+
+        EvalRunner().evalSnippet(gen).let {
+//            println(it.first)
+            println()
+            println(when (it.second) {
+                Status.OK -> "[1]Code executed successfully"
+                Status.ERROR -> "[2]Some error occurred while executing your code"
+                Status.INCOMPLETE -> "[3]The code is not complete"
+            })
+
+            return it
         }
     }
 }

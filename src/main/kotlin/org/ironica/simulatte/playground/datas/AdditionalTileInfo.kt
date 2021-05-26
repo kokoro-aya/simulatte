@@ -8,13 +8,14 @@
  *
  */
 
-package org.ironica.simulatte.playground.data
+package org.ironica.simulatte.playground.datas
 
-import kotlinx.serialization.Serializable
-import utils.StringRepresentable
+import org.ironica.simulatte.playground.Color
 
-@Serializable
-data class Coordinate(var x: Int, var y: Int): StringRepresentable {
-    override val stringRepresentation: String
-        get() = "Coordinate($x, $y)"
+data class AdditionalTileInfo(var color: Color = Color.WHITE, var level: Int = 1) {
+    init {
+        if (level < 0) {
+            level = 0
+        }
+    }
 }

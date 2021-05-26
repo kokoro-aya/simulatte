@@ -11,11 +11,6 @@
 package org.ironica.simulatte.manager
 
 import org.ironica.simulatte.playground.*
-import org.ironica.simulatte.payloads.*
-import org.ironica.simulatte.playground.Blocks
-import org.ironica.simulatte.playground.Role
-import org.ironica.simulatte.playground.characters.InstantializedSpecialist
-import org.ironica.simulatte.playground.data.*
 
 class ColorfulManager(override val playground: Playground, override val debug: Boolean, override val stdout: Boolean):
     AbstractManager {
@@ -24,6 +19,16 @@ class ColorfulManager(override val playground: Playground, override val debug: B
     override var special: String = ""
 
     override val firstId = playground.characters.keys.map { it.id }.sorted()[0]
+    override var attributedPlayerId: Int = -1
+    override var attributedSpecialistId: Int = -1
+
+    override fun turnLockDown(id: Int) {
+        throw NotImplementedError("ColorfulManager:: This action is not supported")
+    }
+
+    override fun turnLockUp(id: Int) {
+        throw NotImplementedError("ColorfulManager:: This action is not supported")
+    }
 
     override fun printGrid() {
         if (debug) {

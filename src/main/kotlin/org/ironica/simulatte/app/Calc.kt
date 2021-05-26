@@ -10,12 +10,12 @@
 
 package org.ironica.simulatte.app
 
-import org.ironica.simulatte.playground.*
 import org.ironica.simulatte.payloads.Status
+import org.ironica.simulatte.playground.*
 import org.ironica.simulatte.playground.Direction
 import org.ironica.simulatte.playground.characters.AbstractCharacter
 import org.ironica.simulatte.playground.characters.InstantializedPlayer
-import org.ironica.simulatte.playground.data.*
+import org.ironica.simulatte.playground.datas.*
 import org.ironica.simulatte.simulas.Cocoa
 import org.ironica.simulatte.simulas.EvalRunner
 import org.ironica.simulatte.simulas.wrapCode
@@ -28,7 +28,9 @@ fun main(args: Array<String>) {
     val debug = args.any { it == "debug" }
     val stdout = args.any { it == "stdout" }
 
-    val inputStream: InputStream = if (args.isNotEmpty()) FileInputStream(args[0]) else System.`in`
+    val nameArgs = args.filterNot { it == "debug" || it == "stdout" }
+
+    val inputStream: InputStream = if (nameArgs.isNotEmpty()) FileInputStream(args[0]) else System.`in`
 
     val squares = List(5) { List(5) { Square(Open, Color.WHITE, 1, Biome.PLAINS, null, null, null, null, null) } }
     val player = InstantializedPlayer(0, Direction.RIGHT, 500)
@@ -57,16 +59,16 @@ fun main(args: Array<String>) {
         .feed(locks)
         .feed(portals)
         .feed(players)
-        .feed("colorfulmountainous", debug, stdout)
+        .thenFeed("colorfulmountainous", debug, stdout)
         .generate(codeGen)
     codeGen.append("\n")
     codeGen.append(code.wrapCode())
 
     val gen = codeGen.toString()
 
-    println(gen)
+    if (debug) println(gen)
 
-    EvalRunner.evalSnippet(gen).let {
+    EvalRunner().evalSnippet(gen).let {
         println(it.first)
         println()
         println(when (it.second) {

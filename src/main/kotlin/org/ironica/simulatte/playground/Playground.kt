@@ -10,7 +10,7 @@
 
 package org.ironica.simulatte.playground
 
-import org.ironica.simulatte.playground.data.*
+import org.ironica.simulatte.playground.datas.*
 import org.ironica.simulatte.playground.Direction.*
 import org.ironica.simulatte.playground.characters.AbstractCharacter
 import org.ironica.simulatte.playground.characters.InstantializedSpecialist
@@ -56,10 +56,6 @@ class Playground(val squares: List<List<Square>>,
         get() = squares.flatten().filter { it.switch?.on == true }.size
     val allClosedSwitch: Int
         get() = squares.flatten().filter { it.switch?.on == false }.size
-
-    fun kill(player: AbstractCharacter) {
-        player.stamina = Int.MIN_VALUE / 2
-    }
 
     fun win(): Boolean = status == GameStatus.WIN // TODO implement win conditions
     fun lose(): Boolean = status == GameStatus.LOST // TODO implement lost conditions
