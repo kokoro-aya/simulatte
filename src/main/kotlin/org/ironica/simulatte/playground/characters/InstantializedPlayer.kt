@@ -16,7 +16,15 @@ import org.ironica.simulatte.playground.Direction
 import utils.StringRepresentable
 import utils.stringRepresentation
 
-data class InstantializedPlayer(override val id: Int, override var dir: Direction, override var stamina: Int): AbstractCharacter, StringRepresentable {
+data class InstantializedPlayer(override val id: Int): AbstractCharacter, StringRepresentable {
+
+    override var dir: Direction = Direction.UP
+    override var stamina: Int = 500
+
+    constructor(id: Int, dir: Direction, stamina: Int) : this(id) {
+        this.dir = dir
+        this.stamina = stamina
+    }
 
     override var playground: Playground? = null
 

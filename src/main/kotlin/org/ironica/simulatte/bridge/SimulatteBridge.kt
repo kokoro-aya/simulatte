@@ -207,7 +207,7 @@ class SimulatteBridge(
 
         if (output) gen.prettyPrint()
 
-        EvalRunner.evalSnippet(gen).let {
+        EvalRunner().evalSnippet(gen).let {
 //            println(it.first)
             println()
             println(when (it.second) {

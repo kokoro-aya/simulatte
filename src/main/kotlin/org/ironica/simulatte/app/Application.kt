@@ -21,9 +21,9 @@ import routes.registerPlaygroundRoutes
 
 
 fun main(args: Array<String>): Unit {
-    val debug = "-P:debug=${args.any{ it.lowercase() == "debug" }}"
-    val stdout = "-P:stdout=${args.any { it.lowercase() == "stdout" }}"
-    val output = "-P:output=${args.any { it.lowercase() == "output" }}"
+    val debug = "-P:debug=${args.any{ it.toLowerCase() == "debug" }}"
+    val stdout = "-P:stdout=${args.any { it.toLowerCase() == "stdout" }}"
+    val output = "-P:output=${args.any { it.toLowerCase() == "output" }}"
     io.ktor.server.netty.EngineMain.main(arrayOf(*args, debug, stdout, output))
 }
 

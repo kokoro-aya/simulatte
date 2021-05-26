@@ -11,15 +11,15 @@
 plugins {
     id 'java'
     id 'idea'
-    id 'org.jetbrains.kotlin.jvm' version "1.5.0"
-    id 'org.jetbrains.kotlin.plugin.serialization' version "1.5.0"
+    id 'org.jetbrains.kotlin.jvm' version "1.4.32"
+    id 'org.jetbrains.kotlin.plugin.serialization' version "1.4.32"
     id 'com.github.johnrengelman.shadow' version '5.2.0'
     id 'io.gitlab.arturbosch.detekt' version '1.17.0'
     id 'application'
 }
 
 group 'org.ironica'
-version '2.1.0-SNAPSHOT'
+version '2.2.5-SNAPSHOT'
 
 sourceCompatibility = 11
 
@@ -34,19 +34,19 @@ mainClassName = 'org.ironica.simulatte.app.ApplicationKt'
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib"
-    implementation "org.jetbrains.kotlin:kotlin-reflect:1.5.0"
+    implementation "org.jetbrains.kotlin:kotlin-reflect:1.4.32"
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
 
     compile group: 'org.antlr', name: 'antlr4', version: '4.9.1'
 
-    implementation "io.ktor:ktor-server-core:1.5.4"
-    implementation "io.ktor:ktor-server-netty:1.5.4"
+    implementation "io.ktor:ktor-server-core:1.5.2"
+    implementation "io.ktor:ktor-server-netty:1.5.2"
     implementation "ch.qos.logback:logback-classic:1.2.3"
-    implementation "io.ktor:ktor-serialization:1.5.4"
+    implementation "io.ktor:ktor-serialization:1.5.2"
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-core:1.2.0"
 
-    testImplementation "io.ktor:ktor-server-tests:1.5.4"
+    testImplementation "io.ktor:ktor-server-tests:1.5.2"
 
     implementation group: 'com.squareup', name: 'kotlinpoet', version: '1.8.0'
     implementation 'org.jetbrains.kotlinx:ki-shell:0.3.3'

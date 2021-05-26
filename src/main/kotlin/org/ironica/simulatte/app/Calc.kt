@@ -68,7 +68,7 @@ fun main(args: Array<String>) {
 
     if (debug) println(gen)
 
-    EvalRunner.evalSnippet(gen).let {
+    EvalRunner().evalSnippet(gen).let {
         println(it.first)
         println()
         println(when (it.second) {

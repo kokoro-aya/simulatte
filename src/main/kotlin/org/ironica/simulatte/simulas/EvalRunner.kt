@@ -23,7 +23,7 @@ import kotlin.script.experimental.util.LinkedSnippet
 /**
  * Implementation of Eval Runner with help of @author Dylech30th
  */
-object EvalRunner {
+class EvalRunner {
 
     private val defaultImportKotlinPackages = listOf(
         "kotlin.collections.*",
