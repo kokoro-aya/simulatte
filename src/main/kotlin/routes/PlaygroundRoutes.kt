@@ -62,6 +62,7 @@ fun Route.getPlaygroundRoute(args: Triple<Boolean, Boolean, Boolean>) {
                                 )
                             }
                             is String -> {
+                                println("Route:: encountered some error \n$rsf\n")
                                 call.respond(
                                     ErrorMessage(resp.second, rsf)
                                 )
@@ -71,10 +72,16 @@ fun Route.getPlaygroundRoute(args: Triple<Boolean, Boolean, Boolean>) {
                             }
                         }
                     }
-                    Status.ERROR -> call.respond(ErrorMessage(
-                        resp.second, resp.first as String))
-                    Status.INCOMPLETE -> call.respond(ErrorMessage(
-                        resp.second, resp.first as String))
+                    Status.ERROR -> {
+                        println("Route:: encountered some error\n${resp.first as String}\n")
+                        call.respond(ErrorMessage(
+                            resp.second, resp.first as String))
+                    }
+                    Status.INCOMPLETE -> {
+                        println("Route:: The code is not complete.\n")
+                        call.respond(ErrorMessage(
+                            resp.second, "incomplete code"))
+                    }
                 }
                 println("Proceeded succesfully a request.")
             } catch (e: Exception) {
