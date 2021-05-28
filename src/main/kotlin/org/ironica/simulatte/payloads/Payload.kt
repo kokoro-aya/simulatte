@@ -17,15 +17,13 @@ import org.ironica.simulatte.playground.datas.Coordinate
 
 @Serializable
 data class Payload(
-    val grid: List<List<Blocks>>,
-    val colors: List<List<Color>>,
-    val levels: List<List<Int>>,
+    val grid: List<List<SerializedBlock>>,
     val gems: List<Coordinate>,
     val beepers: List<Coordinate>,
     val switches: List<SerializedSwitch>,
-    val portals: List<SerializedPortalOrLock>,
+    val portals: List<SerializedPortal>,
     val platforms: List<SerializedPlatform>,
-    val locks: List<SerializedPortalOrLock>,
+    val locks: List<SerializedLock>,
     val players: List<SerializedPlayer>,
     val consoleLog: String,
     val special: String

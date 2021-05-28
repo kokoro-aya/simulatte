@@ -8,13 +8,13 @@
  *
  */
 
-package org.ironica.simulatte.bridge
+package org.ironica.simulatte.payloads
 
 import kotlinx.serialization.Serializable
-import org.ironica.simulatte.playground.Direction
-import org.ironica.simulatte.playground.datas.Coordinate
+import org.ironica.simulatte.playground.Blocks
 
 @Serializable
-data class StairData(
-    val coo: Coordinate, val dir: Direction
+data class SerializedBlock(
+    val block: Blocks,
+    val level: Int,
 )

@@ -498,14 +498,6 @@ class Playground(val squares: List<List<Square>>,
         return true
     }
 
-    fun playerChangeColor(char: AbstractCharacter, color: Color): Boolean {
-        if (char.isDead) return false
-        char.getCoo.asSquare.color = color
-        // TODO insert stamina rule here
-        incrementATurn()
-        return true
-    }
-
     // ---- End of Player Methods ---- //
 
     // ---- Start of Specialist Properties & Methods ---- //

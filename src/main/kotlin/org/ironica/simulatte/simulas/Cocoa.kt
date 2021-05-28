@@ -14,9 +14,7 @@ import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.asTypeName
-import org.ironica.simulatte.manager.ColorfulManager
 import org.ironica.simulatte.manager.ColorfulMountainManager
-import org.ironica.simulatte.manager.MountainousManager
 import org.ironica.simulatte.playground.Playground
 import org.ironica.simulatte.playground.characters.AbstractCharacter
 import org.ironica.simulatte.playground.datas.Coordinate
@@ -85,15 +83,11 @@ class Cocoa {
             .build()
         )
         fs.addProperty(PropertySpec.builder("manager", when(managerType) {
-            "colorful" -> ColorfulManager::class
-            "mountainous" -> MountainousManager::class
-            "colorfulmountainous" -> ColorfulMountainManager::class
+            "default" -> ColorfulMountainManager::class
             else -> throw UnsupportedOperationException("Cocoa:: The Manager type is unknown")
         })
             .initializer(when (managerType) {
-                "colorful" -> "ColorfulManager(playground, $debug, $stdout)"
-                "mountainous" -> "MountainousManager(playground, $debug, $stdout)"
-                "colorfulmountainous" -> "ColorfulMountainManager(playground, $debug, $stdout)"
+                "default" -> "ColorfulMountainManager(playground, $debug, $stdout)"
                 else -> throw UnsupportedOperationException("Cocoa:: The Manager type is unknown")
             })
             .build()

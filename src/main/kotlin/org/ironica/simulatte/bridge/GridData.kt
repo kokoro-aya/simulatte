@@ -11,10 +11,12 @@
 package org.ironica.simulatte.bridge
 
 import kotlinx.serialization.Serializable
-import org.ironica.simulatte.playground.Direction
-import org.ironica.simulatte.playground.datas.Coordinate
+import org.ironica.simulatte.playground.Biome
+import org.ironica.simulatte.playground.Blocks
 
 @Serializable
-data class StairData(
-    val coo: Coordinate, val dir: Direction
+data class GridData(
+    val block: Blocks,
+    val level: Int,
+    val biome: Biome,
 )

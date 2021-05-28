@@ -14,8 +14,16 @@ import kotlinx.serialization.Serializable
 import org.ironica.simulatte.playground.datas.Coordinate
 
 @Serializable
-data class SerializedPortalOrLock(
+data class SerializedPortal(
     val coo: Coordinate,
+    val dest: Coordinate,
     val isActive: Boolean,
     val energy: Int,
+)
+
+@Serializable
+data class SerializedLock(
+    val coo: Coordinate,
+    val isActive: Boolean,
+    val energy: Int
 )

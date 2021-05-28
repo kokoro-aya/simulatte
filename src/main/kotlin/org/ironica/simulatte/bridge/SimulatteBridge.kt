@@ -28,11 +28,10 @@ import utils.zip
 class SimulatteBridge(
     private val type: String,
     private val code: String,
-    private val grid: Grid,
-    private val itemLayout: ItemLayout,
-    private val colors: List<List<Color>>,
-    private val levels: List<List<Int>>,
-    private val biomes: List<List<Biome>>,
+    private val grid: List<List<GridData>>,
+    private val gemdatas: List<Coordinate>,
+    private val beeperdatas: List<Coordinate>,
+    private val switchdatas: List<SwitchData>,
     private val portaldatas: List<PortalData>,
     private val lockdatas: List<LockData>,
     private val stairdatas: List<StairData>,
@@ -83,7 +82,7 @@ class SimulatteBridge(
         var homeId = 0
         val blocks = grid.mapIndexed { i, line ->
             line.mapIndexed { j, b ->
-                when (b) {
+                when (b.block) {
                     Blocks.OPEN -> Open
                     Blocks.HILL -> Hill
                     Blocks.WATER -> Water
@@ -101,29 +100,34 @@ class SimulatteBridge(
             }
         }
 
-        val miscLayout = convertJsonToMiscLayout(colors, levels, type, grid.size to grid[0].size)
-        squares = zip(blocks, miscLayout, biomes) { block, addi, biom ->
-            Square(block, addi.color, addi.level, biom, null, null, null, null, null)
+        val levels = grid.map { it.map { it.level } }
+        val biomes = grid.map { it.map { it.biome } }
+
+        squares = zip(blocks, levels, biomes) { block, lev, biom ->
+            Square(block, lev, biom, null, null, null, null, null)
         }
 
-        // This loop is a temporary solution for assigning items over squares
-        itemLayout.forEachIndexed { i, line ->
-            line.forEachIndexed { j, it ->
-                when (it) {
-                    Items.NONE -> {
-                    }
-                    Items.GEM -> squares[i][j].gem = Gem()
-                    Items.CLOSEDSWITCH -> squares[i][j].switch = Switch(on = false)
-                    Items.OPENEDSWITCH -> squares[i][j].switch = Switch(on = true)
-                    Items.BEEPER -> squares[i][j].beeper = Beeper()
-                    Items.PORTAL -> squares[i][j].portal = portals.entries.firstOrNull {
-                        it.value == Coordinate(j, i)
-                    }?.key
-                    Items.PLATFORM -> squares[i][j].platform = platforms.entries.firstOrNull {
-                        it.value == Coordinate(j, i)
-                    }?.key
-                }
-            }
+        // Assignment for items
+        gemdatas.forEach {
+            validPositionChecks(it, "#gems")
+            squares[it.y][it.x].gem = Gem()
+        }
+        beeperdatas.forEach {
+            validPositionChecks(it, "#beepers")
+            squares[it.y][it.x].beeper = Beeper()
+        }
+        switchdatas.forEach {
+            validPositionChecks(it.coo, "#switches")
+            squares[it.coo.y][it.coo.x].switch = Switch(it.on)
+        }
+
+        portals.forEach {
+            validPositionChecks(it.value, "#portals")
+            squares[it.value.y][it.value.x].portal = it.key
+        }
+        platforms.forEach {
+            validPositionChecks(it.value, "#platforms")
+            squares[it.value.y][it.value.x].platform = it.key
         }
 
         // Player assignment into playground will be delayed within the instance of playground, due to the usage
@@ -131,62 +135,44 @@ class SimulatteBridge(
 
     }
 
-    private fun preInitChecks() {
-        check (grid.size == itemLayout.size && grid[0].size == itemLayout[0].size)
-        { "Initialization:: layouts must have same dimension [0]" }
-        check (grid.size == colors.size && grid[0].size == colors[0].size)
-        { "Initialization:: layouts must have same dimension [1]" }
-        check (grid.size == levels.size && grid[0].size == levels[0].size)
-        { "Initialization:: layouts must have same dimension [2]" }
-        check (grid.size == biomes.size && grid[0].size == biomes[0].size)
-        { "Initialization:: layouts must have same dimension [3]" }
+    private fun validPositionChecks(pos: Coordinate, phase: String): Unit {
+        check (pos.y in grid.indices && pos.x in grid[0].indices) { "Initialization:: boundary check failed in $phase" }
+    }
 
-        check (lockdatas.all { it.coo.let { grid[it.y][it.x] == Blocks.LOCK } }) {
+    private fun preInitChecks() {
+        check (grid.size in 1 .. 50 && grid[0].size in 1 .. 50) {
+            "Initialization:: Size of playground must between 1 and 50 (inclusive)!"
+        }
+
+
+
+        check (lockdatas.all { it.coo.let { grid[it.y][it.x].block == Blocks.LOCK } }) {
             "Initialization:: A Lock registration corresponding to a tile which is not a Lock"
         }
 
-        check (platformdatas.all { it.coo.let { itemLayout[it.y][it.x] == Items.PLATFORM } }) {
-            "Initialization:: A Platform registration corresponding to a coordinate which has no Platform"
-        }
-
-        check (lockdatas.all { it.controlled.all { itemLayout[it.y][it.x] == Items.PLATFORM } }) {
+        check (lockdatas.all { it.controlled.all { pos -> platformdatas.any { it.coo == pos } } }) {
             "Initialization:: A coordinate controlled by a Lock has no Platform"
         }
+        // In contrast, a platform could be controlled by no lock
 
-        check (portaldatas.all { it.coo.let { itemLayout[it.y][it.x] == Items.PORTAL } }) {
-            "Initialization:: A Portal registration corresponding to a coordinate which has no portal"
-        }
-
-        check (stairdatas.all { it.coo.let { grid[it.y][it.x] == Blocks.STAIR } }) {
+        check (stairdatas.all { it.coo.let { grid[it.y][it.x].block == Blocks.STAIR } }) {
             "Initialization:: A Stair registration corresponding to a tile which is not a Stair"
         }
 
         grid.forEachIndexed { i, line ->
             line.forEachIndexed { j, _ ->
-                if (grid[i][j] == Blocks.LOCK) {
+                if (grid[i][j].block == Blocks.LOCK) {
                     check (lockdatas.any { it.coo.x == j && it.coo.y == i }) {
                         "Initialization:: A tile Lock has no corresponding registration in data"
                     }
                 }
-                if (grid[i][j] == Blocks.STAIR) {
+                if (grid[i][j].block == Blocks.STAIR) {
                     check (stairdatas.any { it.coo.x == j && it.coo.y == i }) {
                         "Initialization:: A tile Stair has no corresponding registration in data"
                     }
                 }
-                if (itemLayout[i][j] == Items.PORTAL) {
-                    check (portaldatas.any { it.coo.x == j && it.coo.y == i }) {
-                        "Initialization:: A coordinate contains Portal but not registered in data"
-                    }
-                }
-
-                if (itemLayout[i][j] == Items.PLATFORM) {
-                    check (platformdatas.any { it.coo.x == j && it.coo.y == i }) {
-                        "Initialization:: A coordinate contains Platform but not registered in data"
-                    }
-                }
             }
         }
-        // In the future we might remove the itemLayout and introduce new arrays for each items
     }
 
     fun start(): Pair<Any?, Status> {

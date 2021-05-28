@@ -92,10 +92,6 @@ data class Specialist(private val manager: AbstractManager, private val id: Int)
         manager.dance(id, 5)
     }
 
-    fun changeColor(c: Color) {
-        manager.changeColor(id, c)
-    }
-
     fun turnLockUp() {
         manager.turnLockUp(id)
     }

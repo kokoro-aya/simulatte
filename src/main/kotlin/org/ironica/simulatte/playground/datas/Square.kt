@@ -18,7 +18,6 @@ import utils.stringRepresentation
 
 data class Square(
     var block: Block,
-    var color: Color,
     var level: Int,
     var biome: Biome,
     var switch: Switch?,
@@ -32,7 +31,6 @@ data class Square(
         get() = buildString {
             append("Square(")
             append("${this@Square.block.stringRepresentation}, ")
-            append("${this@Square.color.stringRepresentation}, ")
             append("${this@Square.level}, ")
             append("${this@Square.biome.stringRepresentation}, ")
             if (this@Square.switch == null) append("null, ")

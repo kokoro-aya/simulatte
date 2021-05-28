@@ -11,10 +11,9 @@
 package org.ironica.simulatte.bridge
 
 import kotlinx.serialization.Serializable
-import org.ironica.simulatte.playground.Direction
 import org.ironica.simulatte.playground.datas.Coordinate
 
 @Serializable
-data class StairData(
-    val coo: Coordinate, val dir: Direction
+data class SwitchData(
+    val coo: Coordinate, val on: Boolean
 )
