@@ -18,7 +18,6 @@ import org.ironica.simulatte.playground.datas.Coordinate
 @Serializable
 data class Payload(
     val grid: List<List<Blocks>>,
-    val colors: List<List<Color>>,
     val levels: List<List<Int>>,
     val gems: List<Coordinate>,
     val beepers: List<Coordinate>,

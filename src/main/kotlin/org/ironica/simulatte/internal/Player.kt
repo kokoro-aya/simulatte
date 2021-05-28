@@ -92,8 +92,4 @@ data class Player(internal val manager: AbstractManager, internal val id: Int) {
         manager.dance(id, 5)
     }
 
-    fun changeColor(c: Color) {
-        manager.changeColor(id, c)
-    }
-
 }

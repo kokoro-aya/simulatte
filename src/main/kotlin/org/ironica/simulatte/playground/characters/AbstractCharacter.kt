@@ -57,8 +57,6 @@ interface AbstractCharacter: StringRepresentable {
 
     fun dropBeeper() = playground?.playerDropBeeper(this) ?: throw NullPointerException("AbstractCharacter:: Uninitialized character")
 
-    fun changeColor(c: Color) = playground?.playerChangeColor(this, c) ?: throw NullPointerException("AbstractCharacter:: Uninitialized character")
-
     fun kill() = playground?.playerKill(this) ?: throw NullPointerException("AbstractCharacter:: Uninitialized character")
 
     val isAlive: Boolean

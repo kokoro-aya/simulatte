@@ -97,3 +97,7 @@ fun <T : java.io.Serializable> deepCopy(obj: T?): T? {
     val ois  = ObjectInputStream(bais)
     return ois.readObject() as T
 }
+
+fun <T> List<List<T>>.toMutableArray(): MutableList<MutableList<T>> {
+    return this.map { it.toMutableList() }.toMutableList()
+}

@@ -14,16 +14,16 @@ import kotlinx.serialization.Serializable
 import org.ironica.simulatte.playground.*
 import org.ironica.simulatte.playground.Blocks
 import org.ironica.simulatte.playground.Items
+import org.ironica.simulatte.playground.datas.Coordinate
 
 @Serializable
 data class IncomingData(
     val type: String,
     val code: String,
-    val grid: List<List<Blocks>>,
-    val layout: List<List<Items>>,
-    val colors: List<List<Color>>,
-    val levels: List<List<Int>>,
-    val biomes: List<List<Biome>>,
+    val grid: List<List<GridData>>,
+    val gems: List<Coordinate>,
+    val beepers: List<Coordinate>,
+    val switches: List<SwitchData>,
     val portals: List<PortalData>,
     val locks: List<LockData>,
     val stairs: List<StairData>,

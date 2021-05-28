@@ -7,23 +7,3 @@
  * You should have received a copy of the GNU Affero General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
  *
  */
-
-package org.ironica.simulatte.manager
-
-import org.ironica.simulatte.playground.*
-
-class MountainousManager(override val playground: Playground, override val debug: Boolean,
-                         override val stdout: Boolean): AbstractManager {
-    
-    override var consoleLog: String = ""
-    override var special: String = ""
-
-    override val firstId = playground.characters.keys.map { it.id }.sorted()[0]
-    override var attributedPlayerId: Int = -1
-    override var attributedSpecialistId: Int = -1
-
-    override fun changeColor(id: Int, c: Color) {
-        throw NotImplementedError("MountainousManager:: This action is not supported")
-    }
-
-}

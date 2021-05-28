@@ -176,14 +176,6 @@ interface AbstractManager {
         getPlayer(id).kill()
     }
 
-
-    fun changeColor(id: Int, c: Color) {
-        getPlayer(id).changeColor(c)
-        printGrid()
-        appendEntry()
-    }
-
-
     fun turnLockUp(id: Int) {
         if (getPlayer(id) !is InstantializedSpecialist) throw Exception("AbstractManager:: Only specialist could turn locks up")
         (getPlayer(id) as InstantializedSpecialist).turnLockUp()
@@ -217,7 +209,6 @@ interface AbstractManager {
                     Water -> Blocks.WATER
                 }
             } }
-            val currentColors = this.map { it.map { it.color } }
             val currentLevels = this.map { it.map { it.level } }
             val gems = this.mapIndexed { i, line ->
                 line.mapIndexed { j, sq -> Coordinate(j, i) to sq.gem }.filter { it.second != null }
@@ -246,7 +237,7 @@ interface AbstractManager {
                 }
             }
             val payload = Payload(
-                currentGrid, currentColors, currentLevels,
+                currentGrid, currentLevels,
                 gems, beepers, switches, portals, platforms, locks,
                 players, this@AbstractManager.consoleLog, this@AbstractManager.special
             )
