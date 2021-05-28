@@ -195,19 +195,21 @@ interface AbstractManager {
 
         with (playground.squares) {
             val currentGrid = this.map { it.map {
-                when (it.block) {
-                    Desert -> Blocks.DESERT
-                    Hill -> Blocks.HILL
-                    is Home -> Blocks.HOME
-                    is Lock -> Blocks.LOCK
-                    Mountain -> Blocks.MOUNTAIN
-                    Open -> Blocks.OPEN
-                    is Stair -> Blocks.STAIR
-                    Stone -> Blocks.STONE
-                    Tree -> Blocks.TREE
-                    Void -> Blocks.VOID
-                    Water -> Blocks.WATER
-                }
+                SerializedBlock(
+                    when (it.block) {
+                        Desert -> Blocks.DESERT
+                        Hill -> Blocks.HILL
+                        is Home -> Blocks.HOME
+                        is Lock -> Blocks.LOCK
+                        Mountain -> Blocks.MOUNTAIN
+                        Open -> Blocks.OPEN
+                        is Stair -> Blocks.STAIR
+                        Stone -> Blocks.STONE
+                        Tree -> Blocks.TREE
+                        Void -> Blocks.VOID
+                        Water -> Blocks.WATER
+                    }, it.level
+                )
             } }
             val currentLevels = this.map { it.map { it.level } }
             val gems = this.mapIndexed { i, line ->
@@ -221,11 +223,11 @@ interface AbstractManager {
             }.flatten().map { SerializedSwitch(it.first, it.second!!.on) }
             val portals = this.mapIndexed { i, line ->
                 line.mapIndexed { j, sq -> Coordinate(j, i) to sq.portal }.filter { it.second != null }
-            }.flatten().map { SerializedPortalOrLock(it.first, it.second!!.isActive, it.second!!.energy) }
+            }.flatten().map { SerializedPortal(it.first, it.second!!.coo, it.second!!.isActive, it.second!!.energy) }
             val platforms = this.mapIndexed { i, line ->
                 line.mapIndexed { j, sq -> Coordinate(j, i) to sq.platform }.filter { it.second != null }
             }.flatten().map { SerializedPlatform(it.first, it.second!!.level) }
-            val locks = playground.locks.map { SerializedPortalOrLock(it.key, it.value.isActive, it.value.energy) }
+            val locks = playground.locks.map { SerializedLock(it.key, it.value.isActive, it.value.energy) }
             val players = playground.characters.map {
                 val (x, y) = it.value
                 with (it.key) {
@@ -237,7 +239,7 @@ interface AbstractManager {
                 }
             }
             val payload = Payload(
-                currentGrid, currentLevels,
+                currentGrid,
                 gems, beepers, switches, portals, platforms, locks,
                 players, this@AbstractManager.consoleLog, this@AbstractManager.special
             )

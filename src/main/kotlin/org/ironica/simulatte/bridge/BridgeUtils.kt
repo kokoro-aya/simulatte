@@ -43,5 +43,3 @@ fun convertJsonToMiscLayout(colors: List<List<Color>>, levels: List<List<Int>>, 
         else -> throw Exception("Unsupported game module")
     }
 }
-
-fun calculateInitialGem(itemLayout: ItemLayout): Int = itemLayout.flatten().filter { it == Items.GEM }.size

@@ -11,19 +11,10 @@
 package org.ironica.simulatte.payloads
 
 import kotlinx.serialization.Serializable
-import org.ironica.simulatte.playground.datas.Coordinate
+import org.ironica.simulatte.playground.Blocks
 
 @Serializable
-data class SerializedPortal(
-    val coo: Coordinate,
-    val dest: Coordinate,
-    val isActive: Boolean,
-    val energy: Int,
-)
-
-@Serializable
-data class SerializedLock(
-    val coo: Coordinate,
-    val isActive: Boolean,
-    val energy: Int
+data class SerializedBlock(
+    val block: Blocks,
+    val level: Int,
 )
