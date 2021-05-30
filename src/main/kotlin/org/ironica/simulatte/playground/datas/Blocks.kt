@@ -19,40 +19,9 @@ object Open: Block() {
     override val stringRepresentation: String
         get() = "Open"
 }
-
-object Hill: Block() {
+object Blocked: Block() {
     override val stringRepresentation: String
-        get() = "Hill"
-}
-
-object Water: Block() {
-    override val stringRepresentation: String
-        get() = "Water"
-}
-
-object Tree: Block() {
-    override val stringRepresentation: String
-        get() = "Tree"
-}
-
-object Desert: Block() {
-    override val stringRepresentation: String
-        get() = "Desert"
-}
-
-data class Home(val id: Int): Block() {
-    override val stringRepresentation: String
-        get() = "Home($id)"
-
-}
-object Mountain: Block() {
-    override val stringRepresentation: String
-        get() = "Mountain"
-}
-
-object Stone: Block() {
-    override val stringRepresentation: String
-        get() = "Stone"
+        get() = "Blocked"
 }
 
 data class Lock(val id: Int, val controlled: MutableList<Coordinate>, var isActive: Boolean, var energy: Int): Block() {

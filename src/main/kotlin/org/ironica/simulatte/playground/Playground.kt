@@ -86,17 +86,16 @@ class Playground(val squares: List<List<Square>>,
         if (sq.portal != null) return "门"
         if (sq.platform != null) return "台"
         return when (sq.block) {
-            Hill -> "山"
-            is Lock -> "锁"
             Void -> "无"
             Open -> "空"
-            is Home -> "屋"
-            is Stair -> "阶"
-            Stone -> "石"
-            Tree -> "树"
-            Water -> "水"
-            Desert -> "漠"
-            Mountain -> "岳"
+            Blocked -> "障"
+            is Lock -> "锁"
+            is Stair -> when ((sq.block as Stair).dir) {
+                UP -> "⬆️"
+                DOWN -> "⬇️"
+                LEFT -> "⬅️"
+                RIGHT -> "➡️"
+            }
         }
     }
 
@@ -117,8 +116,7 @@ class Playground(val squares: List<List<Square>>,
 
     private fun isTileAccessible(tile: Block): Boolean {
         return when (tile) {
-            is Lock, Mountain, Stone, Void -> false
-            Water -> canSwim
+            is Lock, Blocked, Void -> false
             else -> true
         }
     }
@@ -294,22 +292,6 @@ class Playground(val squares: List<List<Square>>,
 
     fun playerIsOnBeeper(char: AbstractCharacter): Boolean {
         return char.isAlive && char.getCoo.asSquare.beeper != null
-    }
-
-    fun playerIsAtHome(char: AbstractCharacter): Boolean {
-        return char.isAlive && char.getCoo.asSquare.block is Home
-    }
-
-    fun playerIsOnHill(char: AbstractCharacter): Boolean {
-        return char.isAlive && char.getCoo.asSquare.block == Hill
-    }
-
-    fun playerIsInDesert(char: AbstractCharacter): Boolean {
-        return char.isAlive && char.getCoo.asSquare.block == Desert
-    }
-
-    fun playerIsInForest(char: AbstractCharacter): Boolean {
-        return char.isAlive && char.getCoo.asSquare.block == Tree
     }
 
     fun playerIsOnPortal(char: AbstractCharacter): Boolean {

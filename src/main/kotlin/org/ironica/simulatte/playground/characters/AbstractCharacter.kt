@@ -32,11 +32,6 @@ interface AbstractCharacter: StringRepresentable {
     fun isOnClosedSwitch() = playground?.playerIsOnClosedSwitch(this) ?: throw NullPointerException("AbstractCharacter:: Uninitialized character")
     fun isOnBeeper() = playground?.playerIsOnBeeper(this) ?: throw NullPointerException("AbstractCharacter:: Uninitialized character")
 
-    fun isAtHome() = playground?.playerIsAtHome(this) ?: throw NullPointerException("AbstractCharacter:: Uninitialized character")
-    fun isInDesert() = playground?.playerIsInDesert(this) ?: throw NullPointerException("AbstractCharacter:: Uninitialized character")
-    fun isInForest() = playground?.playerIsInForest(this) ?: throw NullPointerException("AbstractCharacter:: Uninitialized character")
-    fun isOnHill() = playground?.playerIsOnHill(this) ?: throw NullPointerException("AbstractCharacter:: Uninitialized character")
-
     fun isOnPortal() = playground?.playerIsOnPortal(this) ?: throw NullPointerException("AbstractCharacter:: Uninitialized character")
     fun isOnPlatform() = playground?.playerIsOnPlatform(this) ?: throw NullPointerException("AbstractCharacter:: Uninitialized character")
 

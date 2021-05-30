@@ -12,7 +12,7 @@ package org.ironica.simulatte.manager
 
 import org.ironica.simulatte.playground.*
 
-class ColorfulMountainManager(override val playground: Playground, override val debug: Boolean, override val stdout: Boolean):
+class DefaultManager(override val playground: Playground, override val debug: Boolean, override val stdout: Boolean):
     AbstractManager {
 
     override var consoleLog: String = ""
