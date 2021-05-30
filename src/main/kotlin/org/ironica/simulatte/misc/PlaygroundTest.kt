@@ -13,7 +13,7 @@ package org.ironica.simulatte.misc
 import kotlinx.coroutines.runBlocking
 import org.ironica.simulatte.internal.Player
 import org.ironica.simulatte.internal.play
-import org.ironica.simulatte.manager.ColorfulMountainManager
+import org.ironica.simulatte.manager.DefaultManager
 import org.ironica.simulatte.payloads.payloadStorage
 import org.ironica.simulatte.payloads.statusStorage
 import org.ironica.simulatte.playground.*
@@ -94,85 +94,85 @@ import org.ironica.simulatte.playground.datas.*
 public val squares: List<List<Square>> = listOf(
         listOf(
                 Square(Open, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
-        Square(Mountain, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
-        Square(Mountain, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
+        Square(Blocked, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
+        Square(Blocked, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
         Square(Open, 1, Biome.PLAINS, null, Gem(), null, null, null, mutableListOf()),
-        Square(Mountain, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
-        Square(Stone, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
+        Square(Blocked, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
+        Square(Blocked, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
         Square(Open, 1, Biome.PLAINS, null, null, null, Portal(Coordinate(6, 0),
         Coordinate(9, 5), Color.WHITE, true, 100), null, mutableListOf()),
         Square(Open, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
-        Square(Stone, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
+        Square(Blocked, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
         Square(Open, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()))
     ,
     listOf(
         Square(Open, 1, Biome.PLAINS, Switch(false), null, null, null, null,
         mutableListOf()),
-        Square(Stone, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
+        Square(Blocked, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
         Square(Open, 1, Biome.PLAINS, null, Gem(), null, null, null, mutableListOf()),
         Square(Open, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
         Square(Open, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
-        Square(Stone, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
+        Square(Blocked, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
         Square(Open, 1, Biome.PLAINS, Switch(false), null, null, null, null,
         mutableListOf()),
         Square(Open, 1, Biome.PLAINS, null, Gem(), null, null, null, mutableListOf()),
-        Square(Stone, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
+        Square(Blocked, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
         Square(Open, 1, Biome.PLAINS, null, Gem(), null, null, null, mutableListOf()))
     ,
     listOf(
         Square(Open, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
-        Square(Mountain, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
-        Square(Mountain, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
-        Square(Stone, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
+        Square(Blocked, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
+        Square(Blocked, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
+        Square(Blocked, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
         Square(Open, 1, Biome.PLAINS, Switch(false), null, null, null, null,
         mutableListOf()),
-        Square(Stone, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
+        Square(Blocked, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
         Square(Open, 1, Biome.PLAINS, Switch(true), null, null, null, null,
         mutableListOf()),
         Square(Open, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
-        Square(Stone, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
+        Square(Blocked, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
         Square(Open, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()))
     ,
     listOf(
         Square(Open, 1, Biome.PLAINS, Switch(false), null, null, null, null,
         mutableListOf()),
-        Square(Stone, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
+        Square(Blocked, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
         Square(Open, 1, Biome.PLAINS, null, Gem(), null, null, null, mutableListOf()),
         Square(Open, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
         Square(Open, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
-        Square(Water, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
+        Square(Blocked, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
         Square(Open, 1, Biome.PLAINS, Switch(false), null, null, null, null,
         mutableListOf()),
         Square(Open, 1, Biome.PLAINS, null, Gem(), null, null, null, mutableListOf()),
-        Square(Stone, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
+        Square(Blocked, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
         Square(Open, 1, Biome.PLAINS, null, Gem(), null, null, null, mutableListOf()))
     ,
     listOf(
         Square(Open, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
-        Square(Water, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
-        Square(Stone, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
+        Square(Blocked, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
+        Square(Blocked, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
         Square(Open, 1, Biome.PLAINS, null, Gem(), null, null, null, mutableListOf()),
         Square(Open, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
-        Square(Water, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
+        Square(Blocked, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
         Square(Open, 1, Biome.PLAINS, Switch(true), null, null, null, null,
         mutableListOf()),
         Square(Open, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
-        Square(Stone, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
+        Square(Blocked, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
         Square(Open, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()))
     ,
     listOf(
         Square(Open, 1, Biome.PLAINS, null, null, null, Portal(Coordinate(0, 5),
         Coordinate(4, 5), Color.WHITE, true, 100), null, mutableListOf()),
-        Square(Water, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
-        Square(Stone, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
-        Square(Stone, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
+        Square(Blocked, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
+        Square(Blocked, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
+        Square(Blocked, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
         Square(Open, 1, Biome.PLAINS, null, null, null, Portal(Coordinate(4, 5),
         Coordinate(0, 5), Color.WHITE, true, 100), null, mutableListOf()),
-        Square(Water, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
+        Square(Blocked, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
         Square(Open, 1, Biome.PLAINS, Switch(false), null, null, null, null,
         mutableListOf()),
         Square(Open, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
-        Square(Stone, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
+        Square(Blocked, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
         Square(Open, 1, Biome.PLAINS, null, null, null, Portal(Coordinate(9, 5),
         Coordinate(6, 5), Color.WHITE, true, 100), null, mutableListOf()))
     )
@@ -199,7 +199,7 @@ public val players: Map<AbstractCharacter, Coordinate> = mapOf(
 public val playground: Playground = Playground(squares, portals.toMutableMap(),
         locks.toMutableMap(), players.toMutableMap())
 
-public val manager: ColorfulMountainManager = ColorfulMountainManager(playground, false, false)
+public val manager: DefaultManager = DefaultManager(playground, false, false)
 
 fun main() {
     payloadStorage.set(mutableListOf())

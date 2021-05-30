@@ -84,13 +84,7 @@ class SimulatteBridge(
             line.mapIndexed { j, b ->
                 when (b.block) {
                     Blocks.OPEN -> Open
-                    Blocks.HILL -> Hill
-                    Blocks.WATER -> Water
-                    Blocks.TREE -> Tree
-                    Blocks.DESERT -> Desert
-                    Blocks.HOME -> Home(homeId++)
-                    Blocks.MOUNTAIN -> Mountain
-                    Blocks.STONE -> Stone
+                    Blocks.BLOCKED -> Blocked
                     Blocks.LOCK -> locks[Coordinate(j, i)]
                         ?: throw Exception("Initialization:: A tile declared as Lock without lock info registered")
                     Blocks.STAIR -> stairdatas.firstOrNull { it.coo == Coordinate(j, i) }?.let { Stair(it.dir) }

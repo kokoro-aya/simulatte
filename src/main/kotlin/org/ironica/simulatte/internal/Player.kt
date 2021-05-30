@@ -23,14 +23,6 @@ data class Player(internal val manager: AbstractManager, internal val id: Int) {
         get() = manager.isOnClosedSwitch(id)
     val isOnBeeper: Boolean
         get() = manager.isOnBeeper(id)
-    val isAtHome: Boolean
-        get() = manager.isAtHome(id)
-    val isInDesert: Boolean
-        get() = manager.isInDesert(id)
-    val isInForest: Boolean
-        get() = manager.isInForest(id)
-    val isOnHill: Boolean
-        get() = manager.isOnHill(id)
     val isOnPortal: Boolean
         get() = manager.isOnPortal(id)
     val isOnPlatform: Boolean

@@ -60,10 +60,6 @@ interface AbstractManager {
     fun isOnOpenedSwitch(id: Int) = getPlayer(id).isOnOpenedSwitch()
     fun isOnClosedSwitch(id: Int) = getPlayer(id).isOnClosedSwitch()
     fun isOnBeeper(id: Int) = getPlayer(id).isOnBeeper()
-    fun isAtHome(id: Int) = getPlayer(id).isAtHome()
-    fun isInDesert(id: Int) = getPlayer(id).isInDesert()
-    fun isInForest(id: Int) = getPlayer(id).isInForest()
-    fun isOnHill(id: Int) = getPlayer(id).isOnHill()
     fun isOnPortal(id: Int) = getPlayer(id).isOnPortal()
     fun isOnPlatform(id: Int) = getPlayer(id).isOnPlatform()
     fun isBlocked(id: Int) = getPlayer(id).isBlocked()
@@ -197,17 +193,11 @@ interface AbstractManager {
             val currentGrid = this.map { it.map {
                 SerializedBlock(
                     when (it.block) {
-                        Desert -> Blocks.DESERT
-                        Hill -> Blocks.HILL
-                        is Home -> Blocks.HOME
-                        is Lock -> Blocks.LOCK
-                        Mountain -> Blocks.MOUNTAIN
                         Open -> Blocks.OPEN
-                        is Stair -> Blocks.STAIR
-                        Stone -> Blocks.STONE
-                        Tree -> Blocks.TREE
+                        Blocked -> Blocks.BLOCKED
                         Void -> Blocks.VOID
-                        Water -> Blocks.WATER
+                        is Stair -> Blocks.STAIR
+                        is Lock -> Blocks.LOCK
                     }, it.level
                 )
             } }
