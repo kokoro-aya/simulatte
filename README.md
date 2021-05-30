@@ -41,6 +41,8 @@ To use the server you may need to implement and setup your own client. However, 
 
 ### Start Simulatte
 
+**Warning: Please ensure that only one instance of your simulatte.jar is running otherwise you might need to force-quit some instances!!**
+
 You cannot double-click the Simulatte program to launch it.
 
 To launch it, open a terminal in the folder where you downloaded simulatte.jar and enter `java -jar simulatte.jar` where `simulatte.jar` should be replaced by your program's name.
