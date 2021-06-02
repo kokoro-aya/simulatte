@@ -14,6 +14,7 @@ import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.asTypeName
+import org.ironica.simulatte.bridge.rules.GamingCondition
 import org.ironica.simulatte.manager.DefaultManager
 import org.ironica.simulatte.playground.Playground
 import org.ironica.simulatte.playground.characters.AbstractCharacter
@@ -77,9 +78,24 @@ class Cocoa {
         return this
     }
 
+    @JvmName("feedRules")
+    fun feed(gamingCondition: GamingCondition?, userCollision: Boolean): Cocoa {
+        fs.addProperty(PropertySpec.builder("gamingCondition",
+            GamingCondition::class.asTypeName().copy(nullable = true))
+            .initializer(gamingCondition?.stringRepresentation ?: "null")
+            .build()
+        )
+        fs.addProperty(PropertySpec.builder("userCollision",
+            Boolean::class)
+            .initializer(userCollision.toString())
+            .build()
+        )
+        return this
+    }
+
     fun thenFeed(managerType: String, debug: Boolean, stdout: Boolean): Cocoa {
         fs.addProperty(PropertySpec.builder("playground", Playground::class)
-            .initializer("Playground(squares, portals.toMutableMap(), locks.toMutableMap(), players.toMutableMap())")
+            .initializer("Playground(squares, portals.toMutableMap(), locks.toMutableMap(), players.toMutableMap(), gamingCondition, userCollision)")
             .build()
         )
         fs.addProperty(PropertySpec.builder("manager", when(managerType) {

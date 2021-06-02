@@ -10,19 +10,25 @@
 
 package org.ironica.simulatte.playground
 
+import org.ironica.simulatte.bridge.rules.GamingCondition
+import org.ironica.simulatte.payloads.payloadStorage
+import org.ironica.simulatte.payloads.statusStorage
 import org.ironica.simulatte.playground.datas.*
 import org.ironica.simulatte.playground.Direction.*
 import org.ironica.simulatte.playground.characters.AbstractCharacter
 import org.ironica.simulatte.playground.characters.InstantializedSpecialist
 import java.lang.reflect.AccessibleObject
+import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
+import kotlin.reflect.full.declaredMemberProperties
+import kotlin.reflect.full.memberProperties
 
 class Playground(val squares: List<List<Square>>,
                  val portals: MutableMap<Portal, Coordinate>,
                  val locks: MutableMap<Coordinate, Lock>,
                  val characters: MutableMap<AbstractCharacter, Coordinate>,
 
-                 val canSwim: Boolean = false,
+                 val gamingCondition: GamingCondition?,
                  val userCollision: Boolean = true,
 
                  ) {
@@ -30,6 +36,10 @@ class Playground(val squares: List<List<Square>>,
     val initialGem: Int
     val initialSwitch: Int
     val initialBeeper: Int
+
+    private var currentTurn: Int = 0
+
+    private var condToSatisfy: Int
 
     init {
 
@@ -40,9 +50,12 @@ class Playground(val squares: List<List<Square>>,
         initialGem = squares.flatten().filter { it.gem != null }.size
         initialSwitch = squares.flatten().filter { it.switch != null }.size
         initialBeeper = squares.flatten().filter { it.beeper != null }.size
-    }
 
-    var status: GameStatus = GameStatus.PENDING
+        condToSatisfy = if (gamingCondition == null) 0
+            else (gamingCondition::class as KClass<Any>).declaredMemberProperties
+            .filter { it.get(gamingCondition) != null }
+            .filterNot { it.name == "stringRepresentation" }.size
+    }
 
     val allGemCollected: Int
         get() = characters.keys.sumOf { it.collectedGem }
@@ -57,9 +70,14 @@ class Playground(val squares: List<List<Square>>,
     val allClosedSwitch: Int
         get() = squares.flatten().filter { it.switch?.on == false }.size
 
-    fun win(): Boolean = status == GameStatus.WIN // TODO implement win conditions
-    fun lose(): Boolean = status == GameStatus.LOST // TODO implement lost conditions
-    fun pending(): Boolean = status == GameStatus.PENDING
+    fun win(): Boolean {
+        statusStorage.set(GameStatus.WIN)
+        return true
+    } // TODO implement win conditions
+    fun lose(): Boolean {
+        statusStorage.set(GameStatus.LOST)
+        return true
+    } // TODO implement lost conditions
 
     private val AbstractCharacter.getCoo: Coordinate
         get() = characters[this] ?: throw Exception("Playground:: Find no coordinate for specified character")
@@ -109,7 +127,16 @@ class Playground(val squares: List<List<Square>>,
     }
 
     fun incrementATurn() {
-
+        if (currentTurn > gamingCondition?.endGameAfter ?: Int.MAX_VALUE / 2) statusStorage.set(GameStatus.LOST)
+        var satisfiedCond = 0
+        if (allGemCollected >= gamingCondition?.collectGemsBy ?: Int.MAX_VALUE / 2) satisfiedCond += 1
+        if (allBeeperCollected >= gamingCondition?.collectBeepersBy ?: Int.MAX_VALUE / 2) satisfiedCond += 1
+        if (allOpenedSwitch >= gamingCondition?.openedSwitchBy ?: Int.MAX_VALUE / 2) satisfiedCond += 1
+        if (gamingCondition?.putBeepersAt?.map { squares[it.y][it.x].beeper != null }?.all { it } == true) satisfiedCond += 1
+        if (gamingCondition?.arriveAt?.map { squares[it.y][it.x].players.isNotEmpty()
+                    || squares[it.y][it.x].platform?.players?.isNotEmpty() == true }?.all { it } == true) satisfiedCond += 1
+        if (satisfiedCond == condToSatisfy) statusStorage.set(GameStatus.WIN)
+        currentTurn += 1
     }
 
     // ---- Begin of Move Helper Functions ---- //

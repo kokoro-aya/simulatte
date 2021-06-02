@@ -43,6 +43,8 @@ fun Route.getPlaygroundRoute(args: Triple<Boolean, Boolean, Boolean>) {
                 data.stairs,
                 data.platforms,
                 data.players,
+                data.gamingCondition,
+                data.userCollision,
                 debug = debug,
                 stdout = stdout,
                 output = output,

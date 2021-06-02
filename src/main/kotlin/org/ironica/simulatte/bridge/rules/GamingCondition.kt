@@ -8,28 +8,22 @@
  *
  */
 
-package org.ironica.simulatte.bridge
+package org.ironica.simulatte.bridge.rules
 
 import kotlinx.serialization.Serializable
-import org.ironica.simulatte.bridge.rules.GamingCondition
-import org.ironica.simulatte.playground.*
-import org.ironica.simulatte.playground.Blocks
-import org.ironica.simulatte.playground.Items
 import org.ironica.simulatte.playground.datas.Coordinate
+import utils.StringRepresentable
+import utils.stringRepresentation
 
 @Serializable
-data class IncomingData(
-    val type: String,
-    val code: String,
-    val grid: List<List<GridData>>,
-    val gems: List<Coordinate>,
-    val beepers: List<Coordinate>,
-    val switches: List<SwitchData>,
-    val portals: List<PortalData>,
-    val locks: List<LockData>,
-    val stairs: List<StairData>,
-    val platforms: List<PlatformData>,
-    val players: List<PlayerData>,
-    val gamingCondition: GamingCondition? = null,
-    val userCollision: Boolean = true,
-)
+data class GamingCondition(
+    val collectGemsBy: Int? = null,
+    val collectBeepersBy: Int? = null,
+    val openedSwitchBy: Int? = null,
+    val putBeepersAt: List<Coordinate>? = null,
+    val arriveAt: List<Coordinate>? = null,
+    val endGameAfter: Int? = null,
+): StringRepresentable {
+    override val stringRepresentation: String
+        get() = "GamingCondition($collectGemsBy, $collectBeepersBy, $openedSwitchBy, ${putBeepersAt?.stringRepresentation}, ${arriveAt?.stringRepresentation}, $endGameAfter)"
+}

@@ -68,80 +68,98 @@ interface AbstractManager {
     fun collectedGem(id: Int) = getPlayer(id).collectedGem
 
     fun turnLeft(id: Int) {
-        getPlayer(id).turnLeft()
-        printGrid()
-        appendEntry()
-    }
-    fun turnRight(id: Int) {
-        getPlayer(id).turnRight()
-        printGrid()
-        appendEntry()
-    }
-    fun moveForward(id: Int) {
-        getPlayer(id).moveForward()
-        printGrid()
-        appendEntry()
-        if (getPlayer(id).isOnPortal()) {
-            getPlayer(id).stepIntoPortal()
+        if (statusStorage.get() == GameStatus.PENDING) {
+            getPlayer(id).turnLeft()
             printGrid()
             appendEntry()
         }
     }
+    fun turnRight(id: Int) {
+        if (statusStorage.get() == GameStatus.PENDING) {
+            getPlayer(id).turnRight()
+            printGrid()
+            appendEntry()
+        }
+    }
+    fun moveForward(id: Int) {
+        if (statusStorage.get() == GameStatus.PENDING) {
+            getPlayer(id).moveForward()
+            printGrid()
+            appendEntry()
+            if (getPlayer(id).isOnPortal()) {
+                getPlayer(id).stepIntoPortal()
+                printGrid()
+                appendEntry()
+            }
+        }
+    }
     fun collectGem(id: Int) {
-        getPlayer(id).collectGem()
-        printGrid()
-        this.special += "GEM "
-        appendEntry()
+        if (statusStorage.get() == GameStatus.PENDING) {
+            getPlayer(id).collectGem()
+            printGrid()
+            this.special += "GEM "
+            appendEntry()
+        }
     }
     fun toggleSwitch(id: Int) {
-        getPlayer(id).toggleSwitch()
-        printGrid()
-        this.special += "SWITCH "
-        appendEntry()
+        if (statusStorage.get() == GameStatus.PENDING) {
+            getPlayer(id).toggleSwitch()
+            printGrid()
+            this.special += "SWITCH "
+            appendEntry()
+        }
     }
     fun takeBeeper(id: Int) {
-        getPlayer(id).takeBeeper()
-        printGrid()
-        this.special += "TAKEBEEPER "
-        appendEntry()
+        if (statusStorage.get() == GameStatus.PENDING) {
+            getPlayer(id).takeBeeper()
+            printGrid()
+            this.special += "TAKEBEEPER "
+            appendEntry()
+        }
     }
     fun dropBeeper(id: Int) {
-        getPlayer(id).dropBeeper()
-        printGrid()
-        this.special += "DROPBEEPER "
-        appendEntry()
+        if (statusStorage.get() == GameStatus.PENDING) {
+            getPlayer(id).dropBeeper()
+            printGrid()
+            this.special += "DROPBEEPER "
+            appendEntry()
+        }
     }
 
     fun print(lmsg: List<String>) {
-        if (stdout) {
-            lmsg.forEach { print("$it ") }
-            println()
+        if (statusStorage.get() == GameStatus.PENDING) {
+            if (stdout) {
+                lmsg.forEach { print("$it ") }
+                println()
+            }
+            lmsg.forEach { consoleLog += it }
+            consoleLog += "\n"
+            appendEntry()
         }
-        lmsg.forEach { consoleLog += it }
-        consoleLog += "\n"
-        appendEntry()
     }
 
-    fun win(): Boolean {
-        return if (playground.win()) {
-            statusStorage.set(GameStatus.WIN)
+    fun win() {
+        if (statusStorage.get() == GameStatus.PENDING) {
+            if (playground.win()) {
+                appendEntry()
+            }
+        }
+    }
+
+    fun dead() {
+        if (statusStorage.get() == GameStatus.PENDING) {
+            if (playground.lose()) {
+                appendEntry()
+            }
+        }
+    }
+
+    fun dance(id: Int, action: Int) {
+        if (statusStorage.get() == GameStatus.PENDING) {
+            special += "PLAYER@${id}#DANCE#$action "
+            playground.incrementATurn()
             appendEntry()
-            true
-        } else false
-    }
-
-    fun dead(): Boolean {
-        return if (playground.lose()) {
-            statusStorage.set(GameStatus.LOST)
-            appendEntry()
-            true
-        } else false
-    }
-
-    fun dance(id: Int, action: Int): Boolean {
-        special += "PLAYER@${id}#DANCE#$action "
-        playground.incrementATurn()
-        return true
+        }
     }
 
     fun gemCount(): Int {

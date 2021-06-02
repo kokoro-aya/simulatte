@@ -10,6 +10,7 @@
 
 package org.ironica.simulatte.bridge
 
+import org.ironica.simulatte.bridge.rules.GamingCondition
 import org.ironica.simulatte.payloads.Payload
 import org.ironica.simulatte.payloads.Status
 import org.ironica.simulatte.payloads.payloadStorage
@@ -29,14 +30,18 @@ class SimulatteBridge(
     private val type: String,
     private val code: String,
     private val grid: List<List<GridData>>,
-    private val gemdatas: List<Coordinate>,
-    private val beeperdatas: List<Coordinate>,
-    private val switchdatas: List<SwitchData>,
-    private val portaldatas: List<PortalData>,
+    gemdatas: List<Coordinate>,
+    beeperdatas: List<Coordinate>,
+    switchdatas: List<SwitchData>,
+    portaldatas: List<PortalData>,
     private val lockdatas: List<LockData>,
     private val stairdatas: List<StairData>,
     private val platformdatas: List<PlatformData>,
     playerdatas: List<PlayerData>,
+
+    private val gamingCondition: GamingCondition?,
+    private val userCollision: Boolean,
+
     val debug: Boolean, val stdout: Boolean, val output: Boolean
 ) {
 
@@ -53,8 +58,13 @@ class SimulatteBridge(
     //   - Check every controlled tiles in lock has a platform (platformdata will be consumed) -
     //   - Check every portal item corresponds to a portal registration and vice versa -
     //   - Check every stairs tiles corresponds to a stair* registration and vice versa -
+
+    // = Pre-init Rules check
+    //   - If the two lists in gamingCondition isn't empty, then check all coordinates are in grid -
+
     // = Pre-initialization phase
     // - prepare portals, locks and players data structures for playground -
+    // - check if players data conforms to collision condition -
     // - Convert grid to 2d block array (lockdata and stairdata will be consumed) -
     // - Integrate arrays of block layout and misc layout to square arrays -
     // - Assign items to square arrays (portaldata will be consumed) -
@@ -65,6 +75,8 @@ class SimulatteBridge(
     init {
         preInitChecks()
 
+        preInitRuleCheck()
+
         var lockIds = 0 // To distinguish different locks with the same controlled platforms (and eventually same colors)
 
         portals = portaldatas.associate { Portal(it.coo, it.dest, isActive = true, color = Color.WHITE) to it.coo }
@@ -72,14 +84,20 @@ class SimulatteBridge(
         locks = lockdatas.associate { it.coo to Lock(lockIds++, it.controlled.toMutableList(), isActive = true, energy = 15) }
 
         players = playerdatas.associate {
+            val coo = Coordinate(it.x, it.y)
+            validPositionChecks(coo, "#players")
             (if (it.role == Role.SPECIALIST) InstantializedSpecialist(it.id, it.dir, it.stamina)
                 else InstantializedPlayer(it.id, it.dir, it.stamina)).let {
-                p -> p to Coordinate(it.x, it.y)
+                p -> p to coo
             } }.toList().sortedBy { it.first.id }.toMap()
+
+
+        check(userCollision && players.values.notContainsDuplications() || !userCollision) {
+            "Initialization:: Collision is set to true while players data contains several players in a coordinate"
+        }
 
         val platforms = platformdatas.associate { Platform(it.level) to it.coo }
 
-        var homeId = 0
         val blocks = grid.mapIndexed { i, line ->
             line.mapIndexed { j, b ->
                 when (b.block) {
@@ -129,6 +147,10 @@ class SimulatteBridge(
 
     }
 
+    private fun Collection<Coordinate>.notContainsDuplications(): Boolean {
+        return this.toSet().size == this.size
+    }
+
     private fun validPositionChecks(pos: Coordinate, phase: String): Unit {
         check (pos.y in grid.indices && pos.x in grid[0].indices) { "Initialization:: boundary check failed in $phase" }
     }
@@ -137,8 +159,6 @@ class SimulatteBridge(
         check (grid.size in 1 .. 50 && grid[0].size in 1 .. 50) {
             "Initialization:: Size of playground must between 1 and 50 (inclusive)!"
         }
-
-
 
         check (lockdatas.all { it.coo.let { grid[it.y][it.x].block == Blocks.LOCK } }) {
             "Initialization:: A Lock registration corresponding to a tile which is not a Lock"
@@ -169,6 +189,11 @@ class SimulatteBridge(
         }
     }
 
+    private fun preInitRuleCheck() {
+        gamingCondition?.arriveAt?.forEach { validPositionChecks(it, "#rule.arriveAt") }
+        gamingCondition?.putBeepersAt?.forEach { validPositionChecks(it, "#rule.putBeepersAt") }
+    }
+
     fun start(): Pair<Any?, Status> {
         val codeGen = StringBuilder()
         val cocoa = Cocoa()
@@ -176,6 +201,7 @@ class SimulatteBridge(
             .feed(portals)
             .feed(locks)
             .feed(players)
+            .feed(gamingCondition, userCollision)
             .thenFeed(type, debug, stdout)
             .generate(codeGen)
         codeGen.append("\n")
