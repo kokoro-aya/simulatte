@@ -11,10 +11,7 @@
 package org.ironica.simulatte.bridge
 
 import org.ironica.simulatte.bridge.rules.GamingCondition
-import org.ironica.simulatte.payloads.Payload
 import org.ironica.simulatte.payloads.Status
-import org.ironica.simulatte.payloads.payloadStorage
-import org.ironica.simulatte.payloads.statusStorage
 import org.ironica.simulatte.playground.*
 import org.ironica.simulatte.playground.characters.AbstractCharacter
 import org.ironica.simulatte.playground.datas.*
@@ -46,8 +43,8 @@ class SimulatteBridge(
 ) {
 
     var squares: List<List<Square>>
-    var locks: Map<Coordinate, Lock>
-    var portals: Map<Portal, Coordinate>
+    var locks: Map<Coordinate, LockBlock>
+    var portals: Map<PortalItem, Coordinate>
     var players: Map<AbstractCharacter, Coordinate>
 
     // Pre-initialization of data structures to be passed to playground
@@ -79,9 +76,9 @@ class SimulatteBridge(
 
         var lockIds = 0 // To distinguish different locks with the same controlled platforms (and eventually same colors)
 
-        portals = portaldatas.associate { Portal(it.coo, it.dest, isActive = true, color = Color.WHITE) to it.coo }
+        portals = portaldatas.associate { PortalItem(it.coo, it.dest, isActive = true, color = Color.WHITE) to it.coo }
         // TODO add colors on portals
-        locks = lockdatas.associate { it.coo to Lock(lockIds++, it.controlled.toMutableList(), isActive = true, energy = 15) }
+        locks = lockdatas.associate { it.coo to LockBlock(lockIds++, it.controlled.toMutableList(), isActive = true, energy = 15) }
 
         players = playerdatas.associate {
             val coo = Coordinate(it.x, it.y)
@@ -96,7 +93,7 @@ class SimulatteBridge(
             "Initialization:: Collision is set to true while players data contains several players in a coordinate"
         }
 
-        val platforms = platformdatas.associate { Platform(it.level) to it.coo }
+        val platforms = platformdatas.associate { PlatformItem(it.level) to it.coo }
 
         val blocks = grid.mapIndexed { i, line ->
             line.mapIndexed { j, b ->
@@ -105,7 +102,7 @@ class SimulatteBridge(
                     Blocks.BLOCKED -> Blocked
                     Blocks.LOCK -> locks[Coordinate(j, i)]
                         ?: throw Exception("Initialization:: A tile declared as Lock without lock info registered")
-                    Blocks.STAIR -> stairdatas.firstOrNull { it.coo == Coordinate(j, i) }?.let { Stair(it.dir) }
+                    Blocks.STAIR -> stairdatas.firstOrNull { it.coo == Coordinate(j, i) }?.let { StairBlock(it.dir) }
                         ?: throw Exception("Initialization:: A tile declared as Stair without Stair info registered")
                     Blocks.VOID -> Void
                 }
@@ -122,15 +119,15 @@ class SimulatteBridge(
         // Assignment for items
         gemdatas.forEach {
             validPositionChecks(it, "#gems")
-            squares[it.y][it.x].gem = Gem()
+            squares[it.y][it.x].gem = GemItem()
         }
         beeperdatas.forEach {
             validPositionChecks(it, "#beepers")
-            squares[it.y][it.x].beeper = Beeper()
+            squares[it.y][it.x].beeper = BeeperItem()
         }
         switchdatas.forEach {
             validPositionChecks(it.coo, "#switches")
-            squares[it.coo.y][it.coo.x].switch = Switch(it.on)
+            squares[it.coo.y][it.coo.x].switch = SwitchItem(it.on)
         }
 
         portals.forEach {

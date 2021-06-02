@@ -19,8 +19,8 @@ import org.ironica.simulatte.manager.DefaultManager
 import org.ironica.simulatte.playground.Playground
 import org.ironica.simulatte.playground.characters.AbstractCharacter
 import org.ironica.simulatte.playground.datas.Coordinate
-import org.ironica.simulatte.playground.datas.Lock
-import org.ironica.simulatte.playground.datas.Portal
+import org.ironica.simulatte.playground.datas.LockBlock
+import org.ironica.simulatte.playground.datas.PortalItem
 import org.ironica.simulatte.playground.datas.Square
 import utils.*
 
@@ -43,10 +43,10 @@ class Cocoa {
     }
 
     @JvmName("feedPortals")
-    fun feed(portals: Map<Portal, Coordinate>): Cocoa {
+    fun feed(portals: Map<PortalItem, Coordinate>): Cocoa {
         fs.addProperty(PropertySpec.builder("portals",
             Map::class.asTypeName()
-                .parameterizedBy(Portal::class.asTypeName(),
+                .parameterizedBy(PortalItem::class.asTypeName(),
                     Coordinate::class.asTypeName()))
             .initializer(portals.stringRepresentation)
             .build()
@@ -55,11 +55,11 @@ class Cocoa {
     }
 
     @JvmName("feedLocks")
-    fun feed(locks: Map<Coordinate, Lock>): Cocoa {
+    fun feed(locks: Map<Coordinate, LockBlock>): Cocoa {
         fs.addProperty(PropertySpec.builder("locks",
             Map::class.asTypeName()
                 .parameterizedBy(Coordinate::class.asTypeName(),
-                    Lock::class.asTypeName()))
+                    LockBlock::class.asTypeName()))
             .initializer(locks.stringRepresentation)
             .build()
         )

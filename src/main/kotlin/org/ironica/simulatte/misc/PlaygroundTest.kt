@@ -27,7 +27,7 @@ public val squares: List<List<Square>> = listOf(
     listOf(
         Square(Open, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
         Square(Open, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
-        Square(Open, 1, Biome.PLAINS, null, Gem(), null, null, null, mutableListOf()))
+        Square(Open, 1, Biome.PLAINS, null, GemItem(), null, null, null, mutableListOf()))
     ,
     listOf(
         Square(Open, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
@@ -46,11 +46,11 @@ public val squares: List<List<Square>> = listOf(
     )
 
 
-public val portals: Map<Portal, Coordinate> = mapOf(
+public val portals: Map<PortalItem, Coordinate> = mapOf(
         )
 
 
-public val locks: Map<Coordinate, Lock> = mapOf(
+public val locks: Map<Coordinate, LockBlock> = mapOf(
         )
 
 

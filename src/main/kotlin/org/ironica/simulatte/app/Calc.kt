@@ -34,12 +34,12 @@ fun main(args: Array<String>) {
 
     val squares = List(5) { List(5) { Square(Open, 1, Biome.PLAINS, null, null, null, null, null) } }
     val player = InstantializedPlayer(0, Direction.RIGHT, 500)
-    squares[4][4].gem = Gem()
+    squares[4][4].gem = GemItem()
     for (i in squares[0].indices) squares[0][i].level = 2
     squares[1][2].level = 3; squares[2][2].level = 3; squares[3][2].level = 2
-    squares[1][2].block = Stair(Direction.UP)
-    squares[2][2].block = Stair(Direction.DOWN)
-    squares[3][2].block = Stair(Direction.LEFT)
+    squares[1][2].block = StairBlock(Direction.UP)
+    squares[2][2].block = StairBlock(Direction.DOWN)
+    squares[3][2].block = StairBlock(Direction.LEFT)
     /*
      2 2 2  2 2
      1 1 3^ 1 1
@@ -47,8 +47,8 @@ fun main(args: Array<String>) {
      1 1 2< 1 1
      1 1 1  1 1
      */
-    val portals = mutableMapOf<Portal, Coordinate>()
-    val locks = mutableMapOf<Coordinate, Lock>()
+    val portals = mutableMapOf<PortalItem, Coordinate>()
+    val locks = mutableMapOf<Coordinate, LockBlock>()
     val players = mutableMapOf<AbstractCharacter, Coordinate>(player to Coordinate(0, 0))
 
     val code = inputStream.bufferedReader().use(BufferedReader::readText)

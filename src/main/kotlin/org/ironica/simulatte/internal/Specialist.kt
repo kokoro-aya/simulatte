@@ -13,7 +13,7 @@ package org.ironica.simulatte.internal
 import org.ironica.simulatte.manager.AbstractManager
 import org.ironica.simulatte.playground.Color
 
-data class Specialist(private val manager: AbstractManager, private val id: Int) {
+data class Specialist(private val manager: AbstractManager, private val id: Int): Character {
 
     val isOnGem: Boolean
         get() = manager.isOnGem(id)

@@ -11,20 +11,19 @@
 package org.ironica.simulatte.playground.datas
 
 import org.ironica.simulatte.playground.Biome
-import org.ironica.simulatte.playground.Color
 import org.ironica.simulatte.playground.characters.AbstractCharacter
 import utils.StringRepresentable
 import utils.stringRepresentation
 
 data class Square(
-    var block: Block,
+    var block: BlockObject,
     var level: Int,
     var biome: Biome,
-    var switch: Switch?,
-    var gem: Gem?,
-    var beeper: Beeper?,
-    var portal: Portal?,
-    var platform: Platform?,
+    var switch: SwitchItem?,
+    var gem: GemItem?,
+    var beeper: BeeperItem?,
+    var portal: PortalItem?,
+    var platform: PlatformItem?,
     var players: MutableList<AbstractCharacter> = mutableListOf()
 ): StringRepresentable {
     override val stringRepresentation: String

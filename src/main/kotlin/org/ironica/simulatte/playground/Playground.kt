@@ -11,22 +11,27 @@
 package org.ironica.simulatte.playground
 
 import org.ironica.simulatte.bridge.rules.GamingCondition
-import org.ironica.simulatte.payloads.payloadStorage
+import org.ironica.simulatte.internal.Block
+import org.ironica.simulatte.internal.Character
+import org.ironica.simulatte.internal.Item
+import org.ironica.simulatte.internal.Portal
+import org.ironica.simulatte.internal.Stair
 import org.ironica.simulatte.payloads.statusStorage
 import org.ironica.simulatte.playground.datas.*
 import org.ironica.simulatte.playground.Direction.*
 import org.ironica.simulatte.playground.characters.AbstractCharacter
 import org.ironica.simulatte.playground.characters.InstantializedSpecialist
+import org.ironica.simulatte.playground.world.AbstractWorld
 import java.lang.reflect.AccessibleObject
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.full.declaredMemberProperties
-import kotlin.reflect.full.memberProperties
 
 class Playground(val squares: List<List<Square>>,
-                 val portals: MutableMap<Portal, Coordinate>,
-                 val locks: MutableMap<Coordinate, Lock>,
+                 val portals: MutableMap<PortalItem, Coordinate>,
+                 val locks: MutableMap<Coordinate, LockBlock>,
                  val characters: MutableMap<AbstractCharacter, Coordinate>,
+                 val world: AbstractWorld,
 
                  val gamingCondition: GamingCondition?,
                  val userCollision: Boolean = true,
@@ -42,6 +47,8 @@ class Playground(val squares: List<List<Square>>,
     private var condToSatisfy: Int
 
     init {
+
+        world.playground = this
 
         characters.forEach { it.value.asSquare.players.add(it.key) }
 
@@ -107,8 +114,8 @@ class Playground(val squares: List<List<Square>>,
             Void -> "无"
             Open -> "空"
             Blocked -> "障"
-            is Lock -> "锁"
-            is Stair -> when ((sq.block as Stair).dir) {
+            is LockBlock -> "锁"
+            is StairBlock -> when ((sq.block as StairBlock).dir) {
                 UP -> "⬆️"
                 DOWN -> "⬇️"
                 LEFT -> "⬅️"
@@ -141,9 +148,9 @@ class Playground(val squares: List<List<Square>>,
 
     // ---- Begin of Move Helper Functions ---- //
 
-    private fun isTileAccessible(tile: Block): Boolean {
+    private fun isTileAccessible(tile: BlockObject): Boolean {
         return when (tile) {
-            is Lock, Blocked, Void -> false
+            is LockBlock, Blocked, Void -> false
             else -> true
         }
     }
@@ -162,7 +169,7 @@ class Playground(val squares: List<List<Square>>,
     private fun hasStairToward(from: Coordinate, to: Coordinate): Boolean {
         check (isAdjacent(from, to)) { "Playground:: Must move from a square to an adjacent square" }
         to.asSquare.block.let {
-            if (it !is Stair) return false
+            if (it !is StairBlock) return false
             if (from.y + 1 == to.y) return it.dir == UP
             if (from.y - 1 == to.y) return it.dir == DOWN
             if (from.x - 1 == to.x) return it.dir == RIGHT
@@ -480,7 +487,7 @@ class Playground(val squares: List<List<Square>>,
         with (characters[char]!!.asSquare) {
             return if (this.beeper == null) {
                 char.beeperInBag -= 1
-                this.beeper = Beeper()
+                this.beeper = BeeperItem()
                 // TODO insert stamina rule here
                 incrementATurn()
                 true
@@ -516,10 +523,10 @@ class Playground(val squares: List<List<Square>>,
         val coo = char.getCoo
         val (x, y) = coo
         return when (char.dir) {
-            UP -> y >= 1 && coo.up.asSquare.block is Lock
-            DOWN -> y <= squares.size - 2 && coo.down.asSquare.block is Lock
-            LEFT -> x >= 1 && coo.left.asSquare.block is Lock
-            RIGHT -> x <= squares[0].size - 2 && coo.right.asSquare.block is Lock
+            UP -> y >= 1 && coo.up.asSquare.block is LockBlock
+            DOWN -> y <= squares.size - 2 && coo.down.asSquare.block is LockBlock
+            LEFT -> x >= 1 && coo.left.asSquare.block is LockBlock
+            RIGHT -> x <= squares[0].size - 2 && coo.right.asSquare.block is LockBlock
         }
     }
 
@@ -571,5 +578,46 @@ class Playground(val squares: List<List<Square>>,
         return false
     }
 
+
+    // World level functions
+
+    fun worldPlace(item: Item, at: Coordinate): Boolean {
+
+    }
+
+    fun worldPlace(block: Block, at: Coordinate): Boolean {
+
+    }
+
+    fun worldPlace(portal: Portal, atStart: Coordinate, atEnd: Coordinate): Boolean {
+
+    }
+
+    fun worldPlace(stair: Stair, facing: Direction, at: Coordinate): Boolean {
+
+    }
+
+    fun worldPlaceCharacter(kind: Role, at: Coordinate): Boolean {
+
+    }
+
+    val worldAllPossibleCoordinates: Array<Coordinate>
+        get() = ;
+
+    fun worldRemoveAllBlocks(at: Coordinate): Boolean {
+
+    }
+
+    fun worldExistingCharacters(at: Array<Coordinate>): Array<Character> {
+
+    }
+
+    fun worldDigDown(at: Coordinate): Boolean {
+
+    }
+
+    fun worldPileUp(at: Coordinate): Boolean {
+
+    }
 }
 

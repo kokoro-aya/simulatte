@@ -15,21 +15,21 @@ import org.ironica.simulatte.playground.characters.AbstractCharacter
 import utils.StringRepresentable
 import utils.stringRepresentation
 
-sealed class Item
-data class Switch(var on: Boolean): Item()
-data class Gem(val disappearIn: Int = 0): Item()
-data class Beeper(val disappearIn: Int = 0): Item()
-data class Portal(
+sealed class ItemObject
+data class SwitchItem(var on: Boolean): ItemObject()
+data class GemItem(val disappearIn: Int = 0): ItemObject()
+data class BeeperItem(val disappearIn: Int = 0): ItemObject()
+data class PortalItem(
     val coo: Coordinate,
     val dest: Coordinate,
     val color: Color,
     var isActive: Boolean,
     var energy: Int = 100
-): Item(), StringRepresentable {
+): ItemObject(), StringRepresentable {
     override val stringRepresentation: String
         get() = "Portal(${coo.stringRepresentation}, ${dest.stringRepresentation}, ${color.stringRepresentation}, $isActive, $energy)"
 }
-data class Platform(
+data class PlatformItem(
     var level: Int,
     val players: MutableList<AbstractCharacter> = mutableListOf()
 )

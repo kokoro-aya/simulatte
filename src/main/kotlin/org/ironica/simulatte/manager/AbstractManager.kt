@@ -15,7 +15,6 @@ import org.ironica.simulatte.playground.*
 import org.ironica.simulatte.playground.characters.AbstractCharacter
 import org.ironica.simulatte.playground.characters.InstantializedSpecialist
 import org.ironica.simulatte.playground.datas.*
-import utils.deepCopy
 
 interface AbstractManager {
     val playground: Playground
@@ -214,8 +213,8 @@ interface AbstractManager {
                         Open -> Blocks.OPEN
                         Blocked -> Blocks.BLOCKED
                         Void -> Blocks.VOID
-                        is Stair -> Blocks.STAIR
-                        is Lock -> Blocks.LOCK
+                        is StairBlock -> Blocks.STAIR
+                        is LockBlock -> Blocks.LOCK
                     }, it.level
                 )
             } }
