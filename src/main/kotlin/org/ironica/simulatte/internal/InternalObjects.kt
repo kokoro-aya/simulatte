@@ -10,6 +10,20 @@
 
 package org.ironica.simulatte.internal
 
-object Portal
+import org.ironica.simulatte.manager.AbstractManager
+import org.ironica.simulatte.playground.Color
+
+data class PortalP private constructor(internal val color: Color, internal var id: Int?) {
+
+    var manager: AbstractManager? = null
+
+    constructor(color: Color): this(color, null)
+
+    var isActive: Boolean
+        get() = manager?.playground?.portals?.keys?.firstOrNull { it.id == id }?.isActive ?: throw NullPointerException("Portal:: uninitialized portal or no such portal")
+        set(value) {
+            manager?.playground?.portals?.keys?.firstOrNull { it.id == id }?.isActive = value
+        }
+}
 
 object Stair

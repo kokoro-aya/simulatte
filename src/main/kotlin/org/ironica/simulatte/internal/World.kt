@@ -18,21 +18,34 @@ import org.ironica.simulatte.playground.datas.Coordinate
 data class World(internal val manager: CreativeManager) {
 
     fun place(item: Item, at: Coordinate) = manager.worldPlace(item, at)
-    fun place(block: Block, at: Coordinate) = manager.worldPlace(block, at)
-    fun place(portal: Portal, atStart: Coordinate, atEnd: Coordinate) = manager.worldPlace(portal, atStart, atEnd)
+    fun place(item: Item, atColumn: Int, row: Int) = place(item, Coordinate(atColumn, row))
+
+    fun place(block: BlockP, at: Coordinate) = manager.worldPlace(block, at)
+    fun place(block: BlockP, atColumn: Int, row: Int) = place(block, Coordinate(atColumn, row))
+
+    fun place(portal: PortalP, atStart: Coordinate, atEnd: Coordinate) = manager.worldPlace(portal, atStart, atEnd)
+    fun place(portal: PortalP, atStartColum: Int, startRow: Int, atEndColumn: Int, endRow: Int)
+        = place(portal, Coordinate(atStartColum, startRow), Coordinate(atEndColumn, endRow))
+
     fun place(stair: Stair, facing: Direction, at: Coordinate) = manager.worldPlace(stair, facing, at)
-    fun placeCharacter(kind: Role, at: Coordinate) = manager.worldPlaceCharacter(kind, at)
+    fun place(stair: Stair, facing: Direction, atColumn: Int, row: Int) = place(stair, facing, Coordinate(atColumn, row))
+
+    fun placeCharacter(kind: Role, facing: Direction, at: Coordinate) = manager.worldPlaceCharacter(kind, facing, at)
+    fun placeCharacter(kind: Role, facing: Direction, atColumn: Int, row: Int) = placeCharacter(kind, facing, Coordinate(atColumn, row))
 
     val allPossibleCoordinates: Array<Coordinate>
         get() = manager.worldAllPossibleCoordinates
 
     fun removeAllBlocks(at: Coordinate) = manager.worldRemoveAllBlocks(at)
+    fun removeAllBlocks(atColumn: Int, row: Int) = removeAllBlocks(Coordinate(atColumn, row))
 
     fun existingCharacters(at: Array<Coordinate>): Array<Character> {
         return manager.worldExistingCharacters(at)
     }
 
     fun digDown(at: Coordinate) = manager.worldDigDown(at)
+    fun digDown(atColumn: Int, row: Int) = digDown(Coordinate(atColumn, row))
 
     fun pileUp(at: Coordinate) = manager.worldPileUp(at)
+    fun pileUp(atColumn: Int, row: Int) = pileUp(Coordinate(atColumn, row))
 }

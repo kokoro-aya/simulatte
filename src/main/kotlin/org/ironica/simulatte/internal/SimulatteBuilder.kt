@@ -11,12 +11,27 @@
 package org.ironica.simulatte.internal
 
 import org.ironica.simulatte.manager.AbstractManager
+import org.ironica.simulatte.manager.CreativeManager
 import org.ironica.simulatte.payloads.Payload
 import org.ironica.simulatte.payloads.returnedPayloads
-import org.ironica.simulatte.playground.GameStatus
+import org.ironica.simulatte.playground.Color
 import org.ironica.simulatte.playground.Playground
 
 class SimulatteBuilder(private val manager: AbstractManager) {
+
+    companion object {
+
+        var singletonWorld: World? = null
+
+        fun world(sb: SimulatteBuilder): World {
+            if (sb.manager is CreativeManager && singletonWorld == null)
+                singletonWorld = World(sb.manager)
+            return singletonWorld ?: throw NullPointerException("SimulatteBuilder:: null world encountered, you might be not in creative game mode")
+        }
+    }
+
+    val world: World
+        get() = world(this)
 
     fun Player(): Player {
         return Player(manager, manager.nextPlayerId)
@@ -24,6 +39,30 @@ class SimulatteBuilder(private val manager: AbstractManager) {
 
     fun Specialist(): Specialist {
         return Specialist(manager, manager.nextPlayerId)
+    }
+
+    fun Gem(): Gem {
+        return Gem
+    }
+
+    fun Beeper(): Beeper {
+        return Beeper
+    }
+
+    fun Switch(on: Boolean): SwitchP {
+        return SwitchP(on)
+    }
+
+    fun Portal(color: Color = Color.WHITE): PortalP {
+        return PortalP(color)
+    }
+
+    fun Block(blocked: Boolean = false): BlockP {
+        return BlockP(blocked)
+    }
+
+    fun Stair(): Stair {
+        return Stair
     }
 
     val allGemCollected: Int

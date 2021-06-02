@@ -13,82 +13,19 @@ package org.ironica.simulatte.internal
 import org.ironica.simulatte.manager.AbstractManager
 import org.ironica.simulatte.playground.Color
 
-data class Specialist(private val manager: AbstractManager, private val id: Int): Character {
+data class Specialist(override val id: Int): Character {
 
-    val isOnGem: Boolean
-        get() = manager.isOnGem(id)
-    val isOnOpenedSwitch: Boolean
-        get() = manager.isOnOpenedSwitch(id)
-    val isOnClosedSwitch: Boolean
-        get() = manager.isOnClosedSwitch(id)
-    val isOnBeeper: Boolean
-        get() = manager.isOnBeeper(id)
-    val isOnPortal: Boolean
-        get() = manager.isOnPortal(id)
-    val isOnPlatform: Boolean
-        get() = manager.isOnPlatform(id)
-    val isBlocked: Boolean
-        get() = manager.isBlocked(id)
-    val isBlockedLeft: Boolean
-        get() = manager.isBlockedLeft(id)
-    val isBlockedRight: Boolean
-        get() = manager.isBlockedRight(id)
-    val collectedGem: Int
-        get() = manager.collectedGem(id)
+    override var manager: AbstractManager? = null
 
-    fun turnLeft() {
-        manager.turnLeft(id)
-    }
-
-    fun turnRight() {
-        manager.turnRight(id)
-    }
-
-    fun moveForward() {
-        manager.moveForward(id)
-    }
-
-    fun collectGem() {
-        manager.collectGem(id)
-    }
-
-    fun toggleSwitch() {
-        manager.toggleSwitch(id)
-    }
-
-    fun takeBeeper() {
-        manager.takeBeeper(id)
-    }
-
-    fun dropBeeper() {
-        manager.dropBeeper(id)
-    }
-
-    fun dance1() {
-        manager.dance(id, 1)
-    }
-
-    fun dance2() {
-        manager.dance(id, 2)
-    }
-
-    fun dance3() {
-        manager.dance(id, 3)
-    }
-
-    fun dance4() {
-        manager.dance(id, 4)
-    }
-
-    fun dance5() {
-        manager.dance(id, 5)
+    constructor(manager: AbstractManager, id: Int): this(id) {
+        this.manager = manager
     }
 
     fun turnLockUp() {
-        manager.turnLockUp(id)
+        manager?.turnLockUp(id) ?: throw NullPointerException("Specialist:: uninitialized character")
     }
 
     fun turnLockDown() {
-        manager.turnLockDown(id)
+        manager?.turnLockDown(id) ?: throw NullPointerException("Specialist:: uninitialized character")
     }
 }

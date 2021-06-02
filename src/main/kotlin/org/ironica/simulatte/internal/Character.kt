@@ -10,4 +10,78 @@
 
 package org.ironica.simulatte.internal
 
-interface Character
+import org.ironica.simulatte.manager.AbstractManager
+
+interface Character {
+    val manager: AbstractManager?
+    val id: Int
+
+    val isOnGem: Boolean
+        get() = manager?.isOnGem(id) ?: throw NullPointerException("Character:: uninitialized character")
+    val isOnOpenedSwitch: Boolean
+        get() = manager?.isOnOpenedSwitch(id) ?: throw NullPointerException("Character:: uninitialized character")
+    val isOnClosedSwitch: Boolean
+        get() = manager?.isOnClosedSwitch(id) ?: throw NullPointerException("Character:: uninitialized character")
+    val isOnBeeper: Boolean
+        get() = manager?.isOnBeeper(id) ?: throw NullPointerException("Character:: uninitialized character")
+    val isOnPortal: Boolean
+        get() = manager?.isOnPortal(id) ?: throw NullPointerException("Character:: uninitialized character")
+    val isOnPlatform: Boolean
+        get() = manager?.isOnPlatform(id) ?: throw NullPointerException("Character:: uninitialized character")
+    val isBlocked: Boolean
+        get() = manager?.isBlocked(id) ?: throw NullPointerException("Character:: uninitialized character")
+    val isBlockedLeft: Boolean
+        get() = manager?.isBlockedLeft(id) ?: throw NullPointerException("Character:: uninitialized character")
+    val isBlockedRight: Boolean
+        get() = manager?.isBlockedRight(id) ?: throw NullPointerException("Character:: uninitialized character")
+    val collectedGem: Int
+        get() = manager?.collectedGem(id) ?: throw NullPointerException("Character:: uninitialized character")
+
+    fun turnLeft() {
+        manager?.turnLeft(id) ?: throw NullPointerException("Character:: uninitialized character")
+    }
+
+    fun turnRight() {
+        manager?.turnRight(id) ?: throw NullPointerException("Character:: uninitialized character")
+    }
+
+    fun moveForward() {
+        manager?.moveForward(id) ?: throw NullPointerException("Character:: uninitialized character")
+    }
+
+    fun collectGem() {
+        manager?.collectGem(id) ?: throw NullPointerException("Character:: uninitialized character")
+    }
+
+    fun toggleSwitch() {
+        manager?.toggleSwitch(id) ?: throw NullPointerException("Character:: uninitialized character")
+    }
+
+    fun takeBeeper() {
+        manager?.takeBeeper(id) ?: throw NullPointerException("Character:: uninitialized character")
+    }
+
+    fun dropBeeper() {
+        manager?.dropBeeper(id) ?: throw NullPointerException("Character:: uninitialized character")
+    }
+
+    fun dance1() {
+        manager?.dance(id, 1) ?: throw NullPointerException("Character:: uninitialized character")
+    }
+
+    fun dance2() {
+        manager?.dance(id, 2) ?: throw NullPointerException("Character:: uninitialized character")
+    }
+
+    fun dance3() {
+        manager?.dance(id, 3) ?: throw NullPointerException("Character:: uninitialized character")
+    }
+
+    fun dance4() {
+        manager?.dance(id, 4) ?: throw NullPointerException("Character:: uninitialized character")
+    }
+
+    fun dance5() {
+        manager?.dance(id, 5) ?: throw NullPointerException("Character:: uninitialized character")
+    }
+}

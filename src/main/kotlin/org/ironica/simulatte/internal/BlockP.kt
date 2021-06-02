@@ -10,4 +10,4 @@
 
 package org.ironica.simulatte.internal
 
-data class Block(val blocked: Boolean = true)
+data class BlockP(val blocked: Boolean = true)

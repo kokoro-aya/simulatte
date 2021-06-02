@@ -10,9 +10,11 @@
 
 package org.ironica.simulatte.manager
 
+import org.ironica.simulatte.internal.play
 import org.ironica.simulatte.payloads.*
 import org.ironica.simulatte.playground.*
 import org.ironica.simulatte.playground.characters.AbstractCharacter
+import org.ironica.simulatte.playground.characters.InstantializedPlayer
 import org.ironica.simulatte.playground.characters.InstantializedSpecialist
 import org.ironica.simulatte.playground.datas.*
 
@@ -30,7 +32,7 @@ interface AbstractManager {
 
     val nextPlayerId: Int
         get() {
-            val next = playground.characters.keys.firstOrNull { it.id > attributedPlayerId }?.id
+            val next = playground.characters.keys.filterIsInstance<InstantializedPlayer>().firstOrNull { it.id > attributedPlayerId }?.id
                 ?: throw NoSuchElementException("AbstractManager:: No slot for new player available")
             attributedPlayerId = next
             return next
@@ -38,11 +40,14 @@ interface AbstractManager {
 
     val nextSpecialistId: Int
         get() {
-            val next = playground.characters.keys.firstOrNull { it.id > attributedSpecialistId }?.id
+            val next = playground.characters.keys.filterIsInstance<InstantializedSpecialist>().firstOrNull { it.id > attributedSpecialistId }?.id
                 ?: throw NoSuchElementException("AbstractManager:: No slot for new specialist available")
             attributedSpecialistId = next
             return next
         }
+
+    val lastPlayerId: Int
+        get() = playground.characters.keys.maxOfOrNull { it.id } ?: -1
 
     fun getPlayer(id: Int): AbstractCharacter {
         val player = playground.characters.keys.filter { it.id == id }

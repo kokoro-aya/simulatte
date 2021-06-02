@@ -20,6 +20,7 @@ data class SwitchItem(var on: Boolean): ItemObject()
 data class GemItem(val disappearIn: Int = 0): ItemObject()
 data class BeeperItem(val disappearIn: Int = 0): ItemObject()
 data class PortalItem(
+    val id: Int,
     val coo: Coordinate,
     val dest: Coordinate,
     val color: Color,
@@ -27,7 +28,7 @@ data class PortalItem(
     var energy: Int = 100
 ): ItemObject(), StringRepresentable {
     override val stringRepresentation: String
-        get() = "Portal(${coo.stringRepresentation}, ${dest.stringRepresentation}, ${color.stringRepresentation}, $isActive, $energy)"
+        get() = "Portal($id, ${coo.stringRepresentation}, ${dest.stringRepresentation}, ${color.stringRepresentation}, $isActive, $energy)"
 }
 data class PlatformItem(
     var level: Int,

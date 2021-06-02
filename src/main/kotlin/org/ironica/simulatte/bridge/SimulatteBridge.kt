@@ -75,8 +75,9 @@ class SimulatteBridge(
         preInitRuleCheck()
 
         var lockIds = 0 // To distinguish different locks with the same controlled platforms (and eventually same colors)
+        var portalIds = 0 // To distinguish different portals
 
-        portals = portaldatas.associate { PortalItem(it.coo, it.dest, isActive = true, color = Color.WHITE) to it.coo }
+        portals = portaldatas.associate { PortalItem(portalIds++, it.coo, it.dest, isActive = true, color = Color.WHITE) to it.coo }
         // TODO add colors on portals
         locks = lockdatas.associate { it.coo to LockBlock(lockIds++, it.controlled.toMutableList(), isActive = true, energy = 15) }
 

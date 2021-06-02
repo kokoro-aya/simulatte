@@ -13,4 +13,4 @@ package org.ironica.simulatte.internal
 sealed class Item
 object Gem : Item()
 object Beeper: Item()
-data class Switch(val on: Boolean): Item()
+data class SwitchP(val on: Boolean): Item()

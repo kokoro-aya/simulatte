@@ -11,17 +11,13 @@
 package org.ironica.simulatte.playground
 
 import org.ironica.simulatte.bridge.rules.GamingCondition
-import org.ironica.simulatte.internal.Block
-import org.ironica.simulatte.internal.Character
-import org.ironica.simulatte.internal.Item
-import org.ironica.simulatte.internal.Portal
-import org.ironica.simulatte.internal.Stair
+import org.ironica.simulatte.internal.*
 import org.ironica.simulatte.payloads.statusStorage
 import org.ironica.simulatte.playground.datas.*
 import org.ironica.simulatte.playground.Direction.*
 import org.ironica.simulatte.playground.characters.AbstractCharacter
+import org.ironica.simulatte.playground.characters.InstantializedPlayer
 import org.ironica.simulatte.playground.characters.InstantializedSpecialist
-import org.ironica.simulatte.playground.world.AbstractWorld
 import java.lang.reflect.AccessibleObject
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
@@ -31,7 +27,6 @@ class Playground(val squares: List<List<Square>>,
                  val portals: MutableMap<PortalItem, Coordinate>,
                  val locks: MutableMap<Coordinate, LockBlock>,
                  val characters: MutableMap<AbstractCharacter, Coordinate>,
-                 val world: AbstractWorld,
 
                  val gamingCondition: GamingCondition?,
                  val userCollision: Boolean = true,
@@ -47,8 +42,6 @@ class Playground(val squares: List<List<Square>>,
     private var condToSatisfy: Int
 
     init {
-
-        world.playground = this
 
         characters.forEach { it.value.asSquare.players.add(it.key) }
 
@@ -134,6 +127,11 @@ class Playground(val squares: List<List<Square>>,
     }
 
     fun incrementATurn() {
+
+        characters.forEach {
+            if (it.value.asSquare.block is Void) it.key.kill()
+        }
+
         if (currentTurn > gamingCondition?.endGameAfter ?: Int.MAX_VALUE / 2) statusStorage.set(GameStatus.LOST)
         var satisfiedCond = 0
         if (allGemCollected >= gamingCondition?.collectGemsBy ?: Int.MAX_VALUE / 2) satisfiedCond += 1
@@ -582,42 +580,130 @@ class Playground(val squares: List<List<Square>>,
     // World level functions
 
     fun worldPlace(item: Item, at: Coordinate): Boolean {
-
+        check(at.isInPlayground) { "Playground:: Coordinate out of bounds" }
+        at.asSquare.let {
+            check(it.block !is LockBlock) { "Playground:: Could not place items on Lock tile" }
+            check(it.block != Void) { "Playground:: Could not place items on Void tile" }
+            when (item) {
+                Beeper -> if (it.beeper == null) it.beeper = BeeperItem() else return false
+                Gem -> if (it.gem == null) it.gem = GemItem() else return false
+                is SwitchP -> if (it.switch == null) it.switch = SwitchItem(item.on) else return false
+            }
+        }
+        return true
     }
 
-    fun worldPlace(block: Block, at: Coordinate): Boolean {
-
+    fun worldPlace(block: BlockP, at: Coordinate): Boolean {
+        check(at.isInPlayground) { "Playground:: Coordinate out of bounds" }
+        at.asSquare.let {
+            check(it.block !is LockBlock) { "Playground:: Could not change tile on Lock tile" }
+            check(it.block !is StairBlock) { "Playground:: Could not change tile on Stair tile" }
+            when (block.blocked) {
+                true -> it.block = Blocked
+                false -> it.block = Open
+            }
+        }
+        return true
     }
 
-    fun worldPlace(portal: Portal, atStart: Coordinate, atEnd: Coordinate): Boolean {
-
+    fun worldPlace(portal: PortalP, atStart: Coordinate, atEnd: Coordinate): Boolean {
+        check(atStart.isInPlayground && atEnd.isInPlayground) { "Playground:: coordinate out of bounds" }
+        check(atStart.asSquare.block !is LockBlock && atEnd.asSquare.block !is LockBlock) { "Playground:: Could not set up portal on Lock tile" }
+        check(atStart.asSquare.block != Void && atEnd.asSquare.block != Void) { "Playground:: could not set up portal on Void tile" }
+        return if (atStart.asSquare.portal == null) {
+            val newId = portals.size
+            val newPortalItem = PortalItem(newId, atStart, atEnd, portal.color, false) // TODO add portal energy rule
+            atStart.asSquare.portal = newPortalItem
+            portals[newPortalItem] = atStart
+            portal.id = newId
+            true
+        } else {
+            false
+        }
     }
 
     fun worldPlace(stair: Stair, facing: Direction, at: Coordinate): Boolean {
-
+        check(at.isInPlayground) { "Playground:: coordinate out of bounds" }
+        check(at.asSquare.block !is LockBlock) { "Playground:: Could not put stair on Lock tile" }
+        check(at.asSquare.block !is Void) { "Playground:: Could not put stair on Void tile" }
+        at.asSquare.block = StairBlock(facing)
+        return true
     }
 
-    fun worldPlaceCharacter(kind: Role, at: Coordinate): Boolean {
-
+    fun worldPlaceCharacter(char: Character, facing: Direction, at: Coordinate): Boolean {
+        check(at.isInPlayground) { "Playground:: coordinate out of bounds" }
+        check(at.asSquare.block !is LockBlock) { "Playground:: Could not put character on Lock tile" }
+        check(at.asSquare.block !is Void) { "Playground:: Could not put character on Void tile" }
+        var p: AbstractCharacter? = null
+        when (char) {
+            is Player -> p = InstantializedPlayer(char.id, facing, 500) // TODO add stamina default rule
+            is Specialist -> p = InstantializedSpecialist(char.id, facing, 500)
+        }
+        at.asSquare.players.add(p ?: throw NullPointerException("Playground:: this should not happen"))
+        characters[p] = at
+        return true
     }
 
     val worldAllPossibleCoordinates: Array<Coordinate>
-        get() = ;
+        get() = squares.mapIndexed { i, line ->
+            line.mapIndexed { j, _ ->
+                Coordinate(j, i)
+            }
+        }.flatten().toTypedArray()
 
     fun worldRemoveAllBlocks(at: Coordinate): Boolean {
+        check(at.isInPlayground) { "Playground:: coordinate out of bounds" }
+        check(at.asSquare.block !is LockBlock) { "Playground:: Could not remove blocks on Lock tile" }
+        check(at.asSquare.block !is Void) { "Playground:: Could not remove blocks on Void tile" }
+        at.asSquare.let {
+            it.block = Void
+            it.level = 0
+            it.platform?.players?.forEach { it.kill() }
+            it.platform = null
+            it.players.forEach { it.kill() }
+            it.gem = null; it.beeper = null; it.switch = null
+            if (it.portal != null) {
+                portals.remove(it.portal)
+                it.portal = null
+            }
+        }
+        return true
+    }
 
+    private fun convertInstantializedCharToPresentativeChar(char: AbstractCharacter): Character {
+        return when (char) {
+            is InstantializedPlayer -> Player(char.id)
+            is InstantializedSpecialist -> Specialist(char.id)
+            else -> throw IllegalArgumentException("Playground:: unknown char type")
+        }
     }
 
     fun worldExistingCharacters(at: Array<Coordinate>): Array<Character> {
-
+        return (at.map { it.asSquare.players }.flatten().map { convertInstantializedCharToPresentativeChar(it) }
+                + at.map { it.asSquare.platform?.players ?: listOf() }.flatten().map { convertInstantializedCharToPresentativeChar(it) }
+                ).toTypedArray()
     }
 
     fun worldDigDown(at: Coordinate): Boolean {
-
+        check(at.isInPlayground) { "Playground:: coordinate out of bounds" }
+        at.asSquare.let {
+            if (it.level > 1) {
+                it.level -= 1
+                return true
+            }
+            return false
+        }
     }
 
     fun worldPileUp(at: Coordinate): Boolean {
-
+        check(at.isInPlayground) { "Playground:: coordinate out of bounds" }
+        at.asSquare.let {
+            if (it.level < 15) { // TODO set height max/min rule
+                it.level += 1
+                return true
+            }
+            return false
+        }
     }
 }
 

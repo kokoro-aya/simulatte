@@ -33,13 +33,13 @@ class CreativeManager(override val playground: Playground, override val debug: B
             this.special += "PLACE#${when (item) {
                 Beeper -> "BEEPER"
                 Gem -> "GEM"
-                is Switch -> "SWITCH"
+                is SwitchP -> "SWITCH"
             }}@(${at.x}, ${at.y}) "
             appendEntry()
         }
     }
 
-    fun worldPlace(block: Block, at: Coordinate) {
+    fun worldPlace(block: BlockP, at: Coordinate) {
         if (statusStorage.get() == GameStatus.PENDING) {
             playground.worldPlace(block, at)
             printGrid()
@@ -48,7 +48,7 @@ class CreativeManager(override val playground: Playground, override val debug: B
         }
     }
 
-    fun worldPlace(portal: Portal, atStart: Coordinate, atEnd: Coordinate) {
+    fun worldPlace(portal: PortalP, atStart: Coordinate, atEnd: Coordinate) {
         if (statusStorage.get() == GameStatus.PENDING) {
             playground.worldPlace(portal, atStart, atEnd)
             printGrid()
@@ -66,8 +66,13 @@ class CreativeManager(override val playground: Playground, override val debug: B
         }
     }
 
-    fun worldPlaceCharacter(kind: Role, at: Coordinate) {
-        // TODO("place characters in playground")
+    fun worldPlaceCharacter(kind: Role, facing: Direction, at: Coordinate): Character {
+        val char = when (kind) {
+            Role.PLAYER -> Player(this, lastPlayerId + 1)
+            Role.SPECIALIST -> Specialist(this, lastPlayerId + 1)
+        }
+        playground.worldPlaceCharacter(char, facing, at)
+        return char
     }
 
     val worldAllPossibleCoordinates: Array<Coordinate>
@@ -83,7 +88,12 @@ class CreativeManager(override val playground: Playground, override val debug: B
     }
 
     fun worldExistingCharacters(at: Array<Coordinate>): Array<Character> {
-        return playground.worldExistingCharacters(at)
+        val ans = playground.worldExistingCharacters(at)
+        ans.forEach { when (it) {
+            is Player -> it.manager = this
+            is Specialist -> it.manager = this
+        } }
+        return ans
     }
 
     fun worldDigDown(at: Coordinate) {
