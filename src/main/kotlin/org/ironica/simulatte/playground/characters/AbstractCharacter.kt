@@ -10,11 +10,16 @@
 
 package org.ironica.simulatte.playground.characters
 
-import org.ironica.simulatte.playground.Color
 import org.ironica.simulatte.playground.Direction
 import org.ironica.simulatte.playground.Playground
-import utils.StringRepresentable
+import org.ironica.simulatte.playground.datas.Coordinate
+import org.ironica.utils.StringRepresentable
 
+/**
+ * Declares and implements actions that a character should be capable to do.
+ * `playground` field should be injected after initialization otherwise it will be null.
+ * This interface conforms to StringRepresentable interface but no default impl. is provided.
+ */
 interface AbstractCharacter: StringRepresentable {
     val id: Int
     var dir: Direction
@@ -27,6 +32,9 @@ interface AbstractCharacter: StringRepresentable {
     var inWaterForTurns: Int
     var inLavaForTurns: Int
 
+    val walkedTiles: MutableSet<Coordinate>
+    var repassed: Boolean
+
     fun isOnGem() = playground?.playerIsOnGem(this) ?: throw NullPointerException("AbstractCharacter:: Uninitialized character")
     fun isOnOpenedSwitch() = playground?.playerIsOnOpenedSwitch(this) ?: throw NullPointerException("AbstractCharacter:: Uninitialized character")
     fun isOnClosedSwitch() = playground?.playerIsOnClosedSwitch(this) ?: throw NullPointerException("AbstractCharacter:: Uninitialized character")
@@ -38,6 +46,8 @@ interface AbstractCharacter: StringRepresentable {
     fun isBlocked() = playground?.playerIsBlocked(this) ?: throw NullPointerException("AbstractCharacter:: Uninitialized character")
     fun isBlockedLeft() = playground?.playerIsBlockedLeft(this) ?: throw NullPointerException("AbstractCharacter:: Uninitialized character")
     fun isBlockedRight() = playground?.playerIsBlockedRight(this) ?: throw NullPointerException("AbstractCharacter:: Uninitialized character")
+
+    fun isBeforeMonster() = playground?.playerIsBeforeMonster(this) ?: throw NullPointerException("AbstractCharacter:: Uninitialized character")
 
     fun turnLeft() = playground?.playerTurnLeft(this) ?: throw NullPointerException("AbstractCharacter:: Uninitialized character")
 
@@ -53,6 +63,8 @@ interface AbstractCharacter: StringRepresentable {
     fun dropBeeper() = playground?.playerDropBeeper(this) ?: throw NullPointerException("AbstractCharacter:: Uninitialized character")
 
     fun kill() = playground?.playerKill(this) ?: throw NullPointerException("AbstractCharacter:: Uninitialized character")
+
+    fun attackMonster() = playground?.playerAttack(this) ?: throw NullPointerException("AbstractCharacter:: Uninitialized character")
 
     val isAlive: Boolean
         get() = stamina > 0

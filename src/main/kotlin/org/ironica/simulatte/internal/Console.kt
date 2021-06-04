@@ -11,17 +11,13 @@
 package org.ironica.simulatte.internal
 
 import org.ironica.simulatte.manager.AbstractManager
-import org.ironica.simulatte.playground.Color
 
 /**
- * Concrete Player class that inherits the implementations in Character trait.
- * The primary constructor has only id so each Player is distinguished by its id.
- * And the secondary constructor allow us to inject the manager into it.
+ * This class handles the console output that will appended to Manager.consoleLog and
+ * exposes an api to the SimulatteBuilder
  */
-data class Player(override val id: Int): Character {
-    override var manager: AbstractManager? = null
-
-    constructor(manager: AbstractManager, id: Int): this(id) {
-        this.manager = manager
+class Console(val manager: AbstractManager) {
+    fun log(vararg arg: Any) {
+        return manager.log(*arg)
     }
 }

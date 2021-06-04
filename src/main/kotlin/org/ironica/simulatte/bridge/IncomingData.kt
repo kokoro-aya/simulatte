@@ -11,6 +11,7 @@
 package org.ironica.simulatte.bridge
 
 import kotlinx.serialization.Serializable
+import org.ironica.simulatte.bridge.rules.GamingCondition
 import org.ironica.simulatte.playground.*
 import org.ironica.simulatte.playground.Blocks
 import org.ironica.simulatte.playground.Items
@@ -20,13 +21,16 @@ import org.ironica.simulatte.playground.datas.Coordinate
 data class IncomingData(
     val type: String,
     val code: String,
-    val grid: List<List<GridData>>,
-    val gems: List<Coordinate>,
+    val grid: List<List<GridData>>, // [{ biome: Biome, level: Int, block: Blocks, }]
+    val gems: List<Coordinate>, // [{ x: Int, y: Int, }], same as below
     val beepers: List<Coordinate>,
-    val switches: List<SwitchData>,
-    val portals: List<PortalData>,
-    val locks: List<LockData>,
-    val stairs: List<StairData>,
-    val platforms: List<PlatformData>,
-    val players: List<PlayerData>
+    val switches: List<SwitchData>, // [{ coo: { x: Int, y: Int, }, on: Boolean }]
+    val portals: List<PortalData>, // [{ coo: { x: Int, y: Int, }, dest: { x: Int, y: Int, }, isActive: Boolean }]
+    val monsters: List<Coordinate>,
+    val locks: List<LockData>, // [{ coo: Coordinate, controlled: [Coordinate], energy: Int = 0 }]
+    val stairs: List<StairData>, // [{ coo: Coordinate, dir: Direction }]
+    val platforms: List<PlatformData>, // [{ coo: Coordinate, level: Int }]
+    val players: List<PlayerData>, // [{ id: Int, x: Int, y: Int, dir: Direction, role: Role, stamina: Int }]
+    val gamingCondition: GamingCondition? = null, // see GamingCondition for more info, default is set to null
+    val userCollision: Boolean = true, // control if one tile can have only one user, default is true
 )

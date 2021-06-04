@@ -15,6 +15,10 @@ import org.ironica.simulatte.playground.Color
 import org.ironica.simulatte.playground.Blocks
 import org.ironica.simulatte.playground.datas.Coordinate
 
+// The Payload data structure is nearly the same to the Incoming data structure, however, some differences exist.
+/**
+ * Outgoing data structure
+ */
 @Serializable
 data class Payload(
     val grid: List<List<SerializedBlock>>,

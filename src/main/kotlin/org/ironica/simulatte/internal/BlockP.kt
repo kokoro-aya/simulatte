@@ -10,18 +10,5 @@
 
 package org.ironica.simulatte.internal
 
-import org.ironica.simulatte.manager.AbstractManager
-import org.ironica.simulatte.playground.Color
-
-/**
- * Concrete Player class that inherits the implementations in Character trait.
- * The primary constructor has only id so each Player is distinguished by its id.
- * And the secondary constructor allow us to inject the manager into it.
- */
-data class Player(override val id: Int): Character {
-    override var manager: AbstractManager? = null
-
-    constructor(manager: AbstractManager, id: Int): this(id) {
-        this.manager = manager
-    }
-}
+// Renamed to BlockP in order not to conflict with the `Block()` function that exposed to user
+data class BlockP(val blocked: Boolean = true)

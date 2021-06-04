@@ -8,20 +8,22 @@
  *
  */
 
-package org.ironica.simulatte.internal
+package org.ironica.simulatte.bridge.rules
 
-import org.ironica.simulatte.manager.AbstractManager
-import org.ironica.simulatte.playground.Color
+import kotlinx.serialization.Serializable
+import org.ironica.simulatte.playground.datas.Coordinate
+import org.ironica.utils.StringRepresentable
+import org.ironica.utils.stringRepresentation
 
-/**
- * Concrete Player class that inherits the implementations in Character trait.
- * The primary constructor has only id so each Player is distinguished by its id.
- * And the secondary constructor allow us to inject the manager into it.
- */
-data class Player(override val id: Int): Character {
-    override var manager: AbstractManager? = null
-
-    constructor(manager: AbstractManager, id: Int): this(id) {
-        this.manager = manager
-    }
+@Serializable
+data class GamingCondition(
+    val collectGemsBy: Int? = null,
+    val switchesOnBy: Int? = null,
+    val arriveAt: List<Coordinate>? = null,
+    val monstersKilled: Int? = null,
+    val noSameTileRepassed: Boolean? = null,
+    val endGameAfter: Int? = null,
+): StringRepresentable {
+    override val stringRepresentation: String
+        get() = "GamingCondition($collectGemsBy, $switchesOnBy, ${arriveAt?.stringRepresentation}, $monstersKilled, $noSameTileRepassed, $endGameAfter)"
 }

@@ -8,7 +8,7 @@
  *
  */
 
-package utils
+package org.ironica.utils
 
 import org.ironica.simulatte.playground.Biome
 import org.ironica.simulatte.playground.Color
@@ -18,6 +18,9 @@ import java.io.ByteArrayOutputStream
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 
+/**
+ * To zip 3 lists of same size with a function
+ */
 fun <A, B, C, D>zip(
     first: List<List<A>>,
     second: List<List<B>>,
@@ -36,6 +39,9 @@ fun <A, B, C, D>zip(
     }
 }
 
+/**
+ * Extend the List<StringRepresentable> type to conform to StringRepresentable
+ */
 val <E: StringRepresentable> List<E>.stringRepresentation: String
     get() = buildString {
         if (this@stringRepresentation::class == MutableList::class){
@@ -52,7 +58,7 @@ val <E: StringRepresentable> List<E>.stringRepresentation: String
     }
 
 
-
+// Make enums conform to StringRepresentable
 val Direction.stringRepresentation: String
     get() = "Direction.$this"
 
@@ -62,6 +68,9 @@ val Color.stringRepresentation: String
 val Biome.stringRepresentation: String
     get() = "Biome.$this"
 
+/**
+ * Extends the Map<StringRepresentable, StringRepresentable> type to conform to StringRepresentable
+ */
 val <E: StringRepresentable, F: StringRepresentable> Map<E, F>.stringRepresentation: String
     get() = buildString {
         appendLine("mapOf(")
@@ -73,6 +82,9 @@ val <E: StringRepresentable, F: StringRepresentable> Map<E, F>.stringRepresentat
         appendLine(")")
     }
 
+/**
+ * Add line number and decoration to a code string
+ */
 fun String.prettyPrint() {
     this.split("\n").mapIndexed { i, line ->
         println(((i+1).justify(3) + "|\t" + line))

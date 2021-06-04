@@ -8,11 +8,10 @@
  *
  */
 
-package org.ironica.simulatte.playground.datas
+package org.ironica.simulatte.internal
 
-import org.ironica.simulatte.playground.Blocks
-import org.ironica.simulatte.playground.Items
-
-typealias Grid = MutableList<MutableList<Blocks>>
-typealias ItemLayout = MutableList<MutableList<Items>>
-typealias TileLayout = MutableList<MutableList<AdditionalTileInfo>>
+sealed class Item
+object Gem : Item()
+object Beeper: Item()
+// Renamed to SwitchP in order not to conflict with the `Switch()` function that exposed to user
+data class SwitchP(val on: Boolean): Item()

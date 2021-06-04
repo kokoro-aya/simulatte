@@ -11,31 +11,34 @@
 package org.ironica.simulatte.playground.datas
 
 import org.ironica.simulatte.playground.Direction
-import utils.StringRepresentable
-import utils.stringRepresentation
+import org.ironica.utils.StringRepresentable
+import org.ironica.utils.stringRepresentation
 
-sealed class Block: StringRepresentable
-object Open: Block() {
+/**
+ * Block objects, conform to StringRepresentable interface
+ */
+sealed class BlockObject: StringRepresentable
+object OpenBlock: BlockObject() {
     override val stringRepresentation: String
-        get() = "Open"
+        get() = "OpenBlock"
 }
-object Blocked: Block() {
+object BlockedBlock: BlockObject() {
     override val stringRepresentation: String
-        get() = "Blocked"
+        get() = "BlockedBlock"
 }
 
-data class Lock(val id: Int, val controlled: MutableList<Coordinate>, var isActive: Boolean, var energy: Int): Block() {
+data class LockBlock(val id: Int, val controlled: MutableList<Coordinate>, var isActive: Boolean, var energy: Int): BlockObject() {
     override val stringRepresentation: String
-        get() = "Lock($id, mutableL${controlled.stringRepresentation.drop(1)}, $isActive, $energy)"
+        get() = "LockBlock($id, mutableL${controlled.stringRepresentation.drop(1)}, $isActive, $energy)"
 }
 
 // TODO add rules on lock energy and deactivation
-data class Stair(val dir: Direction): Block() {
+data class StairBlock(val dir: Direction): BlockObject() {
     override val stringRepresentation: String
-        get() = "Stair(${dir.stringRepresentation})"
+        get() = "StairBlock(${dir.stringRepresentation})"
 }
 
-object Void: Block() {
+object VoidBlock: BlockObject() {
     override val stringRepresentation: String
-        get() = "Void"
+        get() = "VoidBlock"
 }

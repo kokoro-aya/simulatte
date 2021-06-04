@@ -12,6 +12,9 @@ package org.ironica.simulatte.manager
 
 import org.ironica.simulatte.playground.*
 
+/**
+ * Default implementation of Manager
+ */
 class DefaultManager(override val playground: Playground, override val debug: Boolean, override val stdout: Boolean):
     AbstractManager {
 

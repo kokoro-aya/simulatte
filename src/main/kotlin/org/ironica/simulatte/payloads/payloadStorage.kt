@@ -12,6 +12,8 @@ package org.ironica.simulatte.payloads
 
 import org.ironica.simulatte.playground.GameStatus
 
+// Usage of ThreadLocal to ensure each thread has its own copy
+// These two properties are however global variables
 val payloadStorage = ThreadLocal<MutableList<Payload>>()
 
 var statusStorage = ThreadLocal<GameStatus>()

@@ -10,12 +10,17 @@
 
 package org.ironica.simulatte.playground.characters
 
-import org.ironica.simulatte.playground.Color
 import org.ironica.simulatte.playground.Playground
 import org.ironica.simulatte.playground.Direction
-import utils.StringRepresentable
-import utils.stringRepresentation
+import org.ironica.simulatte.playground.datas.Coordinate
+import org.ironica.utils.StringRepresentable
+import org.ironica.utils.stringRepresentation
 
+/**
+ * Player implementation of AbstractCharacter.
+ * `playground` field should be injected after initialization otherwise it will be null.
+ * This class conforms to StringRepresentable interface.
+ */
 data class InstantializedPlayer(override val id: Int): AbstractCharacter, StringRepresentable {
 
     override var dir: Direction = Direction.UP
@@ -30,6 +35,9 @@ data class InstantializedPlayer(override val id: Int): AbstractCharacter, String
 
     override var collectedGem = 0
     override var beeperInBag = 0
+
+    override val walkedTiles: MutableSet<Coordinate> = mutableSetOf()
+    override var repassed: Boolean = false
 
     override var inWaterForTurns: Int = 0
     override var inLavaForTurns: Int = 0

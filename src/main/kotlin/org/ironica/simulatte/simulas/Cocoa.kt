@@ -14,20 +14,23 @@ import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.asTypeName
+import org.ironica.simulatte.bridge.rules.GamingCondition
 import org.ironica.simulatte.manager.DefaultManager
 import org.ironica.simulatte.playground.Playground
 import org.ironica.simulatte.playground.characters.AbstractCharacter
 import org.ironica.simulatte.playground.datas.Coordinate
-import org.ironica.simulatte.playground.datas.Lock
-import org.ironica.simulatte.playground.datas.Portal
+import org.ironica.simulatte.playground.datas.LockBlock
+import org.ironica.simulatte.playground.datas.PortalItem
 import org.ironica.simulatte.playground.datas.Square
-import utils.*
+import org.ironica.utils.*
 
 class Cocoa {
     private val fs = FileSpec.builder("org.ironica.simulatte.Simulatte", "Simulatte")
 
     init {
     }
+
+    // Each feed function have different parameters but they need to be specified at JVM level different names
 
     @JvmName("feedSquares")
     fun feed(squares: List<List<Square>>): Cocoa {
@@ -42,10 +45,10 @@ class Cocoa {
     }
 
     @JvmName("feedPortals")
-    fun feed(portals: Map<Portal, Coordinate>): Cocoa {
+    fun feed(portals: Map<PortalItem, Coordinate>): Cocoa {
         fs.addProperty(PropertySpec.builder("portals",
             Map::class.asTypeName()
-                .parameterizedBy(Portal::class.asTypeName(),
+                .parameterizedBy(PortalItem::class.asTypeName(),
                     Coordinate::class.asTypeName()))
             .initializer(portals.stringRepresentation)
             .build()
@@ -54,11 +57,11 @@ class Cocoa {
     }
 
     @JvmName("feedLocks")
-    fun feed(locks: Map<Coordinate, Lock>): Cocoa {
+    fun feed(locks: Map<Coordinate, LockBlock>): Cocoa {
         fs.addProperty(PropertySpec.builder("locks",
             Map::class.asTypeName()
                 .parameterizedBy(Coordinate::class.asTypeName(),
-                    Lock::class.asTypeName()))
+                    LockBlock::class.asTypeName()))
             .initializer(locks.stringRepresentation)
             .build()
         )
@@ -77,9 +80,24 @@ class Cocoa {
         return this
     }
 
+    @JvmName("feedRules")
+    fun feed(gamingCondition: GamingCondition?, userCollision: Boolean): Cocoa {
+        fs.addProperty(PropertySpec.builder("gamingCondition",
+            GamingCondition::class.asTypeName().copy(nullable = true))
+            .initializer(gamingCondition?.stringRepresentation ?: "null")
+            .build()
+        )
+        fs.addProperty(PropertySpec.builder("userCollision",
+            Boolean::class)
+            .initializer(userCollision.toString())
+            .build()
+        )
+        return this
+    }
+
     fun thenFeed(managerType: String, debug: Boolean, stdout: Boolean): Cocoa {
         fs.addProperty(PropertySpec.builder("playground", Playground::class)
-            .initializer("Playground(squares, portals.toMutableMap(), locks.toMutableMap(), players.toMutableMap())")
+            .initializer("Playground(squares, portals.toMutableMap(), locks.toMutableMap(), players.toMutableMap(), gamingCondition, userCollision)")
             .build()
         )
         fs.addProperty(PropertySpec.builder("manager", when(managerType) {
@@ -111,6 +129,9 @@ class Cocoa {
     }
 }
 
+/**
+ * wrap user's code with boilerplate for Builder
+ */
 fun String.wrapCode(): String {
     return buildString {
         appendLine("payloadStorage.set(mutableListOf())\n" +

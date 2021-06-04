@@ -13,10 +13,15 @@ package org.ironica.simulatte.manager
 import org.ironica.simulatte.payloads.*
 import org.ironica.simulatte.playground.*
 import org.ironica.simulatte.playground.characters.AbstractCharacter
+import org.ironica.simulatte.playground.characters.InstantializedPlayer
 import org.ironica.simulatte.playground.characters.InstantializedSpecialist
 import org.ironica.simulatte.playground.datas.*
-import utils.deepCopy
 
+/**
+ * The mixin interface that implements logics handling players, playground interactions and persistence of current playground frame.
+ * This interface handles player actions and delegates them to playground implementations.
+ * The appendEntry() method is called after each action to ensure that the current frame is saved into payload.
+ */
 interface AbstractManager {
     val playground: Playground
     var consoleLog: String
@@ -31,7 +36,7 @@ interface AbstractManager {
 
     val nextPlayerId: Int
         get() {
-            val next = playground.characters.keys.firstOrNull { it.id > attributedPlayerId }?.id
+            val next = playground.characters.keys.filterIsInstance<InstantializedPlayer>().firstOrNull { it.id > attributedPlayerId }?.id
                 ?: throw NoSuchElementException("AbstractManager:: No slot for new player available")
             attributedPlayerId = next
             return next
@@ -39,11 +44,14 @@ interface AbstractManager {
 
     val nextSpecialistId: Int
         get() {
-            val next = playground.characters.keys.firstOrNull { it.id > attributedSpecialistId }?.id
+            val next = playground.characters.keys.filterIsInstance<InstantializedSpecialist>().firstOrNull { it.id > attributedSpecialistId }?.id
                 ?: throw NoSuchElementException("AbstractManager:: No slot for new specialist available")
             attributedSpecialistId = next
             return next
         }
+
+    val lastPlayerId: Int
+        get() = playground.characters.keys.maxOfOrNull { it.id } ?: -1
 
     fun getPlayer(id: Int): AbstractCharacter {
         val player = playground.characters.keys.filter { it.id == id }
@@ -66,6 +74,8 @@ interface AbstractManager {
     fun isBlockedLeft(id: Int) = getPlayer(id).isBlockedLeft()
     fun isBlockedRight(id: Int) = getPlayer(id).isBlockedRight()
     fun collectedGem(id: Int) = getPlayer(id).collectedGem
+
+    fun isBeforeMonster(id: Int) = getPlayer(id).isBeforeMonster()
 
     fun turnLeft(id: Int) {
         getPlayer(id).turnLeft()
@@ -112,36 +122,40 @@ interface AbstractManager {
         appendEntry()
     }
 
-    fun print(lmsg: List<String>) {
+    /**
+     * This method provide a log() method for the DSL
+     * Only by calling this log() method you could append your frame into the data.
+     */
+    fun log(vararg arg: Any) {
         if (stdout) {
-            lmsg.forEach { print("$it ") }
+            for (x in arg) {
+                print("$x ")
+            }
             println()
         }
-        lmsg.forEach { consoleLog += it }
+        for (x in arg) {
+            consoleLog += "$x "
+        }
         consoleLog += "\n"
         appendEntry()
     }
 
-    fun win(): Boolean {
-        return if (playground.win()) {
-            statusStorage.set(GameStatus.WIN)
+    fun win() {
+        if (playground.win()) {
             appendEntry()
-            true
-        } else false
+        }
     }
 
-    fun dead(): Boolean {
-        return if (playground.lose()) {
-            statusStorage.set(GameStatus.LOST)
+    fun dead() {
+        if (playground.lose()) {
             appendEntry()
-            true
-        } else false
+        }
     }
 
-    fun dance(id: Int, action: Int): Boolean {
+    fun dance(id: Int, action: Int) {
         special += "PLAYER@${id}#DANCE#$action "
         playground.incrementATurn()
-        return true
+        appendEntry()
     }
 
     fun gemCount(): Int {
@@ -172,6 +186,13 @@ interface AbstractManager {
         getPlayer(id).kill()
     }
 
+    fun attackMonster(id: Int) {
+        getPlayer(id).attackMonster()
+        printGrid()
+        this.special += "ATTACK "
+        appendEntry()
+    }
+
     fun turnLockUp(id: Int) {
         if (getPlayer(id) !is InstantializedSpecialist) throw Exception("AbstractManager:: Only specialist could turn locks up")
         (getPlayer(id) as InstantializedSpecialist).turnLockUp()
@@ -190,14 +211,16 @@ interface AbstractManager {
             throw Exception("Too many entries!")
 
         with (playground.squares) {
+            // Usage of map/mapIndexed to create new instances of data instead of passing the original data
+            // so that they will be deep-copied into payload
             val currentGrid = this.map { it.map {
                 SerializedBlock(
                     when (it.block) {
-                        Open -> Blocks.OPEN
-                        Blocked -> Blocks.BLOCKED
-                        Void -> Blocks.VOID
-                        is Stair -> Blocks.STAIR
-                        is Lock -> Blocks.LOCK
+                        OpenBlock -> Blocks.OPEN
+                        BlockedBlock -> Blocks.BLOCKED
+                        VoidBlock -> Blocks.VOID
+                        is StairBlock -> Blocks.STAIR
+                        is LockBlock -> Blocks.LOCK
                     }, it.level
                 )
             } }

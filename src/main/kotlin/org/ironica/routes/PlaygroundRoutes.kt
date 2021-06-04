@@ -8,7 +8,7 @@
  *
  */
 
-package routes
+package org.ironica.routes
 
 import io.ktor.application.Application
 import io.ktor.application.call
@@ -18,6 +18,7 @@ import io.ktor.routing.Route
 import io.ktor.routing.post
 import io.ktor.routing.route
 import io.ktor.routing.routing
+import kotlinx.coroutines.async
 import org.ironica.simulatte.bridge.SimulatteBridge
 import org.ironica.simulatte.bridge.IncomingData
 import org.ironica.simulatte.payloads.*
@@ -39,16 +40,23 @@ fun Route.getPlaygroundRoute(args: Triple<Boolean, Boolean, Boolean>) {
                 data.beepers,
                 data.switches,
                 data.portals,
+                data.monsters,
                 data.locks,
                 data.stairs,
                 data.platforms,
                 data.players,
+                data.gamingCondition,
+                data.userCollision,
                 debug = debug,
                 stdout = stdout,
                 output = output,
             )
             try {
-                val resp = playgroundInterface.start()
+                val p = async { playgroundInterface.start() } // usage of async-await to not to block the main thread
+                val resp = p.await() // might be insignificant to end user since the server thread is invisible to them
+
+                // notice that resp returns a pair, which could contains another pair in its first element
+                // we should switch on second element then the type of first element for each possible cases
                 when (resp.second) {
                     Status.OK -> {
                         when (val rsf = resp.first) {
@@ -64,7 +72,7 @@ fun Route.getPlaygroundRoute(args: Triple<Boolean, Boolean, Boolean>) {
                             is String -> {
                                 println("Route:: encountered some error \n$rsf\n")
                                 call.respond(
-                                    ErrorMessage(resp.second, rsf)
+                                    ErrorMessage(Status.ERROR, rsf)
                                 )
                             }
                             else -> {
@@ -85,7 +93,9 @@ fun Route.getPlaygroundRoute(args: Triple<Boolean, Boolean, Boolean>) {
                 }
                 println("Proceeded succesfully a request.")
             } catch (e: Exception) {
-                call.respond(ErrorMessage(Status.ERROR, e.message ?: ""))
+
+                // Rarely will we encounter this: for internal errors
+                call.respond(ErrorMessage(Status.ERROR, e.message ?: "PlaygroundRoutes:: Unknown internal error, please contact developer"))
                 println("Encountered an error.")
                 e.printStackTrace()
             }

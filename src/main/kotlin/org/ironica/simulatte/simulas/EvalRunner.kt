@@ -97,6 +97,9 @@ class EvalRunner {
         shell.initEngine()
     }
 
+    // we return a pair of answer and status for the result of eval.
+    // if everything goes well, the first item of eval will be the value of eval, which is itself a pair of payloads and game status
+    // if something goes wrong then the first item will be an error message, whether in handleError() or renderError() function
     fun evalSnippet(source: String): Pair<Any?, Status> {
         val time = System.nanoTime()
         val result = shell.eval(source)
@@ -128,6 +131,7 @@ class EvalRunner {
         }
     }
 
+    // Modified version of handleSuccess to change its return type
     private fun handleSuccessSub(result: ResultWithDiagnostics.Success<*>): Any? {
         val snippets = result.value as LinkedSnippet<KJvmEvaluatedSnippet>
         shell.eventManager.emitEvent(OnEval(snippets))

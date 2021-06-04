@@ -11,20 +11,23 @@
 package org.ironica.simulatte.playground.datas
 
 import org.ironica.simulatte.playground.Biome
-import org.ironica.simulatte.playground.Color
 import org.ironica.simulatte.playground.characters.AbstractCharacter
-import utils.StringRepresentable
-import utils.stringRepresentation
+import org.ironica.utils.StringRepresentable
+import org.ironica.utils.stringRepresentation
 
+/**
+ * Represents a tile of playground. Each item is represented with a nullable entry
+ */
 data class Square(
-    var block: Block,
+    var block: BlockObject,
     var level: Int,
     var biome: Biome,
-    var switch: Switch?,
-    var gem: Gem?,
-    var beeper: Beeper?,
-    var portal: Portal?,
-    var platform: Platform?,
+    var switch: SwitchItem?,
+    var gem: GemItem?,
+    var beeper: BeeperItem?,
+    var portal: PortalItem?,
+    var monster: Boolean?,
+    var platform: PlatformItem?,
     var players: MutableList<AbstractCharacter> = mutableListOf()
 ): StringRepresentable {
     override val stringRepresentation: String
@@ -34,14 +37,14 @@ data class Square(
             append("${this@Square.level}, ")
             append("${this@Square.biome.stringRepresentation}, ")
             if (this@Square.switch == null) append("null, ")
-            else append("Switch(${this@Square.switch!!.on}), ")
+            else append("SwitchItem(${this@Square.switch!!.on}), ")
             if (this@Square.gem == null) append("null, ")
-            else append("Gem(), ")
+            else append("GemItem(), ")
             if (this@Square.beeper == null) append("null, ")
-            else append("Beeper(), ")
+            else append("BeeperItem(), ")
             if (this@Square.portal == null) append("null, ")
             else {
-                append("Portal(")
+                append("PortalItem(")
                 this@Square.portal?.let {
                     append("${it.coo.stringRepresentation}, ")
                     append("${it.dest.stringRepresentation}, ")
@@ -51,9 +54,13 @@ data class Square(
                 }
                 append("), ")
             }
+            if (this@Square.monster == null) append("null, ")
+            else {
+                append("${this@Square.monster}, ")
+            }
             if (this@Square.platform == null) append("null, ")
             else {
-                append("Platform(")
+                append("PlatformItem(")
                 this@Square.platform?.let {
                     append("${it.level}, ")
                     append("mutableListOf(")

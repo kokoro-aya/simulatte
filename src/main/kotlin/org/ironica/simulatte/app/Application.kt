@@ -17,13 +17,30 @@ import io.ktor.features.ContentNegotiation
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.serialization.json
-import routes.registerPlaygroundRoutes
+import org.ironica.routes.registerPlaygroundRoutes
+import java.util.*
 
+const val version = "3.1.2"
 
+/**
+ * Main Entry of program, we launch Netty server from here
+ * Notice how arguments are passed into the server
+ */
 fun main(args: Array<String>): Unit {
-    val debug = "-P:debug=${args.any{ it.toLowerCase() == "debug" }}"
-    val stdout = "-P:stdout=${args.any { it.toLowerCase() == "stdout" }}"
-    val output = "-P:output=${args.any { it.toLowerCase() == "output" }}"
+    if (args.any { it.lowercase(Locale.getDefault()) == "about" }) {
+        println("""
+            Simulatte :: A Playground Server implemented with Kotlin DSL
+            > v$version
+            > created by kokoro-aya@ironica.moe, all right reserved.
+            
+            > usage: simulatte [debug|stdout|output|about]
+            > see Readme.md for more information.
+            """.trimIndent())
+        return
+    }
+    val debug = "-P:debug=${args.any { it.lowercase(Locale.getDefault()) == "debug" }}"
+    val stdout = "-P:stdout=${args.any { it.lowercase(Locale.getDefault()) == "stdout" }}"
+    val output = "-P:output=${args.any { it.lowercase(Locale.getDefault()) == "output" }}"
     io.ktor.server.netty.EngineMain.main(arrayOf(*args, debug, stdout, output))
 }
 

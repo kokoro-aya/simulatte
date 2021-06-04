@@ -8,14 +8,3 @@
  *
  */
 
-package org.ironica.simulatte.playground.datas
-
-import org.ironica.simulatte.playground.Color
-
-data class AdditionalTileInfo(var color: Color = Color.WHITE, var level: Int = 1) {
-    init {
-        if (level < 0) {
-            level = 0
-        }
-    }
-}

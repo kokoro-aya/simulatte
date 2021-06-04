@@ -10,6 +10,9 @@
 
 package org.ironica.simulatte.misc
 
+/**
+ * Useless?
+ */
 /*
 func foo(a: Int, b: String): Int {
     print(b)

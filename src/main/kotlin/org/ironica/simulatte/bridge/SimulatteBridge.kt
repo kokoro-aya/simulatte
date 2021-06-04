@@ -10,10 +10,8 @@
 
 package org.ironica.simulatte.bridge
 
-import org.ironica.simulatte.payloads.Payload
+import org.ironica.simulatte.bridge.rules.GamingCondition
 import org.ironica.simulatte.payloads.Status
-import org.ironica.simulatte.payloads.payloadStorage
-import org.ironica.simulatte.payloads.statusStorage
 import org.ironica.simulatte.playground.*
 import org.ironica.simulatte.playground.characters.AbstractCharacter
 import org.ironica.simulatte.playground.datas.*
@@ -22,27 +20,32 @@ import org.ironica.simulatte.playground.characters.InstantializedSpecialist
 import org.ironica.simulatte.simulas.Cocoa
 import org.ironica.simulatte.simulas.EvalRunner
 import org.ironica.simulatte.simulas.wrapCode
-import utils.prettyPrint
-import utils.zip
+import org.ironica.utils.prettyPrint
+import org.ironica.utils.zip
 
 class SimulatteBridge(
     private val type: String,
     private val code: String,
     private val grid: List<List<GridData>>,
-    private val gemdatas: List<Coordinate>,
-    private val beeperdatas: List<Coordinate>,
-    private val switchdatas: List<SwitchData>,
-    private val portaldatas: List<PortalData>,
+    gemdatas: List<Coordinate>,
+    beeperdatas: List<Coordinate>,
+    switchdatas: List<SwitchData>,
+    portaldatas: List<PortalData>,
+    monsterdatas: List<Coordinate>,
     private val lockdatas: List<LockData>,
     private val stairdatas: List<StairData>,
     private val platformdatas: List<PlatformData>,
     playerdatas: List<PlayerData>,
+
+    private val gamingCondition: GamingCondition?,
+    private val userCollision: Boolean,
+
     val debug: Boolean, val stdout: Boolean, val output: Boolean
 ) {
 
     var squares: List<List<Square>>
-    var locks: Map<Coordinate, Lock>
-    var portals: Map<Portal, Coordinate>
+    var locks: Map<Coordinate, LockBlock>
+    var portals: Map<PortalItem, Coordinate>
     var players: Map<AbstractCharacter, Coordinate>
 
     // Pre-initialization of data structures to be passed to playground
@@ -53,8 +56,13 @@ class SimulatteBridge(
     //   - Check every controlled tiles in lock has a platform (platformdata will be consumed) -
     //   - Check every portal item corresponds to a portal registration and vice versa -
     //   - Check every stairs tiles corresponds to a stair* registration and vice versa -
+
+    // = Pre-init Rules check
+    //   - If the two lists in gamingCondition isn't empty, then check all coordinates are in grid -
+
     // = Pre-initialization phase
     // - prepare portals, locks and players data structures for playground -
+    // - check if players data conforms to collision condition -
     // - Convert grid to 2d block array (lockdata and stairdata will be consumed) -
     // - Integrate arrays of block layout and misc layout to square arrays -
     // - Assign items to square arrays (portaldata will be consumed) -
@@ -65,31 +73,40 @@ class SimulatteBridge(
     init {
         preInitChecks()
 
-        var lockIds = 0 // To distinguish different locks with the same controlled platforms (and eventually same colors)
+        preInitRuleCheck()
 
-        portals = portaldatas.associate { Portal(it.coo, it.dest, isActive = true, color = Color.WHITE) to it.coo }
+        var lockIds = 0 // To distinguish different locks with the same controlled platforms (and eventually same colors)
+        var portalIds = 0 // To distinguish different portals
+
+        portals = portaldatas.associate { PortalItem(portalIds++, it.coo, it.dest, isActive = true, color = Color.WHITE) to it.coo }
         // TODO add colors on portals
-        locks = lockdatas.associate { it.coo to Lock(lockIds++, it.controlled.toMutableList(), isActive = true, energy = 15) }
+        locks = lockdatas.associate { it.coo to LockBlock(lockIds++, it.controlled.toMutableList(), isActive = true, energy = 15) }
 
         players = playerdatas.associate {
+            val coo = Coordinate(it.x, it.y)
+            validPositionChecks(coo, "#players")
             (if (it.role == Role.SPECIALIST) InstantializedSpecialist(it.id, it.dir, it.stamina)
                 else InstantializedPlayer(it.id, it.dir, it.stamina)).let {
-                p -> p to Coordinate(it.x, it.y)
+                p -> p to coo
             } }.toList().sortedBy { it.first.id }.toMap()
 
-        val platforms = platformdatas.associate { Platform(it.level) to it.coo }
 
-        var homeId = 0
+        check(userCollision && players.values.notContainsDuplications() || !userCollision) {
+            "Initialization:: Collision is set to true while players data contains several players in a coordinate"
+        }
+
+        val platforms = platformdatas.associate { PlatformItem(it.level) to it.coo }
+
         val blocks = grid.mapIndexed { i, line ->
             line.mapIndexed { j, b ->
                 when (b.block) {
-                    Blocks.OPEN -> Open
-                    Blocks.BLOCKED -> Blocked
+                    Blocks.OPEN -> OpenBlock
+                    Blocks.BLOCKED -> BlockedBlock
                     Blocks.LOCK -> locks[Coordinate(j, i)]
                         ?: throw Exception("Initialization:: A tile declared as Lock without lock info registered")
-                    Blocks.STAIR -> stairdatas.firstOrNull { it.coo == Coordinate(j, i) }?.let { Stair(it.dir) }
+                    Blocks.STAIR -> stairdatas.firstOrNull { it.coo == Coordinate(j, i) }?.let { StairBlock(it.dir) }
                         ?: throw Exception("Initialization:: A tile declared as Stair without Stair info registered")
-                    Blocks.VOID -> Void
+                    Blocks.VOID -> VoidBlock
                 }
             }
         }
@@ -98,21 +115,21 @@ class SimulatteBridge(
         val biomes = grid.map { it.map { it.biome } }
 
         squares = zip(blocks, levels, biomes) { block, lev, biom ->
-            Square(block, lev, biom, null, null, null, null, null)
+            Square(block, lev, biom, null, null, null, null, null, null)
         }
 
         // Assignment for items
         gemdatas.forEach {
             validPositionChecks(it, "#gems")
-            squares[it.y][it.x].gem = Gem()
+            squares[it.y][it.x].gem = GemItem()
         }
         beeperdatas.forEach {
             validPositionChecks(it, "#beepers")
-            squares[it.y][it.x].beeper = Beeper()
+            squares[it.y][it.x].beeper = BeeperItem()
         }
         switchdatas.forEach {
             validPositionChecks(it.coo, "#switches")
-            squares[it.coo.y][it.coo.x].switch = Switch(it.on)
+            squares[it.coo.y][it.coo.x].switch = SwitchItem(it.on)
         }
 
         portals.forEach {
@@ -124,11 +141,24 @@ class SimulatteBridge(
             squares[it.value.y][it.value.x].platform = it.key
         }
 
+        monsterdatas.forEach {
+            validPositionChecks(it, "#monsters")
+            squares[it.y][it.x].monster = true
+        }
+
         // Player assignment into playground will be delayed within the instance of playground, due to the usage
         // of KotlinPoet.
 
     }
 
+    /**
+     * Private helper to detect if a collection doesn't have several same entries
+     */
+    private fun Collection<Coordinate>.notContainsDuplications(): Boolean {
+        return this.toSet().size == this.size
+    }
+
+    // We use the grid's dimensions for position validation check
     private fun validPositionChecks(pos: Coordinate, phase: String): Unit {
         check (pos.y in grid.indices && pos.x in grid[0].indices) { "Initialization:: boundary check failed in $phase" }
     }
@@ -137,8 +167,6 @@ class SimulatteBridge(
         check (grid.size in 1 .. 50 && grid[0].size in 1 .. 50) {
             "Initialization:: Size of playground must between 1 and 50 (inclusive)!"
         }
-
-
 
         check (lockdatas.all { it.coo.let { grid[it.y][it.x].block == Blocks.LOCK } }) {
             "Initialization:: A Lock registration corresponding to a tile which is not a Lock"
@@ -169,6 +197,22 @@ class SimulatteBridge(
         }
     }
 
+    // We check if the entries in rules themselves are valid i.e. within boundary of playground
+    private fun preInitRuleCheck() {
+        gamingCondition?.arriveAt?.forEach { validPositionChecks(it, "#rule.arriveAt") }
+//        gamingCondition?.putBeepersAt?.forEach { validPositionChecks(it, "#rule.putBeepersAt") }
+    }
+
+    /**
+     * Build up the playground DSL code, launch the eval engine and return a Pair<Any?, Status> which contains the following info:
+     * - if the eval server is launched successfully, two scenario could be possible, with status as Status.OK
+     *     - everything goes well, the first element of tuple will be Pair<Payload, GameStatus>
+     *     - something goes wrong, the first element will be a string indicating the message of error
+     * - if the eval server encountered an error, the first element will be a string indicating the message of error, with status as Status.ERROR
+     * - if the code is not completed, the first element will be null and the second will be Status.INCOMPLETE
+     *
+     * You can configure the function to pretty print the generated DSL code by passing `output` to Bridge
+     */
     fun start(): Pair<Any?, Status> {
         val codeGen = StringBuilder()
         val cocoa = Cocoa()
@@ -176,6 +220,7 @@ class SimulatteBridge(
             .feed(portals)
             .feed(locks)
             .feed(players)
+            .feed(gamingCondition, userCollision)
             .thenFeed(type, debug, stdout)
             .generate(codeGen)
         codeGen.append("\n")

@@ -12,24 +12,32 @@ package org.ironica.simulatte.playground.datas
 
 import org.ironica.simulatte.playground.Color
 import org.ironica.simulatte.playground.characters.AbstractCharacter
-import utils.StringRepresentable
-import utils.stringRepresentation
+import org.ironica.utils.StringRepresentable
+import org.ironica.utils.stringRepresentation
 
-sealed class Item
-data class Switch(var on: Boolean): Item()
-data class Gem(val disappearIn: Int = 0): Item()
-data class Beeper(val disappearIn: Int = 0): Item()
-data class Portal(
+/**
+ * Item objects, used within each square
+ */
+sealed class ItemObject
+data class SwitchItem(var on: Boolean): ItemObject()
+data class GemItem(val disappearIn: Int = 0): ItemObject()
+data class BeeperItem(val disappearIn: Int = 0): ItemObject()
+
+/**
+ * This class conforms to StringRepresentable in order to be able to be codegen
+ */
+data class PortalItem(
+    val id: Int,
     val coo: Coordinate,
     val dest: Coordinate,
     val color: Color,
     var isActive: Boolean,
     var energy: Int = 100
-): Item(), StringRepresentable {
+): ItemObject(), StringRepresentable {
     override val stringRepresentation: String
-        get() = "Portal(${coo.stringRepresentation}, ${dest.stringRepresentation}, ${color.stringRepresentation}, $isActive, $energy)"
+        get() = "Portal($id, ${coo.stringRepresentation}, ${dest.stringRepresentation}, ${color.stringRepresentation}, $isActive, $energy)"
 }
-data class Platform(
+data class PlatformItem(
     var level: Int,
     val players: MutableList<AbstractCharacter> = mutableListOf()
 )
