@@ -31,6 +31,7 @@ class SimulatteBridge(
     beeperdatas: List<Coordinate>,
     switchdatas: List<SwitchData>,
     portaldatas: List<PortalData>,
+    monsterdatas: List<Coordinate>,
     private val lockdatas: List<LockData>,
     private val stairdatas: List<StairData>,
     private val platformdatas: List<PlatformData>,
@@ -114,7 +115,7 @@ class SimulatteBridge(
         val biomes = grid.map { it.map { it.biome } }
 
         squares = zip(blocks, levels, biomes) { block, lev, biom ->
-            Square(block, lev, biom, null, null, null, null, null)
+            Square(block, lev, biom, null, null, null, null, null, null)
         }
 
         // Assignment for items
@@ -138,6 +139,11 @@ class SimulatteBridge(
         platforms.forEach {
             validPositionChecks(it.value, "#platforms")
             squares[it.value.y][it.value.x].platform = it.key
+        }
+
+        monsterdatas.forEach {
+            validPositionChecks(it, "#monsters")
+            squares[it.y][it.x].monster = true
         }
 
         // Player assignment into playground will be delayed within the instance of playground, due to the usage
@@ -194,7 +200,7 @@ class SimulatteBridge(
     // We check if the entries in rules themselves are valid i.e. within boundary of playground
     private fun preInitRuleCheck() {
         gamingCondition?.arriveAt?.forEach { validPositionChecks(it, "#rule.arriveAt") }
-        gamingCondition?.putBeepersAt?.forEach { validPositionChecks(it, "#rule.putBeepersAt") }
+//        gamingCondition?.putBeepersAt?.forEach { validPositionChecks(it, "#rule.putBeepersAt") }
     }
 
     /**

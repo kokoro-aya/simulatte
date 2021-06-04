@@ -26,6 +26,7 @@ data class IncomingData(
     val beepers: List<Coordinate>,
     val switches: List<SwitchData>, // [{ coo: { x: Int, y: Int, }, on: Boolean }]
     val portals: List<PortalData>, // [{ coo: { x: Int, y: Int, }, dest: { x: Int, y: Int, }, isActive: Boolean }]
+    val monsters: List<Coordinate>,
     val locks: List<LockData>, // [{ coo: Coordinate, controlled: [Coordinate], energy: Int = 0 }]
     val stairs: List<StairData>, // [{ coo: Coordinate, dir: Direction }]
     val platforms: List<PlatformData>, // [{ coo: Coordinate, level: Int }]

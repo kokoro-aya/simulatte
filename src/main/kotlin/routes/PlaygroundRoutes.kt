@@ -39,6 +39,7 @@ fun Route.getPlaygroundRoute(args: Triple<Boolean, Boolean, Boolean>) {
                 data.beepers,
                 data.switches,
                 data.portals,
+                data.monsters,
                 data.locks,
                 data.stairs,
                 data.platforms,

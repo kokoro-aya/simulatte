@@ -75,6 +75,8 @@ interface AbstractManager {
     fun isBlockedRight(id: Int) = getPlayer(id).isBlockedRight()
     fun collectedGem(id: Int) = getPlayer(id).collectedGem
 
+    fun isBeforeMonster(id: Int) = getPlayer(id).isBeforeMonster()
+
     fun turnLeft(id: Int) {
         getPlayer(id).turnLeft()
         printGrid()
@@ -179,6 +181,13 @@ interface AbstractManager {
 
     fun kill(id: Int) {
         getPlayer(id).kill()
+    }
+
+    fun attackMonster(id: Int) {
+        getPlayer(id).attackMonster()
+        printGrid()
+        this.special += "ATTACK "
+        appendEntry()
     }
 
     fun turnLockUp(id: Int) {

@@ -42,6 +42,9 @@ interface Character {
     val collectedGem: Int
         get() = manager?.collectedGem(id) ?: throw NullPointerException("Character:: uninitialized character")
 
+    val isBeforeMonster: Boolean
+        get() = manager?.isBeforeMonster(id) ?: throw NullPointerException("Character:: uninitialized character")
+
     fun turnLeft() {
         manager?.turnLeft(id) ?: throw NullPointerException("Character:: uninitialized character")
     }
@@ -68,6 +71,10 @@ interface Character {
 
     fun dropBeeper() {
         manager?.dropBeeper(id) ?: throw NullPointerException("Character:: uninitialized character")
+    }
+
+    fun attackMonster() {
+        manager?.attackMonster(id) ?: throw NullPointerException("Character:: uninitialized character")
     }
 
     fun dance1() {

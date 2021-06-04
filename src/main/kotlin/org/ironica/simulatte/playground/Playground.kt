@@ -53,7 +53,10 @@ class Playground(val squares: List<List<Square>>,
      */
     init {
 
-        characters.forEach { it.value.asSquare.players.add(it.key) }
+        characters.forEach {
+            it.value.asSquare.players.add(it.key)
+            it.key.walkedTiles.add(it.value)
+        }
 
         characters.keys.forEach { it.playground = this }
 
@@ -79,6 +82,9 @@ class Playground(val squares: List<List<Square>>,
         get() = squares.flatten().filter { it.switch?.on == true }.size
     val allClosedSwitch: Int
         get() = squares.flatten().filter { it.switch?.on == false }.size
+
+    val allKilledMonsters: Int
+        get() = squares.flatten().filter { it.monster == false }.size
 
     fun win(): Boolean {
         statusStorage.set(GameStatus.WIN)
@@ -144,14 +150,19 @@ class Playground(val squares: List<List<Square>>,
         }
 
         if (currentTurn > gamingCondition?.endGameAfter ?: Int.MAX_VALUE / 2) statusStorage.set(GameStatus.LOST)
-        var satisfiedCond = 0
-        if (allGemCollected >= gamingCondition?.collectGemsBy ?: Int.MAX_VALUE / 2) satisfiedCond += 1
-        if (allBeeperCollected >= gamingCondition?.collectBeepersBy ?: Int.MAX_VALUE / 2) satisfiedCond += 1
-        if (allOpenedSwitch >= gamingCondition?.openedSwitchBy ?: Int.MAX_VALUE / 2) satisfiedCond += 1
-        if (gamingCondition?.putBeepersAt?.map { squares[it.y][it.x].beeper != null }?.all { it } == true) satisfiedCond += 1
-        if (gamingCondition?.arriveAt?.map { squares[it.y][it.x].players.isNotEmpty()
-                    || squares[it.y][it.x].platform?.players?.isNotEmpty() == true }?.all { it } == true) satisfiedCond += 1
-        if (satisfiedCond == condToSatisfy) statusStorage.set(GameStatus.WIN)
+        if (characters.keys.any { it.repassed }) statusStorage.set(GameStatus.LOST)
+        if (statusStorage.get() != GameStatus.LOST && condToSatisfy > 0) {
+            var satisfiedCond = 0
+            if (allGemCollected >= gamingCondition?.collectGemsBy ?: Int.MAX_VALUE / 2) satisfiedCond += 1
+            if (allOpenedSwitch >= gamingCondition?.switchesOnBy ?: Int.MAX_VALUE / 2) satisfiedCond += 1
+            if (allKilledMonsters >= gamingCondition?.monstersKilled ?: Int.MAX_VALUE / 2) satisfiedCond += 1
+            if (gamingCondition?.arriveAt?.map {
+                    squares[it.y][it.x].players.isNotEmpty()
+                            || squares[it.y][it.x].platform?.players?.isNotEmpty() == true
+                }?.all { it } == true) satisfiedCond += 1
+            if (satisfiedCond == condToSatisfy) statusStorage.set(GameStatus.WIN)
+            else statusStorage.set(GameStatus.PENDING)
+        }
         currentTurn += 1
     }
 
@@ -324,6 +335,15 @@ class Playground(val squares: List<List<Square>>,
         }
     }
 
+    fun isMonsterAndAccessible(from: Coordinate, to: Coordinate): Pair<PlayerReceiver?, PlayerReceiver?> {
+        if (!to.isInPlayground) return null to null
+        if (to.asSquare.monster == true) {
+            if (!isMoveBlocked(from, to)) return PlayerReceiver.TILE to PlayerReceiver.TILE
+            if (!isMoveFromPlatformBlocked(from, to)) return PlayerReceiver.PLATFORM to PlayerReceiver.TILE
+        }
+        return null to null
+    }
+
     // ---- End of Move Helper Functions ---- //
 
     // ---- Start of Player Properties ---- //
@@ -379,6 +399,17 @@ class Playground(val squares: List<List<Square>>,
         }
     }
 
+    private fun findPathToMonster(char: AbstractCharacter): Pair<PlayerReceiver?, PlayerReceiver?> {
+        return when (char.dir) {
+            UP -> char.getCoo.up(::isMonsterAndAccessible)
+            DOWN -> char.getCoo.down(::isMonsterAndAccessible)
+            LEFT -> char.getCoo.left(::isMonsterAndAccessible)
+            RIGHT -> char.getCoo.right(::isMonsterAndAccessible)
+        }
+    }
+
+    fun playerIsBeforeMonster(char: AbstractCharacter): Boolean = findPathToMonster(char) != null to null
+
     // ---- End of Player Properties ---- //
 
     // ---- Start of Player Methods ---- //
@@ -423,6 +454,12 @@ class Playground(val squares: List<List<Square>>,
             val newTile = char.getCoo.asSquare
             // TODO insert after-move rules here
             // TODO insert stamina rule here
+
+            if (char.walkedTiles.contains(char.getCoo)) {
+                char.repassed = true
+            } else {
+                char.walkedTiles.add(char.getCoo)
+            }
             incrementATurn()
             return true
         }
@@ -528,6 +565,30 @@ class Playground(val squares: List<List<Square>>,
         killACharacter(char)
         incrementATurn()
         return true
+    }
+
+    fun playerAttack(char: AbstractCharacter): Boolean {
+        if (char.isDead) return false
+        val path = findPathToMonster(char)
+        if (path != null to null) {
+            when (char.dir) {
+                UP -> movePlayerUp(char, path)
+                DOWN -> movePlayerDown(char, path)
+                LEFT -> movePlayerLeft(char, path)
+                RIGHT -> movePlayerRight(char, path)
+            }
+            char.getCoo.asSquare.monster = false
+            incrementATurn()
+
+            if (char.walkedTiles.contains(char.getCoo)) {
+                char.repassed = true
+            } else {
+                char.walkedTiles.add(char.getCoo)
+            }
+            return true
+        }
+        incrementATurn()
+        return false
     }
 
     // ---- End of Player Methods ---- //

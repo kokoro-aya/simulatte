@@ -13,6 +13,7 @@ package org.ironica.simulatte.playground.characters
 import org.ironica.simulatte.playground.Color
 import org.ironica.simulatte.playground.Playground
 import org.ironica.simulatte.playground.Direction
+import org.ironica.simulatte.playground.datas.Coordinate
 import utils.StringRepresentable
 import utils.stringRepresentation
 
@@ -35,6 +36,9 @@ data class InstantializedPlayer(override val id: Int): AbstractCharacter, String
 
     override var collectedGem = 0
     override var beeperInBag = 0
+
+    override val walkedTiles: MutableSet<Coordinate> = mutableSetOf()
+    override var repassed: Boolean = false
 
     override var inWaterForTurns: Int = 0
     override var inLavaForTurns: Int = 0

@@ -26,6 +26,7 @@ data class Square(
     var gem: GemItem?,
     var beeper: BeeperItem?,
     var portal: PortalItem?,
+    var monster: Boolean?,
     var platform: PlatformItem?,
     var players: MutableList<AbstractCharacter> = mutableListOf()
 ): StringRepresentable {
