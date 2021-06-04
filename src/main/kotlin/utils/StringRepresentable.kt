@@ -10,6 +10,10 @@
 
 package utils
 
+/**
+ * Interface that declares a protocol which allows to have a `stringRepresentation`.
+ * This protocol allows to have a code layout of a data for the purpose of codegen.
+ */
 interface StringRepresentable {
     val stringRepresentation: String
 }

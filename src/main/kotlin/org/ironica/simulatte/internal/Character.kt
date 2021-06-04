@@ -12,6 +12,11 @@ package org.ironica.simulatte.internal
 
 import org.ironica.simulatte.manager.AbstractManager
 
+/**
+ * The mixin interface that implements default behaviors of a Character, to be inherited by Player and Specialist.
+ * The concept is that this kind of classes serves only as an entrypoint to be called by user.
+ * Every method is delegated to their implementation in Managers
+ */
 interface Character {
     val manager: AbstractManager?
     val id: Int

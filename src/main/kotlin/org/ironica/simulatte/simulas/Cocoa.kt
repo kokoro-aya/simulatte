@@ -30,6 +30,8 @@ class Cocoa {
     init {
     }
 
+    // Each feed function have different parameters but they need to be specified at JVM level different names
+
     @JvmName("feedSquares")
     fun feed(squares: List<List<Square>>): Cocoa {
         fs.addProperty(PropertySpec.builder("squares",
@@ -127,6 +129,9 @@ class Cocoa {
     }
 }
 
+/**
+ * wrap user's code with boilerplate for Builder
+ */
 fun String.wrapCode(): String {
     return buildString {
         appendLine("payloadStorage.set(mutableListOf())\n" +

@@ -15,6 +15,11 @@ import org.ironica.simulatte.playground.Direction
 import org.ironica.simulatte.playground.Playground
 import utils.StringRepresentable
 
+/**
+ * Declares and implements actions that a character should be capable to do.
+ * `playground` field should be injected after initialization otherwise it will be null.
+ * This interface conforms to StringRepresentable interface but no default impl. is provided.
+ */
 interface AbstractCharacter: StringRepresentable {
     val id: Int
     var dir: Direction

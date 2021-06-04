@@ -10,7 +10,6 @@
 
 package org.ironica.simulatte.manager
 
-import org.ironica.simulatte.internal.play
 import org.ironica.simulatte.payloads.*
 import org.ironica.simulatte.playground.*
 import org.ironica.simulatte.playground.characters.AbstractCharacter
@@ -18,6 +17,11 @@ import org.ironica.simulatte.playground.characters.InstantializedPlayer
 import org.ironica.simulatte.playground.characters.InstantializedSpecialist
 import org.ironica.simulatte.playground.datas.*
 
+/**
+ * The mixin interface that implements logics handling players, playground interactions and persistence of current playground frame.
+ * This interface handles player actions and delegates them to playground implementations.
+ * The appendEntry() method is called after each action to ensure that the current frame is saved into payload.
+ */
 interface AbstractManager {
     val playground: Playground
     var consoleLog: String
@@ -72,98 +76,81 @@ interface AbstractManager {
     fun collectedGem(id: Int) = getPlayer(id).collectedGem
 
     fun turnLeft(id: Int) {
-        if (statusStorage.get() == GameStatus.PENDING) {
-            getPlayer(id).turnLeft()
-            printGrid()
-            appendEntry()
-        }
+        getPlayer(id).turnLeft()
+        printGrid()
+        appendEntry()
     }
     fun turnRight(id: Int) {
-        if (statusStorage.get() == GameStatus.PENDING) {
-            getPlayer(id).turnRight()
-            printGrid()
-            appendEntry()
-        }
+        getPlayer(id).turnRight()
+        printGrid()
+        appendEntry()
     }
     fun moveForward(id: Int) {
-        if (statusStorage.get() == GameStatus.PENDING) {
-            getPlayer(id).moveForward()
+        getPlayer(id).moveForward()
+        printGrid()
+        appendEntry()
+        if (getPlayer(id).isOnPortal()) {
+            getPlayer(id).stepIntoPortal()
             printGrid()
             appendEntry()
-            if (getPlayer(id).isOnPortal()) {
-                getPlayer(id).stepIntoPortal()
-                printGrid()
-                appendEntry()
-            }
         }
     }
     fun collectGem(id: Int) {
-        if (statusStorage.get() == GameStatus.PENDING) {
-            getPlayer(id).collectGem()
-            printGrid()
-            this.special += "GEM "
-            appendEntry()
-        }
+        getPlayer(id).collectGem()
+        printGrid()
+        this.special += "GEM "
+        appendEntry()
     }
     fun toggleSwitch(id: Int) {
-        if (statusStorage.get() == GameStatus.PENDING) {
-            getPlayer(id).toggleSwitch()
-            printGrid()
-            this.special += "SWITCH "
-            appendEntry()
-        }
+        getPlayer(id).toggleSwitch()
+        printGrid()
+        this.special += "SWITCH "
+        appendEntry()
     }
     fun takeBeeper(id: Int) {
-        if (statusStorage.get() == GameStatus.PENDING) {
-            getPlayer(id).takeBeeper()
-            printGrid()
-            this.special += "TAKEBEEPER "
-            appendEntry()
-        }
+        getPlayer(id).takeBeeper()
+        printGrid()
+        this.special += "TAKEBEEPER "
+        appendEntry()
     }
     fun dropBeeper(id: Int) {
-        if (statusStorage.get() == GameStatus.PENDING) {
-            getPlayer(id).dropBeeper()
-            printGrid()
-            this.special += "DROPBEEPER "
-            appendEntry()
-        }
+        getPlayer(id).dropBeeper()
+        printGrid()
+        this.special += "DROPBEEPER "
+        appendEntry()
     }
 
+    /**
+     * This method provide a print() method for the DSL
+     * However it couldn't be called on Int or other types, use `$"{}"` syntax to ensure that you called it.
+     * Only by calling this print() method you could append your frame into the data.
+     */
     fun print(lmsg: List<String>) {
-        if (statusStorage.get() == GameStatus.PENDING) {
-            if (stdout) {
-                lmsg.forEach { print("$it ") }
-                println()
-            }
-            lmsg.forEach { consoleLog += it }
-            consoleLog += "\n"
-            appendEntry()
+        if (stdout) {
+            lmsg.forEach { print("$it ") }
+            println()
         }
+        lmsg.forEach { consoleLog += it }
+        consoleLog += "\n"
+        appendEntry()
     }
 
     fun win() {
-        if (statusStorage.get() == GameStatus.PENDING) {
-            if (playground.win()) {
-                appendEntry()
-            }
+        if (playground.win()) {
+            appendEntry()
         }
     }
 
     fun dead() {
-        if (statusStorage.get() == GameStatus.PENDING) {
-            if (playground.lose()) {
-                appendEntry()
-            }
+        if (playground.lose()) {
+            appendEntry()
         }
     }
 
     fun dance(id: Int, action: Int) {
-        if (statusStorage.get() == GameStatus.PENDING) {
-            special += "PLAYER@${id}#DANCE#$action "
-            playground.incrementATurn()
-            appendEntry()
-        }
+        special += "PLAYER@${id}#DANCE#$action "
+        playground.incrementATurn()
+        appendEntry()
     }
 
     fun gemCount(): Int {
@@ -212,12 +199,14 @@ interface AbstractManager {
             throw Exception("Too many entries!")
 
         with (playground.squares) {
+            // Usage of map/mapIndexed to create new instances of data instead of passing the original data
+            // so that they will be deep-copied into payload
             val currentGrid = this.map { it.map {
                 SerializedBlock(
                     when (it.block) {
-                        Open -> Blocks.OPEN
-                        Blocked -> Blocks.BLOCKED
-                        Void -> Blocks.VOID
+                        OpenBlock -> Blocks.OPEN
+                        BlockedBlock -> Blocks.BLOCKED
+                        VoidBlock -> Blocks.VOID
                         is StairBlock -> Blocks.STAIR
                         is LockBlock -> Blocks.LOCK
                     }, it.level

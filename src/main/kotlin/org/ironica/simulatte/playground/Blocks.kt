@@ -11,6 +11,5 @@
 package org.ironica.simulatte.playground
 
 enum class Blocks {
-    /* OPEN, HILL, WATER, TREE, DESERT, HOME, MOUNTAIN, STONE, LOCK, STAIR, VOID, */
     BLOCKED, OPEN, LOCK, STAIR, VOID
 }

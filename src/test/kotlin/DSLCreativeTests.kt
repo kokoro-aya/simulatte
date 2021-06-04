@@ -8,11 +8,3 @@
  *
  */
 
-package org.ironica.simulatte.playground.datas
-
-import org.ironica.simulatte.playground.Blocks
-import org.ironica.simulatte.playground.Items
-
-typealias Grid = MutableList<MutableList<Blocks>>
-typealias ItemLayout = MutableList<MutableList<Items>>
-typealias TileLayout = MutableList<MutableList<AdditionalTileInfo>>

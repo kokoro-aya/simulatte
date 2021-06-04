@@ -12,6 +12,7 @@ package org.ironica.simulatte.playground
 
 import org.ironica.simulatte.bridge.rules.GamingCondition
 import org.ironica.simulatte.internal.*
+import org.ironica.simulatte.payloads.payloadStorage
 import org.ironica.simulatte.payloads.statusStorage
 import org.ironica.simulatte.playground.datas.*
 import org.ironica.simulatte.playground.Direction.*
@@ -23,6 +24,9 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.full.declaredMemberProperties
 
+/**
+ * The core data structure, which simulates the playground where actors emit actions and interactions are done
+ */
 class Playground(val squares: List<List<Square>>,
                  val portals: MutableMap<PortalItem, Coordinate>,
                  val locks: MutableMap<Coordinate, LockBlock>,
@@ -41,6 +45,12 @@ class Playground(val squares: List<List<Square>>,
 
     private var condToSatisfy: Int
 
+    /*
+     * init-phase
+     * - inject characters into each tile of playground
+     * - inject playground into each character
+     * - calculate initial gem, switch, beeper and conditions
+     */
     init {
 
         characters.forEach { it.value.asSquare.players.add(it.key) }
@@ -104,9 +114,9 @@ class Playground(val squares: List<List<Square>>,
         if (sq.portal != null) return "门"
         if (sq.platform != null) return "台"
         return when (sq.block) {
-            Void -> "无"
-            Open -> "空"
-            Blocked -> "障"
+            VoidBlock -> "无"
+            OpenBlock -> "空"
+            BlockedBlock -> "障"
             is LockBlock -> "锁"
             is StairBlock -> when ((sq.block as StairBlock).dir) {
                 UP -> "⬆️"
@@ -126,10 +136,11 @@ class Playground(val squares: List<List<Square>>,
         println()
     }
 
+    // We call this function after each action
     fun incrementATurn() {
 
         characters.forEach {
-            if (it.value.asSquare.block is Void) it.key.kill()
+            if (it.value.asSquare.block is VoidBlock) it.key.kill()
         }
 
         if (currentTurn > gamingCondition?.endGameAfter ?: Int.MAX_VALUE / 2) statusStorage.set(GameStatus.LOST)
@@ -148,7 +159,7 @@ class Playground(val squares: List<List<Square>>,
 
     private fun isTileAccessible(tile: BlockObject): Boolean {
         return when (tile) {
-            is LockBlock, Blocked, Void -> false
+            is LockBlock, BlockedBlock, VoidBlock -> false
             else -> true
         }
     }
@@ -176,6 +187,8 @@ class Playground(val squares: List<List<Square>>,
         }
     }
 
+    // Four possible movements: from tile to tile, from tile to platform, from platform to tile and from platform to platform
+    // Each movement correspond to a function that check if this movement is blocked
     private fun isMoveBlocked(from: Coordinate, to: Coordinate): Boolean {
         check(isAdjacent(from, to)) { "Playground:: Must move from a square to an adjacent square [1]" }
         val f = from.asSquare; val t = to.asSquare
@@ -212,6 +225,7 @@ class Playground(val squares: List<List<Square>>,
     }
 
     // Must be public in order to use reflect on this method
+    // We prioritize movement from tile to tile, than platform to platform
     fun findAPath(from: Coordinate, to: Coordinate): Pair<PlayerReceiver?, PlayerReceiver?> {
         if (!to.isInPlayground) return null to null
         check(isAdjacent(from, to)) { "Playground:: Must move from a square to an adjacent square [A]" }
@@ -261,6 +275,10 @@ class Playground(val squares: List<List<Square>>,
     private fun findPathTowardXPlus(char: AbstractCharacter): Pair<PlayerReceiver?, PlayerReceiver?> = char.getCoo.right(::findAPath)
 
     // Must be public in order to use reflect on this method
+    // We write this function in a DSL style in order to be more declarative and easy to understand
+    /**
+     * Player move handler which receive a path and an action to supply
+     */
     fun move(from: Coordinate, to: Coordinate, char: AbstractCharacter, path: Pair<PlayerReceiver?, PlayerReceiver?>, action: () -> Unit) {
         when (path.first!!) {
             PlayerReceiver.TILE -> when (path.second!!) {
@@ -583,13 +601,14 @@ class Playground(val squares: List<List<Square>>,
         check(at.isInPlayground) { "Playground:: Coordinate out of bounds" }
         at.asSquare.let {
             check(it.block !is LockBlock) { "Playground:: Could not place items on Lock tile" }
-            check(it.block != Void) { "Playground:: Could not place items on Void tile" }
+            check(it.block != VoidBlock) { "Playground:: Could not place items on Void tile" }
             when (item) {
                 Beeper -> if (it.beeper == null) it.beeper = BeeperItem() else return false
                 Gem -> if (it.gem == null) it.gem = GemItem() else return false
                 is SwitchP -> if (it.switch == null) it.switch = SwitchItem(item.on) else return false
             }
         }
+        incrementATurn()
         return true
     }
 
@@ -599,25 +618,28 @@ class Playground(val squares: List<List<Square>>,
             check(it.block !is LockBlock) { "Playground:: Could not change tile on Lock tile" }
             check(it.block !is StairBlock) { "Playground:: Could not change tile on Stair tile" }
             when (block.blocked) {
-                true -> it.block = Blocked
-                false -> it.block = Open
+                true -> it.block = BlockedBlock
+                false -> it.block = OpenBlock
             }
         }
+        incrementATurn()
         return true
     }
 
     fun worldPlace(portal: PortalP, atStart: Coordinate, atEnd: Coordinate): Boolean {
         check(atStart.isInPlayground && atEnd.isInPlayground) { "Playground:: coordinate out of bounds" }
         check(atStart.asSquare.block !is LockBlock && atEnd.asSquare.block !is LockBlock) { "Playground:: Could not set up portal on Lock tile" }
-        check(atStart.asSquare.block != Void && atEnd.asSquare.block != Void) { "Playground:: could not set up portal on Void tile" }
+        check(atStart.asSquare.block != VoidBlock && atEnd.asSquare.block != VoidBlock) { "Playground:: could not set up portal on Void tile" }
         return if (atStart.asSquare.portal == null) {
             val newId = portals.size
             val newPortalItem = PortalItem(newId, atStart, atEnd, portal.color, false) // TODO add portal energy rule
             atStart.asSquare.portal = newPortalItem
             portals[newPortalItem] = atStart
             portal.id = newId
+            incrementATurn()
             true
         } else {
+            incrementATurn()
             false
         }
     }
@@ -625,15 +647,16 @@ class Playground(val squares: List<List<Square>>,
     fun worldPlace(stair: Stair, facing: Direction, at: Coordinate): Boolean {
         check(at.isInPlayground) { "Playground:: coordinate out of bounds" }
         check(at.asSquare.block !is LockBlock) { "Playground:: Could not put stair on Lock tile" }
-        check(at.asSquare.block !is Void) { "Playground:: Could not put stair on Void tile" }
+        check(at.asSquare.block !is VoidBlock) { "Playground:: Could not put stair on Void tile" }
         at.asSquare.block = StairBlock(facing)
+        incrementATurn()
         return true
     }
 
     fun worldPlaceCharacter(char: Character, facing: Direction, at: Coordinate): Boolean {
         check(at.isInPlayground) { "Playground:: coordinate out of bounds" }
         check(at.asSquare.block !is LockBlock) { "Playground:: Could not put character on Lock tile" }
-        check(at.asSquare.block !is Void) { "Playground:: Could not put character on Void tile" }
+        check(at.asSquare.block !is VoidBlock) { "Playground:: Could not put character on Void tile" }
         var p: AbstractCharacter? = null
         when (char) {
             is Player -> p = InstantializedPlayer(char.id, facing, 500) // TODO add stamina default rule
@@ -641,6 +664,7 @@ class Playground(val squares: List<List<Square>>,
         }
         at.asSquare.players.add(p ?: throw NullPointerException("Playground:: this should not happen"))
         characters[p] = at
+        incrementATurn()
         return true
     }
 
@@ -654,9 +678,9 @@ class Playground(val squares: List<List<Square>>,
     fun worldRemoveAllBlocks(at: Coordinate): Boolean {
         check(at.isInPlayground) { "Playground:: coordinate out of bounds" }
         check(at.asSquare.block !is LockBlock) { "Playground:: Could not remove blocks on Lock tile" }
-        check(at.asSquare.block !is Void) { "Playground:: Could not remove blocks on Void tile" }
+        check(at.asSquare.block !is VoidBlock) { "Playground:: Could not remove blocks on Void tile" }
         at.asSquare.let {
-            it.block = Void
+            it.block = VoidBlock
             it.level = 0
             it.platform?.players?.forEach { it.kill() }
             it.platform = null
@@ -667,6 +691,7 @@ class Playground(val squares: List<List<Square>>,
                 it.portal = null
             }
         }
+        incrementATurn()
         return true
     }
 
@@ -689,8 +714,10 @@ class Playground(val squares: List<List<Square>>,
         at.asSquare.let {
             if (it.level > 1) {
                 it.level -= 1
+                incrementATurn()
                 return true
             }
+            incrementATurn()
             return false
         }
     }
@@ -700,8 +727,10 @@ class Playground(val squares: List<List<Square>>,
         at.asSquare.let {
             if (it.level < 15) { // TODO set height max/min rule
                 it.level += 1
+                incrementATurn()
                 return true
             }
+            incrementATurn()
             return false
         }
     }

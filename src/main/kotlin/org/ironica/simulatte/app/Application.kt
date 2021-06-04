@@ -22,6 +22,10 @@ import java.util.*
 
 const val version = "3.1.2"
 
+/**
+ * Main Entry of program, we launch Netty server from here
+ * Notice how arguments are passed into the server
+ */
 fun main(args: Array<String>): Unit {
     if (args.any { it.lowercase(Locale.getDefault()) == "about" }) {
         println("""

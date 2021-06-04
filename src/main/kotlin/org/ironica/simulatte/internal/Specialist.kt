@@ -13,6 +13,12 @@ package org.ironica.simulatte.internal
 import org.ironica.simulatte.manager.AbstractManager
 import org.ironica.simulatte.playground.Color
 
+/**
+ * Concrete Specialist class that inherits the implementations in Character trait.
+ * The primary constructor has only id so each Specialist is distinguished by its id.
+ * And the secondary constructor allow us to inject the manager into it.
+ * Note that the Character trait doesn't implement features such as `turnLockUp`, they are implemented here.
+ */
 data class Specialist(override val id: Int): Character {
 
     override var manager: AbstractManager? = null

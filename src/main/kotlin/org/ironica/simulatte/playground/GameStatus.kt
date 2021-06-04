@@ -10,6 +10,7 @@
 
 package org.ironica.simulatte.playground
 
+// Note that this enum is different to enum Status
 enum class GameStatus {
     WIN, LOST, PENDING,
 }

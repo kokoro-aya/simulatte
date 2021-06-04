@@ -13,6 +13,9 @@ package org.ironica.simulatte.playground.datas
 import kotlinx.serialization.Serializable
 import utils.StringRepresentable
 
+/**
+ * This class represents a coordinate, conforms to StringRepresentable
+ */
 @Serializable
 data class Coordinate(var x: Int, var y: Int): StringRepresentable {
     override val stringRepresentation: String

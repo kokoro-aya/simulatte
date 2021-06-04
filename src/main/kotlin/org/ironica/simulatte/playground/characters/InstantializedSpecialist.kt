@@ -16,6 +16,11 @@ import org.ironica.simulatte.playground.Playground
 import utils.StringRepresentable
 import utils.stringRepresentation
 
+/**
+ * Specialist implementation of AbstractCharacter, added some proper actions.
+ * `playground` field should be injected after initialization otherwise it will be null.
+ * This class conforms to StringRepresentable interface.
+ */
 data class InstantializedSpecialist(override val id: Int): AbstractCharacter, StringRepresentable {
 
     override var dir: Direction = Direction.UP

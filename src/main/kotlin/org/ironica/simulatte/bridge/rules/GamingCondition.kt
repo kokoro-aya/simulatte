@@ -18,12 +18,12 @@ import utils.stringRepresentation
 @Serializable
 data class GamingCondition(
     val collectGemsBy: Int? = null,
-    val collectBeepersBy: Int? = null,
-    val openedSwitchBy: Int? = null,
-    val putBeepersAt: List<Coordinate>? = null,
+    val switchesOnBy: Int? = null,
     val arriveAt: List<Coordinate>? = null,
+    val monstersKilled: Int? = null,
+    val noSameTileRepassed: Boolean? = null,
     val endGameAfter: Int? = null,
 ): StringRepresentable {
     override val stringRepresentation: String
-        get() = "GamingCondition($collectGemsBy, $collectBeepersBy, $openedSwitchBy, ${putBeepersAt?.stringRepresentation}, ${arriveAt?.stringRepresentation}, $endGameAfter)"
+        get() = "GamingCondition($collectGemsBy, $switchesOnBy, ${arriveAt?.stringRepresentation}, $monstersKilled, $noSameTileRepassed, $endGameAfter)"
 }

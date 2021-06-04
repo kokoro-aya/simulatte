@@ -51,6 +51,9 @@ fun Route.getPlaygroundRoute(args: Triple<Boolean, Boolean, Boolean>) {
             )
             try {
                 val resp = playgroundInterface.start()
+
+                // notice that resp returns a pair, which could contains another pair in its first element
+                // we should switch on second element then the type of first element for each possible cases
                 when (resp.second) {
                     Status.OK -> {
                         when (val rsf = resp.first) {
@@ -87,7 +90,9 @@ fun Route.getPlaygroundRoute(args: Triple<Boolean, Boolean, Boolean>) {
                 }
                 println("Proceeded succesfully a request.")
             } catch (e: Exception) {
-                call.respond(ErrorMessage(Status.ERROR, e.message ?: ""))
+
+                // Rarely will we encounter this: for internal errors
+                call.respond(ErrorMessage(Status.ERROR, e.message ?: "PlaygroundRoutes:: Unknown internal error, please contact developer"))
                 println("Encountered an error.")
                 e.printStackTrace()
             }

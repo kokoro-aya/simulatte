@@ -13,4 +13,5 @@ package org.ironica.simulatte.internal
 sealed class Item
 object Gem : Item()
 object Beeper: Item()
+// Renamed to SwitchP in order not to conflict with the `Switch()` function that exposed to user
 data class SwitchP(val on: Boolean): Item()

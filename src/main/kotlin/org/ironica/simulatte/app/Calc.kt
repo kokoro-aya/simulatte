@@ -23,6 +23,9 @@ import java.io.BufferedReader
 import java.io.FileInputStream
 import java.io.InputStream
 
+/**
+ * This main function is exposed via CalcKt, in purpose of testing the evaluation of Kotlin DSL features
+ */
 fun main(args: Array<String>) {
 
     val debug = args.any { it == "debug" }
@@ -32,7 +35,7 @@ fun main(args: Array<String>) {
 
     val inputStream: InputStream = if (nameArgs.isNotEmpty()) FileInputStream(args[0]) else System.`in`
 
-    val squares = List(5) { List(5) { Square(Open, 1, Biome.PLAINS, null, null, null, null, null) } }
+    val squares = List(5) { List(5) { Square(OpenBlock, 1, Biome.PLAINS, null, null, null, null, null) } }
     val player = InstantializedPlayer(0, Direction.RIGHT, 500)
     squares[4][4].gem = GemItem()
     for (i in squares[0].indices) squares[0][i].level = 2
@@ -59,7 +62,8 @@ fun main(args: Array<String>) {
         .feed(locks)
         .feed(portals)
         .feed(players)
-        .thenFeed("colorfulmountainous", debug, stdout)
+        .feed(null, true)
+        .thenFeed("default", debug, stdout)
         .generate(codeGen)
     codeGen.append("\n")
     codeGen.append(code.wrapCode())

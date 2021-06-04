@@ -99,13 +99,13 @@ class SimulatteBridge(
         val blocks = grid.mapIndexed { i, line ->
             line.mapIndexed { j, b ->
                 when (b.block) {
-                    Blocks.OPEN -> Open
-                    Blocks.BLOCKED -> Blocked
+                    Blocks.OPEN -> OpenBlock
+                    Blocks.BLOCKED -> BlockedBlock
                     Blocks.LOCK -> locks[Coordinate(j, i)]
                         ?: throw Exception("Initialization:: A tile declared as Lock without lock info registered")
                     Blocks.STAIR -> stairdatas.firstOrNull { it.coo == Coordinate(j, i) }?.let { StairBlock(it.dir) }
                         ?: throw Exception("Initialization:: A tile declared as Stair without Stair info registered")
-                    Blocks.VOID -> Void
+                    Blocks.VOID -> VoidBlock
                 }
             }
         }
@@ -145,10 +145,14 @@ class SimulatteBridge(
 
     }
 
+    /**
+     * Private helper to detect if a collection doesn't have several same entries
+     */
     private fun Collection<Coordinate>.notContainsDuplications(): Boolean {
         return this.toSet().size == this.size
     }
 
+    // We use the grid's dimensions for position validation check
     private fun validPositionChecks(pos: Coordinate, phase: String): Unit {
         check (pos.y in grid.indices && pos.x in grid[0].indices) { "Initialization:: boundary check failed in $phase" }
     }
@@ -187,11 +191,22 @@ class SimulatteBridge(
         }
     }
 
+    // We check if the entries in rules themselves are valid i.e. within boundary of playground
     private fun preInitRuleCheck() {
         gamingCondition?.arriveAt?.forEach { validPositionChecks(it, "#rule.arriveAt") }
         gamingCondition?.putBeepersAt?.forEach { validPositionChecks(it, "#rule.putBeepersAt") }
     }
 
+    /**
+     * Build up the playground DSL code, launch the eval engine and return a Pair<Any?, Status> which contains the following info:
+     * - if the eval server is launched successfully, two scenario could be possible, with status as Status.OK
+     *     - everything goes well, the first element of tuple will be Pair<Payload, GameStatus>
+     *     - something goes wrong, the first element will be a string indicating the message of error
+     * - if the eval server encountered an error, the first element will be a string indicating the message of error, with status as Status.ERROR
+     * - if the code is not completed, the first element will be null and the second will be Status.INCOMPLETE
+     *
+     * You can configure the function to pretty print the generated DSL code by passing `output` to Bridge
+     */
     fun start(): Pair<Any?, Status> {
         val codeGen = StringBuilder()
         val cocoa = Cocoa()

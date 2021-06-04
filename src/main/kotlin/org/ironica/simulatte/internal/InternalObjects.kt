@@ -13,12 +13,14 @@ package org.ironica.simulatte.internal
 import org.ironica.simulatte.manager.AbstractManager
 import org.ironica.simulatte.playground.Color
 
+// Renamed to PortalP in order not to conflict with the `Portal()` function that exposed to user
 data class PortalP private constructor(internal val color: Color, internal var id: Int?) {
 
     var manager: AbstractManager? = null
 
     constructor(color: Color): this(color, null)
 
+    // This is not the true Portal, but it pretends to be it
     var isActive: Boolean
         get() = manager?.playground?.portals?.keys?.firstOrNull { it.id == id }?.isActive ?: throw NullPointerException("Portal:: uninitialized portal or no such portal")
         set(value) {

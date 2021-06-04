@@ -15,6 +15,9 @@ import org.ironica.simulatte.playground.characters.AbstractCharacter
 import utils.StringRepresentable
 import utils.stringRepresentation
 
+/**
+ * Represents a tile of playground. Each item is represented with a nullable entry
+ */
 data class Square(
     var block: BlockObject,
     var level: Int,
@@ -33,14 +36,14 @@ data class Square(
             append("${this@Square.level}, ")
             append("${this@Square.biome.stringRepresentation}, ")
             if (this@Square.switch == null) append("null, ")
-            else append("Switch(${this@Square.switch!!.on}), ")
+            else append("SwitchItem(${this@Square.switch!!.on}), ")
             if (this@Square.gem == null) append("null, ")
-            else append("Gem(), ")
+            else append("GemItem(), ")
             if (this@Square.beeper == null) append("null, ")
-            else append("Beeper(), ")
+            else append("BeeperItem(), ")
             if (this@Square.portal == null) append("null, ")
             else {
-                append("Portal(")
+                append("PortalItem(")
                 this@Square.portal?.let {
                     append("${it.coo.stringRepresentation}, ")
                     append("${it.dest.stringRepresentation}, ")
@@ -52,7 +55,7 @@ data class Square(
             }
             if (this@Square.platform == null) append("null, ")
             else {
-                append("Platform(")
+                append("PlatformItem(")
                 this@Square.platform?.let {
                     append("${it.level}, ")
                     append("mutableListOf(")

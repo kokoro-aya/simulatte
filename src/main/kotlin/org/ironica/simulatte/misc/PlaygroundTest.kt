@@ -10,6 +10,10 @@
 
 package org.ironica.simulatte.misc
 
+/**
+ * Just for some tests
+ */
+
 import kotlinx.coroutines.*
 import org.ironica.simulatte.internal.Player
 import org.ironica.simulatte.internal.Specialist
@@ -25,24 +29,24 @@ import org.ironica.simulatte.playground.datas.*
 
 public val squares: List<List<Square>> = listOf(
     listOf(
-        Square(Open, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
-        Square(Open, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
-        Square(Open, 1, Biome.PLAINS, null, GemItem(), null, null, null, mutableListOf()))
+        Square(OpenBlock, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
+        Square(OpenBlock, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
+        Square(OpenBlock, 1, Biome.PLAINS, null, GemItem(), null, null, null, mutableListOf()))
     ,
     listOf(
-        Square(Open, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
-        Square(Open, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
-        Square(Open, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()))
+        Square(OpenBlock, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
+        Square(OpenBlock, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
+        Square(OpenBlock, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()))
     ,
     listOf(
-        Square(Open, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
-        Square(Open, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
-        Square(Open, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()))
+        Square(OpenBlock, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
+        Square(OpenBlock, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
+        Square(OpenBlock, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()))
     ,
     listOf(
-        Square(Open, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
-        Square(Open, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
-        Square(Open, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()))
+        Square(OpenBlock, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
+        Square(OpenBlock, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
+        Square(OpenBlock, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()))
     )
 
 
@@ -64,43 +68,45 @@ public val players: Map<AbstractCharacter, Coordinate> = mapOf(
 public val playground: Playground = Playground(squares, portals.toMutableMap(),
         locks.toMutableMap(), players.toMutableMap(), null)
 
-public val manager: DefaultManager = DefaultManager(playground, false, false)
+public val manager: DefaultManager = DefaultManager(playground, debug = false, stdout = false)
 
 fun main() {
     payloadStorage.set(mutableListOf())
     statusStorage.set(GameStatus.PENDING)
-    val ___game = play(manager) {
-        val a = Player()
-        val b = Player()
-        val c = Specialist()
+    runBlocking {
+        val ___game = play(manager) {
+            val a = Player()
+            val b = Player()
+            val c = Specialist()
 
-        suspend fun move(p: Any) {
-            for (i in 1..3) {
-                when (p) {
-                    is Player -> p.moveForward()
-                    is Specialist -> p.moveForward()
-                    else -> {
+            suspend fun move(p: Any) {
+                for (i in 1..3) {
+                    when (p) {
+                        is Player -> p.moveForward()
+                        is Specialist -> p.moveForward()
+                        else -> {
+                        }
                     }
                 }
             }
-        }
 
-        runBlocking {
+            runBlocking {
 
-            val jobA = launch {
-                move(a)
+                val jobA = launch {
+                    move(a)
+                }
+                val jobB = launch {
+                    move(b)
+                }
+                val jobC = launch {
+                    move(c)
+                }
+                joinAll(jobA, jobB, jobC)
             }
-            val jobB = launch {
-                move(b)
-            }
-            val jobC = launch {
-                move(c)
-            }
-            joinAll(jobA, jobB, jobC)
-        }
-    }.test()
+        }.test()
 
-    ___game.printGrid()
+        ___game.printGrid()
+    }
 
     payloadStorage.get().size.let { println(it) }
 }

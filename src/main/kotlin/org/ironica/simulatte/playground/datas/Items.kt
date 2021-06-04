@@ -15,10 +15,17 @@ import org.ironica.simulatte.playground.characters.AbstractCharacter
 import utils.StringRepresentable
 import utils.stringRepresentation
 
+/**
+ * Item objects, used within each square
+ */
 sealed class ItemObject
 data class SwitchItem(var on: Boolean): ItemObject()
 data class GemItem(val disappearIn: Int = 0): ItemObject()
 data class BeeperItem(val disappearIn: Int = 0): ItemObject()
+
+/**
+ * This class conforms to StringRepresentable in order to be able to be codegen
+ */
 data class PortalItem(
     val id: Int,
     val coo: Coordinate,

@@ -15,6 +15,9 @@ import org.ironica.simulatte.playground.Direction
 import org.ironica.simulatte.playground.Role
 import org.ironica.simulatte.playground.datas.Coordinate
 
+/**
+ * The world object that exposes several functions in creative game mode
+ */
 data class World(internal val manager: CreativeManager) {
 
     fun place(item: Item, at: Coordinate) = manager.worldPlace(item, at)

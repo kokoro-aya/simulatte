@@ -16,6 +16,11 @@ import org.ironica.simulatte.playground.Direction
 import utils.StringRepresentable
 import utils.stringRepresentation
 
+/**
+ * Player implementation of AbstractCharacter.
+ * `playground` field should be injected after initialization otherwise it will be null.
+ * This class conforms to StringRepresentable interface.
+ */
 data class InstantializedPlayer(override val id: Int): AbstractCharacter, StringRepresentable {
 
     override var dir: Direction = Direction.UP

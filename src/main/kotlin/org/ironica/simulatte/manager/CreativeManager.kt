@@ -18,6 +18,9 @@ import org.ironica.simulatte.playground.Playground
 import org.ironica.simulatte.playground.Role
 import org.ironica.simulatte.playground.datas.Coordinate
 
+/**
+ * Manager implementation for creative game mode. It implements several more features for creative mode.
+ */
 class CreativeManager(override val playground: Playground, override val debug: Boolean, override val stdout: Boolean):
     AbstractManager{
     override var consoleLog: String = ""
@@ -27,43 +30,35 @@ class CreativeManager(override val playground: Playground, override val debug: B
     override var attributedSpecialistId: Int = -1
 
     fun worldPlace(item: Item, at: Coordinate) {
-        if (statusStorage.get() == GameStatus.PENDING) {
-            playground.worldPlace(item, at)
-            printGrid()
-            this.special += "PLACE#${when (item) {
-                Beeper -> "BEEPER"
-                Gem -> "GEM"
-                is SwitchP -> "SWITCH"
-            }}@(${at.x}, ${at.y}) "
-            appendEntry()
-        }
+        playground.worldPlace(item, at)
+        printGrid()
+        this.special += "PLACE#${when (item) {
+            Beeper -> "BEEPER"
+            Gem -> "GEM"
+            is SwitchP -> "SWITCH"
+        }}@(${at.x}, ${at.y}) "
+        appendEntry()
     }
 
     fun worldPlace(block: BlockP, at: Coordinate) {
-        if (statusStorage.get() == GameStatus.PENDING) {
-            playground.worldPlace(block, at)
-            printGrid()
-            this.special += "PLACE#BLOCK(${if (block.blocked) "BLOCKED" else "OPEN"})@(${at.x}, ${at.y})"
-            appendEntry()
-        }
+        playground.worldPlace(block, at)
+        printGrid()
+        this.special += "PLACE#BLOCK(${if (block.blocked) "BLOCKED" else "OPEN"})@(${at.x}, ${at.y})"
+        appendEntry()
     }
 
     fun worldPlace(portal: PortalP, atStart: Coordinate, atEnd: Coordinate) {
-        if (statusStorage.get() == GameStatus.PENDING) {
-            playground.worldPlace(portal, atStart, atEnd)
-            printGrid()
-            this.special += "PLACE#PORTAL:@(${atStart.x},${atStart.y}):@(${atEnd.x},${atEnd.y})"
-            appendEntry()
-        }
+        playground.worldPlace(portal, atStart, atEnd)
+        printGrid()
+        this.special += "PLACE#PORTAL:@(${atStart.x},${atStart.y}):@(${atEnd.x},${atEnd.y})"
+        appendEntry()
     }
 
     fun worldPlace(stair: Stair, facing: Direction, at: Coordinate) {
-        if (statusStorage.get() == GameStatus.PENDING) {
-            playground.worldPlace(stair, facing, at)
-            printGrid()
-            this.special += "PLACE#STAIR:$facing:@(${at.x},${at.y})"
-            appendEntry()
-        }
+        playground.worldPlace(stair, facing, at)
+        printGrid()
+        this.special += "PLACE#STAIR:$facing:@(${at.x},${at.y})"
+        appendEntry()
     }
 
     fun worldPlaceCharacter(kind: Role, facing: Direction, at: Coordinate): Character {
@@ -79,12 +74,10 @@ class CreativeManager(override val playground: Playground, override val debug: B
         get() = playground.worldAllPossibleCoordinates
 
     fun worldRemoveAllBlocks(at: Coordinate) {
-        if (statusStorage.get() == GameStatus.PENDING) {
-            playground.worldRemoveAllBlocks(at)
-            printGrid()
-            this.special += "REMOVEBLOCKS#@(${at.x},${at.y})"
-            appendEntry()
-        }
+        playground.worldRemoveAllBlocks(at)
+        printGrid()
+        this.special += "REMOVEBLOCKS#@(${at.x},${at.y})"
+        appendEntry()
     }
 
     fun worldExistingCharacters(at: Array<Coordinate>): Array<Character> {
@@ -97,20 +90,16 @@ class CreativeManager(override val playground: Playground, override val debug: B
     }
 
     fun worldDigDown(at: Coordinate) {
-        if (statusStorage.get() == GameStatus.PENDING) {
-            playground.worldDigDown(at)
-            printGrid()
-            this.special += "DIGDOWN#@(${at.x},${at.y})"
-            appendEntry()
-        }
+        playground.worldDigDown(at)
+        printGrid()
+        this.special += "DIGDOWN#@(${at.x},${at.y})"
+        appendEntry()
     }
 
     fun worldPileUp(at: Coordinate) {
-        if (statusStorage.get() == GameStatus.PENDING) {
-            playground.worldPileUp(at)
-            printGrid()
-            this.special += "PILEUP#@(${at.x},${at.y})"
-            appendEntry()
-        }
+        playground.worldPileUp(at)
+        printGrid()
+        this.special += "PILEUP#@(${at.x},${at.y})"
+        appendEntry()
     }
 }

@@ -10,4 +10,5 @@
 
 package org.ironica.simulatte.payloads
 
+// Note that this enum is different to enum GameStatus
 enum class Status { OK, ERROR, INCOMPLETE, }

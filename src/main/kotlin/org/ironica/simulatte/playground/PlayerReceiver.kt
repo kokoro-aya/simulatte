@@ -10,6 +10,7 @@
 
 package org.ironica.simulatte.playground
 
+// Abstracts a receiver (or emitter) of players
 enum class PlayerReceiver {
     TILE, PLATFORM
 }
