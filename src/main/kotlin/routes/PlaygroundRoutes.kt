@@ -70,7 +70,7 @@ fun Route.getPlaygroundRoute(args: Triple<Boolean, Boolean, Boolean>) {
                             is String -> {
                                 println("Route:: encountered some error \n$rsf\n")
                                 call.respond(
-                                    ErrorMessage(resp.second, rsf)
+                                    ErrorMessage(Status.ERROR, rsf)
                                 )
                             }
                             else -> {
