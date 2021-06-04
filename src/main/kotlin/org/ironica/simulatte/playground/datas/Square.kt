@@ -54,6 +54,10 @@ data class Square(
                 }
                 append("), ")
             }
+            if (this@Square.monster == null) append("null, ")
+            else {
+                append("${this@Square.monster}, ")
+            }
             if (this@Square.platform == null) append("null, ")
             else {
                 append("PlatformItem(")

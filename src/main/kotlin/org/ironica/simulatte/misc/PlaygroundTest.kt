@@ -29,24 +29,24 @@ import org.ironica.simulatte.playground.datas.*
 
 public val squares: List<List<Square>> = listOf(
     listOf(
-        Square(OpenBlock, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
-        Square(OpenBlock, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
-        Square(OpenBlock, 1, Biome.PLAINS, null, GemItem(), null, null, null, mutableListOf()))
+        Square(OpenBlock, 1, Biome.PLAINS, null, null, null, null, null, null, mutableListOf()),
+        Square(OpenBlock, 1, Biome.PLAINS, null, null, null, null, null, null, mutableListOf()),
+        Square(OpenBlock, 1, Biome.PLAINS, null, GemItem(), null, null, null, null, mutableListOf()))
     ,
     listOf(
-        Square(OpenBlock, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
-        Square(OpenBlock, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
-        Square(OpenBlock, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()))
+        Square(OpenBlock, 1, Biome.PLAINS, null, null, null, null, null, null, mutableListOf()),
+        Square(OpenBlock, 1, Biome.PLAINS, null, null, null, null, null, null, mutableListOf()),
+        Square(OpenBlock, 1, Biome.PLAINS, null, null, null, null, null, null, mutableListOf()))
     ,
     listOf(
-        Square(OpenBlock, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
-        Square(OpenBlock, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
-        Square(OpenBlock, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()))
+        Square(OpenBlock, 1, Biome.PLAINS, null, null, null, null, null, null, mutableListOf()),
+        Square(OpenBlock, 1, Biome.PLAINS, null, null, null, null, null, null, mutableListOf()),
+        Square(OpenBlock, 1, Biome.PLAINS, null, null, null, null, null, null, mutableListOf()))
     ,
     listOf(
-        Square(OpenBlock, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
-        Square(OpenBlock, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()),
-        Square(OpenBlock, 1, Biome.PLAINS, null, null, null, null, null, mutableListOf()))
+        Square(OpenBlock, 1, Biome.PLAINS, null, null, null, null, null, null, mutableListOf()),
+        Square(OpenBlock, 1, Biome.PLAINS, null, null, null, null, null, null, mutableListOf()),
+        Square(OpenBlock, 1, Biome.PLAINS, null, null, null, null, null, null, mutableListOf()))
     )
 
 

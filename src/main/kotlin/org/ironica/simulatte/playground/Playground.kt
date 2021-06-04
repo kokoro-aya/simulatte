@@ -150,7 +150,7 @@ class Playground(val squares: List<List<Square>>,
         }
 
         if (currentTurn > gamingCondition?.endGameAfter ?: Int.MAX_VALUE / 2) statusStorage.set(GameStatus.LOST)
-        if (characters.keys.any { it.repassed }) statusStorage.set(GameStatus.LOST)
+        if (gamingCondition?.noSameTileRepassed == true && characters.keys.any { it.repassed }) statusStorage.set(GameStatus.LOST)
         if (statusStorage.get() != GameStatus.LOST && condToSatisfy > 0) {
             var satisfiedCond = 0
             if (allGemCollected >= gamingCondition?.collectGemsBy ?: Int.MAX_VALUE / 2) satisfiedCond += 1

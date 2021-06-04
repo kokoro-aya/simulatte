@@ -35,7 +35,7 @@ fun main(args: Array<String>) {
 
     val inputStream: InputStream = if (nameArgs.isNotEmpty()) FileInputStream(args[0]) else System.`in`
 
-    val squares = List(5) { List(5) { Square(OpenBlock, 1, Biome.PLAINS, null, null, null, null, null) } }
+    val squares = List(5) { List(5) { Square(OpenBlock, 1, Biome.PLAINS, null, null, null, null, null, null) } }
     val player = InstantializedPlayer(0, Direction.RIGHT, 500)
     squares[4][4].gem = GemItem()
     for (i in squares[0].indices) squares[0][i].level = 2

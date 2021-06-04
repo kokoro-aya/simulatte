@@ -73,7 +73,7 @@ interface Character {
         manager?.dropBeeper(id) ?: throw NullPointerException("Character:: uninitialized character")
     }
 
-    fun attackMonster() {
+    fun attack() {
         manager?.attackMonster(id) ?: throw NullPointerException("Character:: uninitialized character")
     }
 
