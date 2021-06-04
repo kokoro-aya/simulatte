@@ -15,6 +15,7 @@ plugins {
     id 'org.jetbrains.kotlin.plugin.serialization' version "1.5.0"
     id 'com.github.johnrengelman.shadow' version '5.2.0'
     id 'io.gitlab.arturbosch.detekt' version '1.17.0'
+    id "com.github.roroche.plantuml" version "1.0.2"
     id 'application'
 }
 
@@ -50,6 +51,12 @@ dependencies {
 
     implementation group: 'com.squareup', name: 'kotlinpoet', version: '1.8.0'
     implementation 'org.jetbrains.kotlinx:ki-shell:0.3.3'
+}
+
+// It's hard to find a plugin that works with its custom block #
+classDiagram {
+    packageName = "org.ironica"
+    outputFile = project.file('diagrams/class_diagram.plantuml')
 }
 
 compileKotlin {

@@ -12,8 +12,8 @@ package org.ironica.simulatte.playground.datas
 
 import org.ironica.simulatte.playground.Color
 import org.ironica.simulatte.playground.characters.AbstractCharacter
-import utils.StringRepresentable
-import utils.stringRepresentation
+import org.ironica.utils.StringRepresentable
+import org.ironica.utils.stringRepresentation
 
 /**
  * Item objects, used within each square

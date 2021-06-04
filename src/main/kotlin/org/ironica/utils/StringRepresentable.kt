@@ -8,7 +8,7 @@
  *
  */
 
-package utils
+package org.ironica.utils
 
 /**
  * Interface that declares a protocol which allows to have a `stringRepresentation`.

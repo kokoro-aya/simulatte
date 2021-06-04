@@ -12,8 +12,8 @@ package org.ironica.simulatte.bridge.rules
 
 import kotlinx.serialization.Serializable
 import org.ironica.simulatte.playground.datas.Coordinate
-import utils.StringRepresentable
-import utils.stringRepresentation
+import org.ironica.utils.StringRepresentable
+import org.ironica.utils.stringRepresentation
 
 @Serializable
 data class GamingCondition(

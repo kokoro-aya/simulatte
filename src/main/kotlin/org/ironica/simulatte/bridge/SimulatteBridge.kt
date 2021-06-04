@@ -20,8 +20,8 @@ import org.ironica.simulatte.playground.characters.InstantializedSpecialist
 import org.ironica.simulatte.simulas.Cocoa
 import org.ironica.simulatte.simulas.EvalRunner
 import org.ironica.simulatte.simulas.wrapCode
-import utils.prettyPrint
-import utils.zip
+import org.ironica.utils.prettyPrint
+import org.ironica.utils.zip
 
 class SimulatteBridge(
     private val type: String,

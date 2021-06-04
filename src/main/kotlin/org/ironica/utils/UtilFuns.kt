@@ -8,7 +8,7 @@
  *
  */
 
-package utils
+package org.ironica.utils
 
 import org.ironica.simulatte.playground.Biome
 import org.ironica.simulatte.playground.Color

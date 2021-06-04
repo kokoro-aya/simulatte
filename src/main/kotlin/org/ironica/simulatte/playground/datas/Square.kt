@@ -12,8 +12,8 @@ package org.ironica.simulatte.playground.datas
 
 import org.ironica.simulatte.playground.Biome
 import org.ironica.simulatte.playground.characters.AbstractCharacter
-import utils.StringRepresentable
-import utils.stringRepresentation
+import org.ironica.utils.StringRepresentable
+import org.ironica.utils.stringRepresentation
 
 /**
  * Represents a tile of playground. Each item is represented with a nullable entry

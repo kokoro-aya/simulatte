@@ -8,7 +8,7 @@
  *
  */
 
-package routes
+package org.ironica.routes
 
 import io.ktor.application.Application
 import io.ktor.application.call
@@ -18,6 +18,7 @@ import io.ktor.routing.Route
 import io.ktor.routing.post
 import io.ktor.routing.route
 import io.ktor.routing.routing
+import kotlinx.coroutines.async
 import org.ironica.simulatte.bridge.SimulatteBridge
 import org.ironica.simulatte.bridge.IncomingData
 import org.ironica.simulatte.payloads.*
@@ -51,7 +52,8 @@ fun Route.getPlaygroundRoute(args: Triple<Boolean, Boolean, Boolean>) {
                 output = output,
             )
             try {
-                val resp = playgroundInterface.start()
+                val p = async { playgroundInterface.start() } // usage of async-await to not to block the main thread
+                val resp = p.await() // might be insignificant to end user since the server thread is invisible to them
 
                 // notice that resp returns a pair, which could contains another pair in its first element
                 // we should switch on second element then the type of first element for each possible cases

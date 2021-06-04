@@ -10,12 +10,11 @@
 
 package org.ironica.simulatte.playground.characters
 
-import org.ironica.simulatte.bridge.LockData
 import org.ironica.simulatte.playground.Direction
 import org.ironica.simulatte.playground.Playground
 import org.ironica.simulatte.playground.datas.Coordinate
-import utils.StringRepresentable
-import utils.stringRepresentation
+import org.ironica.utils.StringRepresentable
+import org.ironica.utils.stringRepresentation
 
 /**
  * Specialist implementation of AbstractCharacter, added some proper actions.

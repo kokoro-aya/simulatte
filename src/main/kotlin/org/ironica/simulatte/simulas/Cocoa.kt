@@ -22,7 +22,7 @@ import org.ironica.simulatte.playground.datas.Coordinate
 import org.ironica.simulatte.playground.datas.LockBlock
 import org.ironica.simulatte.playground.datas.PortalItem
 import org.ironica.simulatte.playground.datas.Square
-import utils.*
+import org.ironica.utils.*
 
 class Cocoa {
     private val fs = FileSpec.builder("org.ironica.simulatte.Simulatte", "Simulatte")

@@ -11,8 +11,8 @@
 package org.ironica.simulatte.playground.datas
 
 import org.ironica.simulatte.playground.Direction
-import utils.StringRepresentable
-import utils.stringRepresentation
+import org.ironica.utils.StringRepresentable
+import org.ironica.utils.stringRepresentation
 
 /**
  * Block objects, conform to StringRepresentable interface

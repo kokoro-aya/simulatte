@@ -17,7 +17,7 @@ import io.ktor.features.ContentNegotiation
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.serialization.json
-import routes.registerPlaygroundRoutes
+import org.ironica.routes.registerPlaygroundRoutes
 import java.util.*
 
 const val version = "3.1.2"

@@ -10,11 +10,10 @@
 
 package org.ironica.simulatte.playground.characters
 
-import org.ironica.simulatte.playground.Color
 import org.ironica.simulatte.playground.Direction
 import org.ironica.simulatte.playground.Playground
 import org.ironica.simulatte.playground.datas.Coordinate
-import utils.StringRepresentable
+import org.ironica.utils.StringRepresentable
 
 /**
  * Declares and implements actions that a character should be capable to do.
