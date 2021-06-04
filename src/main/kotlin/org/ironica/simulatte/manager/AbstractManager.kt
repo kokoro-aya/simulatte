@@ -123,16 +123,19 @@ interface AbstractManager {
     }
 
     /**
-     * This method provide a print() method for the DSL
-     * However it couldn't be called on Int or other types, use `$"{}"` syntax to ensure that you called it.
-     * Only by calling this print() method you could append your frame into the data.
+     * This method provide a log() method for the DSL
+     * Only by calling this log() method you could append your frame into the data.
      */
-    fun print(lmsg: List<String>) {
+    fun log(vararg arg: Any) {
         if (stdout) {
-            lmsg.forEach { print("$it ") }
+            for (x in arg) {
+                print("$x ")
+            }
             println()
         }
-        lmsg.forEach { consoleLog += it }
+        for (x in arg) {
+            consoleLog += "$x "
+        }
         consoleLog += "\n"
         appendEntry()
     }

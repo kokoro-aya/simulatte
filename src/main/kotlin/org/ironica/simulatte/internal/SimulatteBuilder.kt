@@ -12,6 +12,7 @@ package org.ironica.simulatte.internal
 
 import org.ironica.simulatte.manager.AbstractManager
 import org.ironica.simulatte.manager.CreativeManager
+import org.ironica.simulatte.misc.manager
 import org.ironica.simulatte.payloads.Payload
 import org.ironica.simulatte.payloads.returnedPayloads
 import org.ironica.simulatte.playground.Color
@@ -31,10 +32,20 @@ class SimulatteBuilder(private val manager: AbstractManager) {
 
         var singletonWorld: World? = null
 
+        var singletonConsole: Console? = null
+        var lastSb: SimulatteBuilder? = null // Check if last Builder is the same as supplied Builder, so that it could be renewed
+        // each time the builder changes, however, manager might be the same.
+
         fun world(sb: SimulatteBuilder): World {
-            if (sb.manager is CreativeManager && singletonWorld == null)
+            if (sb.manager is CreativeManager && (singletonWorld == null || lastSb != sb))
                 singletonWorld = World(sb.manager)
             return singletonWorld ?: throw NullPointerException("SimulatteBuilder:: null world encountered, you might be not in creative game mode")
+        }
+
+        fun console(sb: SimulatteBuilder): Console {
+            if (singletonConsole == null || lastSb != sb)
+                singletonConsole = Console(sb.manager)
+            return singletonConsole ?: throw NullPointerException("SimulatteBuilder:: null world encountered, this should not happen")
         }
     }
 
@@ -43,6 +54,9 @@ class SimulatteBuilder(private val manager: AbstractManager) {
      */
     val world: World
         get() = world(this)
+
+    val console: Console
+        get() = console(this)
 
     /**
      * Initialize a new player using available slot
