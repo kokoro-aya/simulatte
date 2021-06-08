@@ -164,6 +164,7 @@ class Playground(val squares: List<List<Square>>,
             if (allGemCollected >= gamingCondition?.collectGemsBy ?: Int.MAX_VALUE / 2) satisfiedCond += 1
             if (allOpenedSwitch >= gamingCondition?.switchesOnBy ?: Int.MAX_VALUE / 2) satisfiedCond += 1
             if (allKilledMonsters >= gamingCondition?.monstersKilled ?: Int.MAX_VALUE / 2) satisfiedCond += 1
+            if (allKilledMonsters < gamingCondition?.monstersKilledLessThan ?: Int.MIN_VALUE / 2) satisfiedCond += 1
             if (gamingCondition?.arriveAt?.map {
                     squares[it.y][it.x].players.isNotEmpty()
                             || squares[it.y][it.x].platform?.players?.isNotEmpty() == true
@@ -501,7 +502,6 @@ class Playground(val squares: List<List<Square>>,
                 characters[char] = p.dest
                 // TODO insert stamina rule here
                 p.energy -= 1 // TODO insert portal energy change here
-                if (p.energy <= 0) p.isActive = false
                 return true
             }
         }
@@ -717,7 +717,7 @@ class Playground(val squares: List<List<Square>>,
         check(atStart.asSquare.block != VoidBlock && atEnd.asSquare.block != VoidBlock) { "Playground:: could not set up portal on Void tile" }
         return if (atStart.asSquare.portal == null) {
             val newId = portals.size
-            val newPortalItem = PortalItem(newId, atStart, atEnd, portal.color, false) // TODO add portal energy rule
+            val newPortalItem = PortalItem(newId, atStart, atEnd, portal.color, 10) // TODO add portal energy rule
             atStart.asSquare.portal = newPortalItem
             portals[newPortalItem] = atStart
             portal.id = newId

@@ -31,9 +31,13 @@ data class PortalItem(
     val coo: Coordinate,
     val dest: Coordinate,
     val color: Color,
-    var isActive: Boolean,
-    var energy: Int = 100
+    var energy: Int = 10
 ): ItemObject(), StringRepresentable {
+    var isActive: Boolean
+        get() = energy > 0
+        set(value) {
+            energy = if (value) 10 else 0
+        }
     override val stringRepresentation: String
         get() = "Portal($id, ${coo.stringRepresentation}, ${dest.stringRepresentation}, ${color.stringRepresentation}, $isActive, $energy)"
 }
