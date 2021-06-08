@@ -35,19 +35,19 @@ class CreativeManager(override val playground: Playground, override val debug: B
         this.special += "PLACE#${when (item) {
             Beeper -> "BEEPER"
             Gem -> "GEM"
-            is SwitchP -> "SWITCH"
+            is Switch -> "SWITCH"
         }}@(${at.x}, ${at.y}) "
         appendEntry()
     }
 
-    fun worldPlace(block: BlockP, at: Coordinate) {
+    fun worldPlace(block: Block, at: Coordinate) {
         playground.worldPlace(block, at)
         printGrid()
         this.special += "PLACE#BLOCK(${if (block.blocked) "BLOCKED" else "OPEN"})@(${at.x}, ${at.y})"
         appendEntry()
     }
 
-    fun worldPlace(portal: PortalP, atStart: Coordinate, atEnd: Coordinate) {
+    fun worldPlace(portal: Portal, atStart: Coordinate, atEnd: Coordinate) {
         playground.worldPlace(portal, atStart, atEnd)
         printGrid()
         this.special += "PLACE#PORTAL:@(${atStart.x},${atStart.y}):@(${atEnd.x},${atEnd.y})"

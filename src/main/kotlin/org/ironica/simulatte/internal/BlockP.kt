@@ -10,5 +10,4 @@
 
 package org.ironica.simulatte.internal
 
-// Renamed to BlockP in order not to conflict with the `Block()` function that exposed to user
-data class BlockP(val blocked: Boolean = true)
+data class Block(val blocked: Boolean = true, val label: String)

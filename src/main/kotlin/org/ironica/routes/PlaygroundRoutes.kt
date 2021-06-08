@@ -25,13 +25,13 @@ import org.ironica.simulatte.payloads.*
 import org.ironica.simulatte.playground.GameStatus
 import kotlin.Exception
 
-fun Route.getPlaygroundRoute(args: Triple<Boolean, Boolean, Boolean>) {
+fun Route.getPlaygroundRoute(vararg args: String?) {
     route("/simulatte") {
         post {
             val data = call.receive<IncomingData>()
-            val debug = args.first
-            val stdout = args.second
-            val output = args.third
+            val debug = args.any { it == "debug" }
+            val stdout = args.any { it == "stdout" }
+            val output = args.any { it == "output" }
             val playgroundInterface = SimulatteBridge(
                 data.type,
                 data.code,
@@ -60,12 +60,13 @@ fun Route.getPlaygroundRoute(args: Triple<Boolean, Boolean, Boolean>) {
                 when (resp.second) {
                     Status.OK -> {
                         when (val rsf = resp.first) {
-                            is Pair<*, *> -> {
+                            is Triple<*, *, *> -> {
                                 call.respond(
                                     NormalMessage(
                                         resp.second,
-                                        (rsf as Pair<List<Payload>, GameStatus>).first,
-                                        (rsf as Pair<List<Payload>, GameStatus>).second
+                                        (rsf as Triple<List<Payload>, GameStatus, Int>).first,
+                                        (rsf as Triple<List<Payload>, GameStatus, Int>).second,
+                                        (rsf as Triple<List<Payload>, GameStatus, Int>).third,
                                     )
                                 )
                             }
@@ -103,8 +104,8 @@ fun Route.getPlaygroundRoute(args: Triple<Boolean, Boolean, Boolean>) {
     }
 }
 
-fun Application.registerPlaygroundRoutes(args: Triple<Boolean, Boolean, Boolean>) {
+fun Application.registerPlaygroundRoutes(vararg args: String?) {
     routing {
-        getPlaygroundRoute(args)
+        getPlaygroundRoute(*args)
     }
 }

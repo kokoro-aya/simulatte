@@ -11,13 +11,14 @@
 package org.ironica.simulatte.payloads
 
 import kotlinx.serialization.Serializable
+import org.ironica.simulatte.playground.Color
 import org.ironica.simulatte.playground.datas.Coordinate
 
 @Serializable
 data class SerializedPortal(
     val coo: Coordinate,
     val dest: Coordinate,
-    val isActive: Boolean,
+    val color: Color,
     val energy: Int,
 )
 
@@ -25,5 +26,5 @@ data class SerializedPortal(
 data class SerializedLock(
     val coo: Coordinate,
     val isActive: Boolean,
-    val energy: Int
+    val energy: Int,
 )

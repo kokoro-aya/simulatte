@@ -18,6 +18,8 @@ val payloadStorage = ThreadLocal<MutableList<Payload>>()
 
 var statusStorage = ThreadLocal<GameStatus>()
 
+var satisfiedConditionStorage = ThreadLocal<Int>()
+
 fun returnedPayloads(): List<Payload> {
     return payloadStorage.get().map {
         it

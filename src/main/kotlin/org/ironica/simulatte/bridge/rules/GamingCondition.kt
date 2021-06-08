@@ -17,13 +17,23 @@ import org.ironica.utils.stringRepresentation
 
 @Serializable
 data class GamingCondition(
+
+    @Cond(cat = CondType.WINCOND)
     val collectGemsBy: Int? = null,
+    @Cond(cat = CondType.WINCOND)
     val switchesOnBy: Int? = null,
+    @Cond(cat = CondType.WINCOND)
     val arriveAt: List<Coordinate>? = null,
+    @Cond(cat = CondType.WINCOND)
     val monstersKilled: Int? = null,
+    @Cond(cat = CondType.WINCOND)
+    val monstersKilledLessThan: Int? = null,
+
+    @Cond(cat = CondType.LOSTCOND)
     val noSameTileRepassed: Boolean? = null,
+    @Cond(cat = CondType.LOSTCOND)
     val endGameAfter: Int? = null,
 ): StringRepresentable {
     override val stringRepresentation: String
-        get() = "GamingCondition($collectGemsBy, $switchesOnBy, ${arriveAt?.stringRepresentation}, $monstersKilled, $noSameTileRepassed, $endGameAfter)"
+        get() = "GamingCondition($collectGemsBy, $switchesOnBy, ${arriveAt?.stringRepresentation}, $monstersKilled, $monstersKilledLessThan, $noSameTileRepassed, $endGameAfter)"
 }

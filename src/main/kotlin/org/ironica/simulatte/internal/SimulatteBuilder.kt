@@ -25,51 +25,51 @@ import org.ironica.simulatte.playground.Playground
  */
 class SimulatteBuilder(private val manager: AbstractManager) {
 
-    /**
-     * Usage of companion object ensures that this world is a singleton
-     */
-    companion object {
-
-        var singletonWorld: World? = null
-
-        var singletonConsole: Console? = null
-        var lastSb: SimulatteBuilder? = null // Check if last Builder is the same as supplied Builder, so that it could be renewed
-        // each time the builder changes, however, manager might be the same.
-
-        fun world(sb: SimulatteBuilder): World {
-            if (sb.manager is CreativeManager && (singletonWorld == null || lastSb != sb))
-                singletonWorld = World(sb.manager)
-            return singletonWorld ?: throw NullPointerException("SimulatteBuilder:: null world encountered, you might be not in creative game mode")
-        }
-
-        fun console(sb: SimulatteBuilder): Console {
-            if (singletonConsole == null || lastSb != sb)
-                singletonConsole = Console(sb.manager)
-            return singletonConsole ?: throw NullPointerException("SimulatteBuilder:: null world encountered, this should not happen")
-        }
-    }
+    // Begin of exposed APIs //
 
     /**
      * The world object that reflects the playground and allow to interact with
      */
+    private val _world: World? = if (this.manager is CreativeManager) World(this.manager) else null
+
     val world: World
-        get() = world(this)
+        get() = _world ?: throw IllegalStateException("SimulatteBuilder:: world creation failed, you might not in creative game mode")
+
+    private val _console: Console = Console(this.manager)
 
     val console: Console
-        get() = console(this)
+        get() = _console
 
     /**
      * Initialize a new player using available slot
+     * @throws NoSuchElementException if no more slot left
      */
     fun Player(): Player {
         return Player(manager, manager.nextPlayerId)
     }
 
     /**
+     * Safe version of initializing a new player using available slot
+     * Returns null if no more slot left
+     */
+    fun PlayerOrNull(): Player? {
+        return manager.nextPlayerIdOrNull?.let { Player(manager, it) }
+    }
+
+    /**
      * Initializing a new specialist using available slot
+     * @throws NoSuchElementException if no more slot left
      */
     fun Specialist(): Specialist {
         return Specialist(manager, manager.nextSpecialistId)
+    }
+
+    /**
+     * Safe version of initializing a new specialist using available slot
+     * Returns null if no more slot left
+     */
+    fun SpecialistOrNull(): Specialist? {
+        return manager.nextSpecialistIdOrNull?.let { Specialist(manager, it) }
     }
 
     /**
@@ -89,22 +89,22 @@ class SimulatteBuilder(private val manager: AbstractManager) {
     /**
      * Instantialize the SwitchP object
      */
-    fun Switch(on: Boolean): SwitchP {
-        return SwitchP(on)
+    fun Switch(on: Boolean): Switch {
+        return Switch(on, "#Switch")
     }
 
     /**
      * Instantialize the PortalP object
      */
-    fun Portal(color: Color = Color.WHITE): PortalP {
-        return PortalP(color)
+    fun Portal(color: Color = Color.WHITE): Portal {
+        return Portal(color, "#Portal")
     }
 
     /**
      * Instantialize the BlockP object
      */
-    fun Block(blocked: Boolean = false): BlockP {
-        return BlockP(blocked)
+    fun Block(blocked: Boolean = false): Block {
+        return Block(blocked, "#Block")
     }
 
     /**
@@ -131,9 +131,11 @@ class SimulatteBuilder(private val manager: AbstractManager) {
     val allClosedSwitch: Int
         get() = manager.closedSwitchCount()
 
-    fun kill(player: Player) {
-        manager.kill(player.id)
+    fun kill(char: Character) {
+        manager.kill(char.id)
     }
+
+    // End of Exposed APIs //
 
     /**
      * To be used in eval runner and cocoa.

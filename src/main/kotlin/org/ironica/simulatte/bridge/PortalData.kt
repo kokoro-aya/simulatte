@@ -11,7 +11,8 @@
 package org.ironica.simulatte.bridge
 
 import kotlinx.serialization.Serializable
+import org.ironica.simulatte.playground.Color
 import org.ironica.simulatte.playground.datas.Coordinate
 
 @Serializable
-data class PortalData(val coo: Coordinate, val dest: Coordinate, var isActive: Boolean = false)
+data class PortalData(val coo: Coordinate, val dest: Coordinate, val color: Color = Color.WHITE, val isActive: Boolean = false)

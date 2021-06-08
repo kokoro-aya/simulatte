@@ -10,6 +10,7 @@
 
 package org.ironica.simulatte.manager
 
+import org.ironica.simulatte.internal.play
 import org.ironica.simulatte.payloads.*
 import org.ironica.simulatte.playground.*
 import org.ironica.simulatte.playground.characters.AbstractCharacter
@@ -35,19 +36,19 @@ interface AbstractManager {
     var attributedSpecialistId: Int
 
     val nextPlayerId: Int
-        get() {
-            val next = playground.characters.keys.filterIsInstance<InstantializedPlayer>().firstOrNull { it.id > attributedPlayerId }?.id
-                ?: throw NoSuchElementException("AbstractManager:: No slot for new player available")
-            attributedPlayerId = next
-            return next
+        get() = nextPlayerIdOrNull ?: throw NoSuchElementException("AbstractManager:: No slot for new player available")
+
+    val nextPlayerIdOrNull: Int?
+        get() = playground.characters.keys.filterIsInstance<InstantializedPlayer>().firstOrNull { it.id > attributedPlayerId }?.id?.also {
+            attributedPlayerId = it
         }
 
     val nextSpecialistId: Int
-        get() {
-            val next = playground.characters.keys.filterIsInstance<InstantializedSpecialist>().firstOrNull { it.id > attributedSpecialistId }?.id
-                ?: throw NoSuchElementException("AbstractManager:: No slot for new specialist available")
-            attributedSpecialistId = next
-            return next
+        get() = nextSpecialistIdOrNull ?: throw NoSuchElementException("AbstractManager:: No slot for new specialist available")
+
+    val nextSpecialistIdOrNull: Int?
+        get() = playground.characters.keys.filterIsInstance<InstantializedSpecialist>().firstOrNull { it.id > attributedSpecialistId }?.id?.also {
+            attributedSpecialistId = it
         }
 
     val lastPlayerId: Int
@@ -64,6 +65,8 @@ interface AbstractManager {
         return
     }
 
+    fun isAlive(id: Int) = getPlayer(id).isAlive
+
     fun isOnGem(id: Int) = getPlayer(id).isOnGem()
     fun isOnOpenedSwitch(id: Int) = getPlayer(id).isOnOpenedSwitch()
     fun isOnClosedSwitch(id: Int) = getPlayer(id).isOnClosedSwitch()
@@ -74,8 +77,11 @@ interface AbstractManager {
     fun isBlockedLeft(id: Int) = getPlayer(id).isBlockedLeft()
     fun isBlockedRight(id: Int) = getPlayer(id).isBlockedRight()
     fun collectedGem(id: Int) = getPlayer(id).collectedGem
+    fun collectedBeeper(id: Int) = getPlayer(id).beeperInBag
 
     fun isBeforeMonster(id: Int) = getPlayer(id).isBeforeMonster()
+
+    fun isBeforeLock(id: Int) = getPlayer(id).isBeforeLock()
 
     fun turnLeft(id: Int) {
         getPlayer(id).turnLeft()
@@ -224,24 +230,28 @@ interface AbstractManager {
                     }, it.level
                 )
             } }
-            val currentLevels = this.map { it.map { it.level } }
-            val gems = this.mapIndexed { i, line ->
-                line.mapIndexed { j, sq -> Coordinate(j, i) to sq.gem }.filter { it.second != null }
-            }.flatten().map { it.first }
-            val beepers = this.mapIndexed { i, line ->
-                line.mapIndexed { j, sq -> Coordinate(j, i) to sq.beeper }.filter { it.second != null }
-            }.flatten().map { it.first }
-            val switches = this.mapIndexed { i, line ->
-                line.mapIndexed { j, sq -> Coordinate(j, i) to sq.switch }.filter { it.second != null }
-            }.flatten().map { SerializedSwitch(it.first, it.second!!.on) }
-            val portals = this.mapIndexed { i, line ->
-                line.mapIndexed { j, sq -> Coordinate(j, i) to sq.portal }.filter { it.second != null }
-            }.flatten().map { SerializedPortal(it.first, it.second!!.coo, it.second!!.isActive, it.second!!.energy) }
-            val platforms = this.mapIndexed { i, line ->
-                line.mapIndexed { j, sq -> Coordinate(j, i) to sq.platform }.filter { it.second != null }
-            }.flatten().map { SerializedPlatform(it.first, it.second!!.level) }
+
+            val flattenGridToCoors =this.mapIndexed { i, line ->
+                line.mapIndexed { j, sq -> Coordinate(j, i) to sq }
+            }.flatten()
+
+            val gems = flattenGridToCoors.filter { it.second.gem != null }.map { it.first }
+            val beepers = flattenGridToCoors.filter { it.second.beeper != null }.map { it.first }
+            val switches = flattenGridToCoors.filter { it.second.switch != null }.map {
+                SerializedSwitch(it.first, it.second.switch!!.on)
+            }
+            val portals = flattenGridToCoors.filter { it.second.portal != null }.map {
+                with (it.second.portal!!) {
+                    SerializedPortal(it.first, this.dest, this.color, this.energy)
+                }
+            }
+            val monsters = flattenGridToCoors.filter { it.second.monster != null }.map { it.first }
+
+            val platforms = flattenGridToCoors.filter { it.second.platform != null }.map {
+                SerializedPlatform(it.first, it.second.platform!!.level)
+            }
             val locks = playground.locks.map { SerializedLock(it.key, it.value.isActive, it.value.energy) }
-            val players = playground.characters.map {
+            val players = playground.characters.filter { it.key.isAlive }.map { // send only alive players to front-end
                 val (x, y) = it.value
                 with (it.key) {
                     SerializedPlayer(
@@ -251,10 +261,13 @@ interface AbstractManager {
                     )
                 }
             }
+
+
             val payload = Payload(
                 currentGrid,
-                gems, beepers, switches, portals, platforms, locks,
-                players, this@AbstractManager.consoleLog, this@AbstractManager.special
+                gems, beepers, switches, portals, platforms, locks, monsters,
+                players, this@AbstractManager.consoleLog, this@AbstractManager.special,
+                playground.playgroundCurrentTurn,
             )
 
             payloadStorage.get().add(payload)

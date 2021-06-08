@@ -10,9 +10,12 @@
 
 package org.ironica.simulatte.playground
 
+import org.ironica.simulatte.bridge.rules.Cond
+import org.ironica.simulatte.bridge.rules.CondType
 import org.ironica.simulatte.bridge.rules.GamingCondition
 import org.ironica.simulatte.internal.*
 import org.ironica.simulatte.payloads.payloadStorage
+import org.ironica.simulatte.payloads.satisfiedConditionStorage
 import org.ironica.simulatte.payloads.statusStorage
 import org.ironica.simulatte.playground.datas.*
 import org.ironica.simulatte.playground.Direction.*
@@ -23,6 +26,7 @@ import java.lang.reflect.AccessibleObject
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.full.declaredMemberProperties
+import kotlin.reflect.full.findAnnotation
 
 /**
  * The core data structure, which simulates the playground where actors emit actions and interactions are done
@@ -67,8 +71,12 @@ class Playground(val squares: List<List<Square>>,
         condToSatisfy = if (gamingCondition == null) 0
             else (gamingCondition::class as KClass<Any>).declaredMemberProperties
             .filter { it.get(gamingCondition) != null }
+            .filter { it.findAnnotation<Cond>()?.cat == CondType.WINCOND }
             .filterNot { it.name == "stringRepresentation" }.size
     }
+
+    val playgroundCurrentTurn: Int
+        get() = this.currentTurn
 
     val allGemCollected: Int
         get() = characters.keys.sumOf { it.collectedGem }
@@ -156,12 +164,14 @@ class Playground(val squares: List<List<Square>>,
             if (allGemCollected >= gamingCondition?.collectGemsBy ?: Int.MAX_VALUE / 2) satisfiedCond += 1
             if (allOpenedSwitch >= gamingCondition?.switchesOnBy ?: Int.MAX_VALUE / 2) satisfiedCond += 1
             if (allKilledMonsters >= gamingCondition?.monstersKilled ?: Int.MAX_VALUE / 2) satisfiedCond += 1
+            if (allKilledMonsters < gamingCondition?.monstersKilledLessThan ?: Int.MIN_VALUE / 2) satisfiedCond += 1
             if (gamingCondition?.arriveAt?.map {
                     squares[it.y][it.x].players.isNotEmpty()
                             || squares[it.y][it.x].platform?.players?.isNotEmpty() == true
                 }?.all { it } == true) satisfiedCond += 1
             if (satisfiedCond == condToSatisfy) statusStorage.set(GameStatus.WIN)
             else statusStorage.set(GameStatus.PENDING)
+            satisfiedConditionStorage.set(satisfiedCond)
         }
         currentTurn += 1
     }
@@ -408,6 +418,21 @@ class Playground(val squares: List<List<Square>>,
         }
     }
 
+    fun playerIsBeforeLock(char: AbstractCharacter): Boolean {
+        return when (char.dir) {
+            UP -> char.getCoo.up
+            DOWN -> char.getCoo.down
+            LEFT -> char.getCoo.left
+            RIGHT -> char.getCoo.right
+        }.let {
+            when {
+                !it.isInPlayground -> false
+                it.asSquare.block is LockBlock -> true
+                else -> false
+            }
+        }
+    }
+
     fun playerIsBeforeMonster(char: AbstractCharacter): Boolean = findPathToMonster(char) != null to null
 
     // ---- End of Player Properties ---- //
@@ -477,7 +502,6 @@ class Playground(val squares: List<List<Square>>,
                 characters[char] = p.dest
                 // TODO insert stamina rule here
                 p.energy -= 1 // TODO insert portal energy change here
-                if (p.energy <= 0) p.isActive = false
                 return true
             }
         }
@@ -666,14 +690,14 @@ class Playground(val squares: List<List<Square>>,
             when (item) {
                 Beeper -> if (it.beeper == null) it.beeper = BeeperItem() else return false
                 Gem -> if (it.gem == null) it.gem = GemItem() else return false
-                is SwitchP -> if (it.switch == null) it.switch = SwitchItem(item.on) else return false
+                is Switch -> if (it.switch == null) it.switch = SwitchItem(item.on) else return false
             }
         }
         incrementATurn()
         return true
     }
 
-    fun worldPlace(block: BlockP, at: Coordinate): Boolean {
+    fun worldPlace(block: Block, at: Coordinate): Boolean {
         check(at.isInPlayground) { "Playground:: Coordinate out of bounds" }
         at.asSquare.let {
             check(it.block !is LockBlock) { "Playground:: Could not change tile on Lock tile" }
@@ -687,13 +711,13 @@ class Playground(val squares: List<List<Square>>,
         return true
     }
 
-    fun worldPlace(portal: PortalP, atStart: Coordinate, atEnd: Coordinate): Boolean {
+    fun worldPlace(portal: Portal, atStart: Coordinate, atEnd: Coordinate): Boolean {
         check(atStart.isInPlayground && atEnd.isInPlayground) { "Playground:: coordinate out of bounds" }
         check(atStart.asSquare.block !is LockBlock && atEnd.asSquare.block !is LockBlock) { "Playground:: Could not set up portal on Lock tile" }
         check(atStart.asSquare.block != VoidBlock && atEnd.asSquare.block != VoidBlock) { "Playground:: could not set up portal on Void tile" }
         return if (atStart.asSquare.portal == null) {
             val newId = portals.size
-            val newPortalItem = PortalItem(newId, atStart, atEnd, portal.color, false) // TODO add portal energy rule
+            val newPortalItem = PortalItem(newId, atStart, atEnd, portal.color, 10) // TODO add portal energy rule
             atStart.asSquare.portal = newPortalItem
             portals[newPortalItem] = atStart
             portal.id = newId

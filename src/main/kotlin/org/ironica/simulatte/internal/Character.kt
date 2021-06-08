@@ -21,6 +21,9 @@ interface Character {
     val manager: AbstractManager?
     val id: Int
 
+    val isAlive: Boolean
+        get() = manager?.isAlive(id) ?: throw NullPointerException("Character:: uninitialized character")
+
     val isOnGem: Boolean
         get() = manager?.isOnGem(id) ?: throw NullPointerException("Character:: uninitialized character")
     val isOnOpenedSwitch: Boolean
@@ -41,6 +44,8 @@ interface Character {
         get() = manager?.isBlockedRight(id) ?: throw NullPointerException("Character:: uninitialized character")
     val collectedGem: Int
         get() = manager?.collectedGem(id) ?: throw NullPointerException("Character:: uninitialized character")
+    val collectedBeeper: Int
+        get() = manager?.collectedBeeper(id) ?: throw NullPointerException("Character:: uninitialized character")
 
     val isBeforeMonster: Boolean
         get() = manager?.isBeforeMonster(id) ?: throw NullPointerException("Character:: uninitialized character")

@@ -53,6 +53,7 @@ class SimulatteBridge(
     //   - Dimension check -
     //   - Check every lock block corresponds to a lock* registration and vice versa -
     //   - Check every platform item corresponds to a platform registration and vice versa -
+    //   - Check every platform are higher than the level of coordinate -
     //   - Check every controlled tiles in lock has a platform (platformdata will be consumed) -
     //   - Check every portal item corresponds to a portal registration and vice versa -
     //   - Check every stairs tiles corresponds to a stair* registration and vice versa -
@@ -78,7 +79,7 @@ class SimulatteBridge(
         var lockIds = 0 // To distinguish different locks with the same controlled platforms (and eventually same colors)
         var portalIds = 0 // To distinguish different portals
 
-        portals = portaldatas.associate { PortalItem(portalIds++, it.coo, it.dest, isActive = true, color = Color.WHITE) to it.coo }
+        portals = portaldatas.associate { PortalItem(portalIds++, it.coo, it.dest, color = Color.WHITE, energy = if (it.isActive) 10 else 0) to it.coo }
         // TODO add colors on portals
         locks = lockdatas.associate { it.coo to LockBlock(lockIds++, it.controlled.toMutableList(), isActive = true, energy = 15) }
 
@@ -138,6 +139,7 @@ class SimulatteBridge(
         }
         platforms.forEach {
             validPositionChecks(it.value, "#platforms")
+            validPlatformHeightChecks(it.value, it.key.level)
             squares[it.value.y][it.value.x].platform = it.key
         }
 
@@ -161,6 +163,10 @@ class SimulatteBridge(
     // We use the grid's dimensions for position validation check
     private fun validPositionChecks(pos: Coordinate, phase: String): Unit {
         check (pos.y in grid.indices && pos.x in grid[0].indices) { "Initialization:: boundary check failed in $phase" }
+    }
+
+    private fun validPlatformHeightChecks(pos: Coordinate, platformHeight: Int): Unit {
+        check (grid[pos.y][pos.x].level < platformHeight) { "Initialization:: height check failed in #platforms" }
     }
 
     private fun preInitChecks() {

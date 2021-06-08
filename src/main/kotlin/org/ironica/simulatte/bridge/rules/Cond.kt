@@ -8,16 +8,9 @@
  *
  */
 
-package org.ironica.simulatte.payloads
+package org.ironica.simulatte.bridge.rules
 
-import kotlinx.serialization.Serializable
-import org.ironica.simulatte.playground.GameStatus
-
-@Serializable
-sealed class Message
-
-@Serializable
-data class NormalMessage(val status: Status, val payload: List<Payload>, val game: GameStatus, val gained: Int): Message()
-
-@Serializable
-data class ErrorMessage(val status: Status, val msg: String): Message()
+@MustBeDocumented
+@Retention(AnnotationRetention.RUNTIME)
+@Target(AnnotationTarget.PROPERTY)
+annotation class Cond(val cat: CondType)
