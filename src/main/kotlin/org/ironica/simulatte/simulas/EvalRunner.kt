@@ -72,7 +72,7 @@ class EvalRunner {
         "org.ironica.simulatte.internal.*",
         "org.ironica.simulatte.payloads.payloadStorage",
         "org.ironica.simulatte.payloads.statusStorage",
-
+        "org.ironica.simulatte.payloads.satisfiedConditionStorage",
         )
 
     private val shell = Shell(

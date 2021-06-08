@@ -10,6 +10,8 @@
 
 package org.ironica.simulatte.playground
 
+import org.ironica.simulatte.bridge.rules.Cond
+import org.ironica.simulatte.bridge.rules.CondType
 import org.ironica.simulatte.bridge.rules.GamingCondition
 import org.ironica.simulatte.internal.*
 import org.ironica.simulatte.payloads.payloadStorage
@@ -24,6 +26,7 @@ import java.lang.reflect.AccessibleObject
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.full.declaredMemberProperties
+import kotlin.reflect.full.findAnnotation
 
 /**
  * The core data structure, which simulates the playground where actors emit actions and interactions are done
@@ -68,6 +71,7 @@ class Playground(val squares: List<List<Square>>,
         condToSatisfy = if (gamingCondition == null) 0
             else (gamingCondition::class as KClass<Any>).declaredMemberProperties
             .filter { it.get(gamingCondition) != null }
+            .filter { it.findAnnotation<Cond>()?.cat == CondType.WINCOND }
             .filterNot { it.name == "stringRepresentation" }.size
     }
 

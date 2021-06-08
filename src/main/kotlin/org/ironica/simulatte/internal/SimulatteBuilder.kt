@@ -25,40 +25,20 @@ import org.ironica.simulatte.playground.Playground
  */
 class SimulatteBuilder(private val manager: AbstractManager) {
 
-    /**
-     * Usage of companion object ensures that this world is a singleton
-     */
-    companion object {
-
-        var singletonWorld: World? = null
-
-        var singletonConsole: Console? = null
-        var lastSb: SimulatteBuilder? = null // Check if last Builder is the same as supplied Builder, so that it could be renewed
-        // each time the builder changes, however, manager might be the same.
-
-        fun world(sb: SimulatteBuilder): World {
-            if (sb.manager is CreativeManager && (singletonWorld == null || lastSb != sb))
-                singletonWorld = World(sb.manager)
-            return singletonWorld ?: throw NullPointerException("SimulatteBuilder:: null world encountered, you might be not in creative game mode")
-        }
-
-        fun console(sb: SimulatteBuilder): Console {
-            if (singletonConsole == null || lastSb != sb)
-                singletonConsole = Console(sb.manager)
-            return singletonConsole ?: throw NullPointerException("SimulatteBuilder:: null world encountered, this should not happen")
-        }
-    }
-
     // Begin of exposed APIs //
 
     /**
      * The world object that reflects the playground and allow to interact with
      */
+    private val _world: World? = if (this.manager is CreativeManager) World(this.manager) else null
+
     val world: World
-        get() = world(this)
+        get() = _world ?: throw IllegalStateException("SimulatteBuilder:: world creation failed, you might not in creative game mode")
+
+    private val _console: Console = Console(this.manager)
 
     val console: Console
-        get() = console(this)
+        get() = _console
 
     /**
      * Initialize a new player using available slot

@@ -45,9 +45,9 @@ fun main(args: Array<String>): Unit {
 }
 
 fun Application.module(testing: Boolean = false) {
-    val debug = environment.config.property("debug").getString().toBoolean()
-    val stdout = environment.config.property("stdout").getString().toBoolean()
-    val output = environment.config.property("output").getString().toBoolean()
+    val debug = environment.config.property("debug").getString().toBoolean().let { if (it) "debug" else null }
+    val stdout = environment.config.property("stdout").getString().toBoolean().let { if (it) "stdout" else null }
+    val output = environment.config.property("output").getString().toBoolean().let { if (it) "output" else null }
     install(CORS) {
         method(HttpMethod.Get)
         method(HttpMethod.Post)
@@ -58,5 +58,5 @@ fun Application.module(testing: Boolean = false) {
     install(ContentNegotiation) {
         json()
     }
-    registerPlaygroundRoutes(Triple(debug, stdout, output))
+    registerPlaygroundRoutes(debug, stdout, output)
 }

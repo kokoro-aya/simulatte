@@ -135,7 +135,8 @@ class Cocoa {
 fun String.wrapCode(): String {
     return buildString {
         appendLine("payloadStorage.set(mutableListOf())\n" +
-                "        statusStorage.set(GameStatus.PENDING)")
+                "statusStorage.set(GameStatus.PENDING)\n" +
+                "satisfiedConditionStorage.set(0)\n")
 
         appendLine("runBlocking { ")
         appendLine("\tval ___game = play(manager) { ")

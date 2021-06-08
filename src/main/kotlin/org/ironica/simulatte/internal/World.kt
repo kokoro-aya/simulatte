@@ -23,11 +23,11 @@ data class World(internal val manager: CreativeManager) {
     fun place(item: Item, at: Coordinate) = manager.worldPlace(item, at)
     fun place(item: Item, atColumn: Int, row: Int) = place(item, Coordinate(atColumn, row))
 
-    fun place(block: BlockP, at: Coordinate) = manager.worldPlace(block, at)
-    fun place(block: BlockP, atColumn: Int, row: Int) = place(block, Coordinate(atColumn, row))
+    fun place(block: Block, at: Coordinate) = manager.worldPlace(block, at)
+    fun place(block: Block, atColumn: Int, row: Int) = place(block, Coordinate(atColumn, row))
 
-    fun place(portal: PortalP, atStart: Coordinate, atEnd: Coordinate) = manager.worldPlace(portal, atStart, atEnd)
-    fun place(portal: PortalP, atStartColum: Int, startRow: Int, atEndColumn: Int, endRow: Int)
+    fun place(portal: Portal, atStart: Coordinate, atEnd: Coordinate) = manager.worldPlace(portal, atStart, atEnd)
+    fun place(portal: Portal, atStartColum: Int, startRow: Int, atEndColumn: Int, endRow: Int)
         = place(portal, Coordinate(atStartColum, startRow), Coordinate(atEndColumn, endRow))
 
     fun place(stair: Stair, facing: Direction, at: Coordinate) = manager.worldPlace(stair, facing, at)
