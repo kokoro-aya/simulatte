@@ -28,9 +28,10 @@ data class Payload(
     val portals: List<SerializedPortal>,
     val platforms: List<SerializedPlatform>,
     val locks: List<SerializedLock>,
+    val monsters: List<Coordinate>,
     val players: List<SerializedPlayer>,
     val consoleLog: String,
-    val special: String
-    ): java.io.Serializable {
-}
+    val special: String,
+    val turns: Int,
+    )
 

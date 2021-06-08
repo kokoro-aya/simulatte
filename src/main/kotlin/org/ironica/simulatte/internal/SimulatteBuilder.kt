@@ -49,6 +49,8 @@ class SimulatteBuilder(private val manager: AbstractManager) {
         }
     }
 
+    // Begin of exposed APIs //
+
     /**
      * The world object that reflects the playground and allow to interact with
      */
@@ -60,16 +62,34 @@ class SimulatteBuilder(private val manager: AbstractManager) {
 
     /**
      * Initialize a new player using available slot
+     * @throws NoSuchElementException if no more slot left
      */
     fun Player(): Player {
         return Player(manager, manager.nextPlayerId)
     }
 
     /**
+     * Safe version of initializing a new player using available slot
+     * Returns null if no more slot left
+     */
+    fun PlayerOrNull(): Player? {
+        return manager.nextPlayerIdOrNull?.let { Player(manager, it) }
+    }
+
+    /**
      * Initializing a new specialist using available slot
+     * @throws NoSuchElementException if no more slot left
      */
     fun Specialist(): Specialist {
         return Specialist(manager, manager.nextSpecialistId)
+    }
+
+    /**
+     * Safe version of initializing a new specialist using available slot
+     * Returns null if no more slot left
+     */
+    fun SpecialistOrNull(): Specialist? {
+        return manager.nextSpecialistIdOrNull?.let { Specialist(manager, it) }
     }
 
     /**
@@ -89,22 +109,22 @@ class SimulatteBuilder(private val manager: AbstractManager) {
     /**
      * Instantialize the SwitchP object
      */
-    fun Switch(on: Boolean): SwitchP {
-        return SwitchP(on)
+    fun Switch(on: Boolean): Switch {
+        return Switch(on, "#Switch")
     }
 
     /**
      * Instantialize the PortalP object
      */
-    fun Portal(color: Color = Color.WHITE): PortalP {
-        return PortalP(color)
+    fun Portal(color: Color = Color.WHITE): Portal {
+        return Portal(color, "#Portal")
     }
 
     /**
      * Instantialize the BlockP object
      */
-    fun Block(blocked: Boolean = false): BlockP {
-        return BlockP(blocked)
+    fun Block(blocked: Boolean = false): Block {
+        return Block(blocked, "#Block")
     }
 
     /**
@@ -131,9 +151,11 @@ class SimulatteBuilder(private val manager: AbstractManager) {
     val allClosedSwitch: Int
         get() = manager.closedSwitchCount()
 
-    fun kill(player: Player) {
-        manager.kill(player.id)
+    fun kill(char: Character) {
+        manager.kill(char.id)
     }
+
+    // End of Exposed APIs //
 
     /**
      * To be used in eval runner and cocoa.

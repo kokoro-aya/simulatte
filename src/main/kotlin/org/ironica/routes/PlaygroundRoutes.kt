@@ -64,8 +64,9 @@ fun Route.getPlaygroundRoute(args: Triple<Boolean, Boolean, Boolean>) {
                                 call.respond(
                                     NormalMessage(
                                         resp.second,
-                                        (rsf as Pair<List<Payload>, GameStatus>).first,
-                                        (rsf as Pair<List<Payload>, GameStatus>).second
+                                        (rsf as Triple<List<Payload>, GameStatus, Int>).first,
+                                        (rsf as Triple<List<Payload>, GameStatus, Int>).second,
+                                        (rsf as Triple<List<Payload>, GameStatus, Int>).third,
                                     )
                                 )
                             }

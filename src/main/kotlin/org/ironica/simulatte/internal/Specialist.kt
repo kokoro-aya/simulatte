@@ -27,6 +27,9 @@ data class Specialist(override val id: Int): Character {
         this.manager = manager
     }
 
+    val isBeforeLock: Boolean
+        get() = manager?.isBeforeLock(id) ?: throw NullPointerException("Specialist:: uninitialized character")
+
     fun turnLockUp() {
         manager?.turnLockUp(id) ?: throw NullPointerException("Specialist:: uninitialized character")
     }

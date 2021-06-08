@@ -13,6 +13,7 @@ package org.ironica.simulatte.playground
 import org.ironica.simulatte.bridge.rules.GamingCondition
 import org.ironica.simulatte.internal.*
 import org.ironica.simulatte.payloads.payloadStorage
+import org.ironica.simulatte.payloads.satisfiedConditionStorage
 import org.ironica.simulatte.payloads.statusStorage
 import org.ironica.simulatte.playground.datas.*
 import org.ironica.simulatte.playground.Direction.*
@@ -69,6 +70,9 @@ class Playground(val squares: List<List<Square>>,
             .filter { it.get(gamingCondition) != null }
             .filterNot { it.name == "stringRepresentation" }.size
     }
+
+    val playgroundCurrentTurn: Int
+        get() = this.currentTurn
 
     val allGemCollected: Int
         get() = characters.keys.sumOf { it.collectedGem }
@@ -162,6 +166,7 @@ class Playground(val squares: List<List<Square>>,
                 }?.all { it } == true) satisfiedCond += 1
             if (satisfiedCond == condToSatisfy) statusStorage.set(GameStatus.WIN)
             else statusStorage.set(GameStatus.PENDING)
+            satisfiedConditionStorage.set(satisfiedCond)
         }
         currentTurn += 1
     }
@@ -405,6 +410,21 @@ class Playground(val squares: List<List<Square>>,
             DOWN -> char.getCoo.down(::isMonsterAndAccessible)
             LEFT -> char.getCoo.left(::isMonsterAndAccessible)
             RIGHT -> char.getCoo.right(::isMonsterAndAccessible)
+        }
+    }
+
+    fun playerIsBeforeLock(char: AbstractCharacter): Boolean {
+        return when (char.dir) {
+            UP -> char.getCoo.up
+            DOWN -> char.getCoo.down
+            LEFT -> char.getCoo.left
+            RIGHT -> char.getCoo.right
+        }.let {
+            when {
+                !it.isInPlayground -> false
+                it.asSquare.block is LockBlock -> true
+                else -> false
+            }
         }
     }
 
@@ -666,14 +686,14 @@ class Playground(val squares: List<List<Square>>,
             when (item) {
                 Beeper -> if (it.beeper == null) it.beeper = BeeperItem() else return false
                 Gem -> if (it.gem == null) it.gem = GemItem() else return false
-                is SwitchP -> if (it.switch == null) it.switch = SwitchItem(item.on) else return false
+                is Switch -> if (it.switch == null) it.switch = SwitchItem(item.on) else return false
             }
         }
         incrementATurn()
         return true
     }
 
-    fun worldPlace(block: BlockP, at: Coordinate): Boolean {
+    fun worldPlace(block: Block, at: Coordinate): Boolean {
         check(at.isInPlayground) { "Playground:: Coordinate out of bounds" }
         at.asSquare.let {
             check(it.block !is LockBlock) { "Playground:: Could not change tile on Lock tile" }
@@ -687,7 +707,7 @@ class Playground(val squares: List<List<Square>>,
         return true
     }
 
-    fun worldPlace(portal: PortalP, atStart: Coordinate, atEnd: Coordinate): Boolean {
+    fun worldPlace(portal: Portal, atStart: Coordinate, atEnd: Coordinate): Boolean {
         check(atStart.isInPlayground && atEnd.isInPlayground) { "Playground:: coordinate out of bounds" }
         check(atStart.asSquare.block !is LockBlock && atEnd.asSquare.block !is LockBlock) { "Playground:: Could not set up portal on Lock tile" }
         check(atStart.asSquare.block != VoidBlock && atEnd.asSquare.block != VoidBlock) { "Playground:: could not set up portal on Void tile" }

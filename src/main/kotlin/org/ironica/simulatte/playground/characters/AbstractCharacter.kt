@@ -47,6 +47,8 @@ interface AbstractCharacter: StringRepresentable {
     fun isBlockedLeft() = playground?.playerIsBlockedLeft(this) ?: throw NullPointerException("AbstractCharacter:: Uninitialized character")
     fun isBlockedRight() = playground?.playerIsBlockedRight(this) ?: throw NullPointerException("AbstractCharacter:: Uninitialized character")
 
+    fun isBeforeLock() = playground?.playerIsBeforeLock(this) ?: throw NullPointerException("AbstractCharacter:: Uninitialized character")
+
     fun isBeforeMonster() = playground?.playerIsBeforeMonster(this) ?: throw NullPointerException("AbstractCharacter:: Uninitialized character")
 
     fun turnLeft() = playground?.playerTurnLeft(this) ?: throw NullPointerException("AbstractCharacter:: Uninitialized character")

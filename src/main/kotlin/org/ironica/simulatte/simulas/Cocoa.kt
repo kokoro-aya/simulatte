@@ -143,6 +143,6 @@ fun String.wrapCode(): String {
         appendLine("\t}.run()\n")
         appendLine("\t// println(___game.size)")
         appendLine("}")
-        appendLine("payloadStorage.get() to statusStorage.get()")
+        appendLine("Triple(payloadStorage.get(), statusStorage.get(), satisfiedConditionStorage.get())")
     }
 }

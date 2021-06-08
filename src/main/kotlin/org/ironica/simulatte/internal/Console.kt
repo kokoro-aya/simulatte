@@ -20,4 +20,8 @@ class Console(val manager: AbstractManager) {
     fun log(vararg arg: Any) {
         return manager.log(*arg)
     }
+
+    fun logln(vararg arg: Any) {
+        return manager.log(*arg, "\n")
+    }
 }

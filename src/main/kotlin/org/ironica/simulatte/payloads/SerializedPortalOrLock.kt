@@ -25,5 +25,5 @@ data class SerializedPortal(
 data class SerializedLock(
     val coo: Coordinate,
     val isActive: Boolean,
-    val energy: Int
+    val energy: Int,
 )

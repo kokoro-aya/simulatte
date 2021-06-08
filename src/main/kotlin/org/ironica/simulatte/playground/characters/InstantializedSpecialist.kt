@@ -42,8 +42,6 @@ data class InstantializedSpecialist(override val id: Int): AbstractCharacter, St
     override var inWaterForTurns: Int = 0
     override var inLavaForTurns: Int = 0
 
-    fun isBeforeLock() = playground?.specialistIsBeforeLock(this) ?: NullPointerException("Specialist:: Uninitialized character")
-
     fun turnLockUp() = playground?.specialistTurnLockUp(this) ?: NullPointerException("Specialist:: Uninitialized character")
 
     fun turnLockDown() = playground?.specialistTurnLockDown(this) ?: NullPointerException("Specialist:: Uninitialized character")

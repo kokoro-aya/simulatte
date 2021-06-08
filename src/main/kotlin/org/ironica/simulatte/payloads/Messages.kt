@@ -17,7 +17,7 @@ import org.ironica.simulatte.playground.GameStatus
 sealed class Message
 
 @Serializable
-data class NormalMessage(val status: Status, val payload: List<Payload>, val game: GameStatus): Message()
+data class NormalMessage(val status: Status, val payload: List<Payload>, val game: GameStatus, val gained: Int): Message()
 
 @Serializable
 data class ErrorMessage(val status: Status, val msg: String): Message()
