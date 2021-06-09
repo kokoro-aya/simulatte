@@ -139,7 +139,7 @@ fun String.wrapCode(): String {
                 "satisfiedConditionStorage.set(0)\n")
 
         appendLine("runBlocking { ")
-        appendLine("\tval ___game = play(manager) { ")
+        appendLine("\tplay(manager) { ")
         appendLine(this@wrapCode.split("\n").joinToString("\n") { "\t\t$it" })
         appendLine("\t}.run()\n")
         appendLine("\t// println(___game.size)")
