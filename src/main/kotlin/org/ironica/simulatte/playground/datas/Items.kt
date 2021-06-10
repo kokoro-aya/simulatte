@@ -39,7 +39,7 @@ data class PortalItem(
             energy = if (value) 10 else 0
         }
     override val stringRepresentation: String
-        get() = "Portal($id, ${coo.stringRepresentation}, ${dest.stringRepresentation}, ${color.stringRepresentation}, $isActive, $energy)"
+        get() = "PortalItem($id, ${coo.stringRepresentation}, ${dest.stringRepresentation}, ${color.stringRepresentation}, $energy)"
 }
 data class PlatformItem(
     var level: Int,

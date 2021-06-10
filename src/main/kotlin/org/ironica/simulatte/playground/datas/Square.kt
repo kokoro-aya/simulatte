@@ -44,15 +44,7 @@ data class Square(
             else append("BeeperItem(), ")
             if (this@Square.portal == null) append("null, ")
             else {
-                append("PortalItem(")
-                this@Square.portal?.let {
-                    append("${it.coo.stringRepresentation}, ")
-                    append("${it.dest.stringRepresentation}, ")
-                    append("${it.color.stringRepresentation}, ")
-                    append("${it.isActive}, ")
-                    append("${it.energy}")
-                }
-                append("), ")
+                append(this@Square.portal!!.stringRepresentation + ",")
             }
             if (this@Square.monster == null) append("null, ")
             else {
