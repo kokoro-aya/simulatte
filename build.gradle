@@ -20,7 +20,7 @@ plugins {
 }
 
 group 'org.ironica'
-version "2.9.2-SNAPSHOT"
+version "2.10.2-SNAPSHOT"
 
 sourceCompatibility = 11
 
