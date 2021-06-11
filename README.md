@@ -1,4 +1,4 @@
-# Simulatte
+![Logo](simulatte.PNG)
 
 A Playground server implemented with Kotlin DSL.
 
@@ -41,7 +41,7 @@ To use the server you may need to implement and setup your own client. However, 
 
 ### Start Simulatte
 
-**Warning: Please ensure that only one instance of your simulatte.jar is running otherwise you might need to force-quit some instances!!**
+**Warning: Please ensure that only one instance of your simulatte.jar is running at a port otherwise you might need to force-quit some instances!!**
 
 You cannot double-click the Simulatte program to launch it.
 
@@ -62,6 +62,6 @@ It's recommended to run the program in a new terminal session, considering it's 
 
 You cannot quit the program directly.
 
-If you haven't implemented the quit feature, you should close the terminal window to quit the program. If you have the Postman installed, send a POST request to `127.0.0.1:9370/simulatte/shutdown`  to shutdown safely the server.
+If you haven't implemented the quit feature, you should close the terminal window or kill the process to quit the program. If you have the Postman installed, send a POST request to `127.0.0.1:9370/simulatte/shutdown` (replace `9370` with your port launch parameter) to shutdown safely the server.
 
 You can implement the quit feature in your client by using the same method.
