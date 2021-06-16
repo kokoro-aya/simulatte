@@ -245,7 +245,7 @@ interface AbstractManager {
                     SerializedPortal(it.first, this.dest, this.color, this.energy)
                 }
             }
-            val monsters = flattenGridToCoors.filter { it.second.monster != null }.map { it.first }
+            val monsters = flattenGridToCoors.filter { it.second.monster == true }.map { it.first }
 
             val platforms = flattenGridToCoors.filter { it.second.platform != null }.map {
                 SerializedPlatform(it.first, it.second.platform!!.level)
