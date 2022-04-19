@@ -11,6 +11,11 @@ own client to communicate with the server.
 
 **Warning**: The project is still in development and has great tons of bugs.
 
+For usage with the unity front-end developed last year, use the 3.3 version downloadable in release column. This project 
+itself has been changed, so it's no longer usable with this front-end.
+
+The currently updated version is suitable to work with the [front-end written in React/UmiJS](https://github.com/kokoro-aya/shizuku-front-end).
+
 This project is part of the Project ironica.
 
 Build with

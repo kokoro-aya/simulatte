@@ -258,6 +258,8 @@ interface AbstractManager {
                         this.id, x, y, this.dir,
                         if (this is InstantializedSpecialist) Role.SPECIALIST else Role.PLAYER,
                         this.stamina,
+                        this.collectedGem,
+                        this.beeperInBag,
                     )
                 }
             }
