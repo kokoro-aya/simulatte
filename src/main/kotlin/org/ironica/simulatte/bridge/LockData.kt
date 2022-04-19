@@ -14,6 +14,6 @@ import kotlinx.serialization.Serializable
 import org.ironica.simulatte.playground.datas.Coordinate
 
 @Serializable
-data class LockData(val coo: Coordinate, val controlled: List<Coordinate>, val energy: Int = 0)
+data class LockData(val coo: Coordinate, val controlled: List<Coordinate>, val isActive: Boolean, val energy: Int = 0)
 
 // TODO implement lock energy and isActive system
