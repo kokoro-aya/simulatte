@@ -1,9 +1,13 @@
 ![Logo](simulatte.PNG)
 
+![](https://img.shields.io/badge/version-3.3.1-brightgreen)
+
 A Playground server implemented with Kotlin DSL.
 
 Inspired by Playgrounds on iOS/macOS and Karel the Robot, the project was first implemented using ANTLR. Later, it was
 migrated to the usage of Kotlin DSL.
+
+For more info about the story of this project and some inspirations, see [the dedicated column of wiki](https://github.com/kokoro-aya/simulatte/wiki/About).
 
 See docs for how to launch the application, some test cases and a short language reference on Kotlin DSL used (a subset
 of Kotlin language) by the application. These docs might be helpful for you to implement your
@@ -11,12 +15,10 @@ own client to communicate with the server.
 
 **Warning**: The project is still in development and has great tons of bugs.
 
-For usage with the unity front-end developed last year, use the 3.3 version downloadable in release column. This project 
+**Remark**: For usage with the unity front-end developed last year, use the 3.3 version downloadable in release column. This project 
 itself has been changed, so it's no longer usable with this front-end.
 
-The currently updated version is suitable to work with the [front-end written in React/UmiJS](https://github.com/kokoro-aya/shizuku-front-end).
-
-This project is part of the Project ironica.
+The currently updated version will be suitable to work with the [front-end written in React/UmiJS](https://github.com/kokoro-aya/shizuku-front-end), both projects are currently WIP.
 
 Build with
 
@@ -26,7 +28,7 @@ Build with
 - Kotlin Poet
 - Ki-Shell
 
-For more information please review [the Wiki](https://github.com/kokoro-aya/amatsukaze/wiki) of this repo. **The wiki is under construction.**
+For more information please review [the Wiki](https://github.com/kokoro-aya/amatsukaze/wiki) of this repo.
 
 For download please go to the pages of [Release](https://github.com/kokoro-aya/amatsukaze/releases).
 
