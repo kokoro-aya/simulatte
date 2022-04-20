@@ -26,7 +26,7 @@ import org.ironica.simulatte.playground.GameStatus
 import kotlin.Exception
 
 fun Route.getPlaygroundRoute(vararg args: String?) {
-    route("/simulatte") {
+    route("/aqua") {
         post {
             val data = call.receive<IncomingData>()
             val debug = args.any { it == "debug" }

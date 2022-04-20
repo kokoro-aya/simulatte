@@ -1,6 +1,6 @@
 ![Logo](simulatte.PNG)
 
-![](https://img.shields.io/badge/version-3.3.1-brightgreen)
+![](https://img.shields.io/badge/version-3.3.3-brightgreen)
 
 A Playground server implemented with Kotlin DSL.
 
@@ -42,7 +42,7 @@ Simulatte requires Java version of range 11 to 15. At the moment, since Kotlin i
 
 Every release is a single fat jar file, bundled with a full Kotlin/Ktor runtime.
 
-You could download the latest release of Simulatte in the [release](https://github.com/Ironica/simulatte/releases) column of this repo.
+You could download the latest release of Simulatte in the [release](https://github.com/kokoro-aya/simulatte/releases) column of this repo.
 
 To use the server you may need to implement and setup your own client. However, you can download the [Postman](https://www.postman.com/downloads/) to launch requests and receive responses from the Simulatte server, for the debug purpose. By the way, you have to implement a feature to quit the server.
 
@@ -58,7 +58,9 @@ It's recommended to run the program in a new terminal session, considering it's 
 
 #### Start Arguments
 
--   `port={PORT}` The server will listen at specified port number instead of default (9370).
+Prior to ver 3.3.0 (included), the default port was 9370 and the path was `/simulatte`. Newer versions have default port is 4729 and path has been changed to `/aqua`.
+
+-   `port={PORT}` The server will listen at specified port number instead of default (4729).
 -   `debug` The server will output the playground's grid after each turn.
 -   `stdout` The server will output every user's output with `console.log(vararg)` method.
     -   Notice that the `console.log(vararg)` method is different to `println()` or `print()` method in Kotlin. If you call the latter, no output will be recorded.
@@ -69,6 +71,6 @@ It's recommended to run the program in a new terminal session, considering it's 
 
 You cannot quit the program directly.
 
-If you haven't implemented the quit feature, you should close the terminal window or kill the process to quit the program. If you have the Postman installed, send a POST request to `127.0.0.1:9370/simulatte/shutdown` (replace `9370` with your port launch parameter) to shutdown safely the server.
+If you haven't implemented the quit feature, you should close the terminal window or kill the process to quit the program. If you have the Postman installed, send a POST request to `127.0.0.1:4729/aqua/shutdown` (replace `4729` with your port launch parameter) to shutdown safely the server.
 
 You can implement the quit feature in your client by using the same method.
