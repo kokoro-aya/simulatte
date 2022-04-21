@@ -86,8 +86,8 @@ class SimulatteBridge(
         players = playerdatas.associate {
             val coo = Coordinate(it.x, it.y)
             validPositionChecks(coo, "#players")
-            (if (it.role == Role.SPECIALIST) InstantializedSpecialist(it.id, it.dir, it.stamina)
-                else InstantializedPlayer(it.id, it.dir, it.stamina)).let {
+            (if (it.role == Role.SPECIALIST) InstantializedSpecialist(it.id, it.dir, it.stamina, it.collectedGem, it.hasBeeper)
+                else InstantializedPlayer(it.id, it.dir, it.stamina, it.collectedGem, it.hasBeeper)).let {
                 p -> p to coo
             } }.toList().sortedBy { it.first.id }.toMap()
 
@@ -114,6 +114,7 @@ class SimulatteBridge(
 
         val levels = grid.map { it.map { it.level } }
         val biomes = grid.map { it.map { it.biome } }
+        // TODO handle color
 
         squares = zip(blocks, levels, biomes) { block, lev, biom ->
             Square(block, lev, biom, null, null, null, null, null, null)

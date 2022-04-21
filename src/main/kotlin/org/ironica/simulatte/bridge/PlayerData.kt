@@ -15,4 +15,12 @@ import org.ironica.simulatte.playground.Direction
 import org.ironica.simulatte.playground.Role
 
 @Serializable
-data class PlayerData(val id: Int, val x: Int, val y: Int, val dir: Direction, val role: Role, val stamina: Int)
+data class PlayerData(
+    val id: Int,
+    val x: Int,
+    val y: Int,
+    val dir: Direction,
+    val role: Role,
+    val stamina: Int,
+    val collectedGem: Int = 0, val hasBeeper: Int = 0
+    )

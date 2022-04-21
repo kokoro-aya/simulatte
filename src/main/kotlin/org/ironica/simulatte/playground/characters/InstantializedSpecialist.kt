@@ -26,15 +26,18 @@ data class InstantializedSpecialist(override val id: Int): AbstractCharacter, St
     override var dir: Direction = Direction.UP
     override var stamina: Int = 500
 
-    constructor(id: Int, dir: Direction, stamina: Int) : this(id) {
+    override var collectedGem = 0
+    override var beeperInBag = 0
+
+    constructor(id: Int, dir: Direction, stamina: Int, collectedGem: Int? = null, beeperInBag: Int? = null) : this(id) {
         this.dir = dir
         this.stamina = stamina
+        this.collectedGem = collectedGem ?: 0
+        this.beeperInBag = beeperInBag ?: 0
     }
 
     override var playground: Playground? = null
 
-    override var collectedGem = 0
-    override var beeperInBag = 0
 
     override val walkedTiles: MutableSet<Coordinate> = mutableSetOf()
     override var repassed: Boolean = false
@@ -47,5 +50,5 @@ data class InstantializedSpecialist(override val id: Int): AbstractCharacter, St
     fun turnLockDown() = playground?.specialistTurnLockDown(this) ?: NullPointerException("Specialist:: Uninitialized character")
 
     override val stringRepresentation: String
-        get() = "InstantializedSpecialist($id, ${dir.stringRepresentation}, $stamina)"
+        get() = "InstantializedSpecialist($id, ${dir.stringRepresentation}, $stamina, $collectedGem, $beeperInBag)"
 }
