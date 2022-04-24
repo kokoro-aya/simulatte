@@ -13,10 +13,12 @@ package org.ironica.simulatte.bridge
 import kotlinx.serialization.Serializable
 import org.ironica.simulatte.playground.Biome
 import org.ironica.simulatte.playground.Blocks
+import org.ironica.simulatte.playground.Color
 
 @Serializable
 data class GridData(
     val block: Blocks,
     val level: Int,
+    val color: Color = Color.WHITE,
     val biome: Biome,
 )

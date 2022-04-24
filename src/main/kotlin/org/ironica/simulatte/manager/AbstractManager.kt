@@ -137,12 +137,10 @@ interface AbstractManager {
             for (x in arg) {
                 print("$x ")
             }
-            println()
         }
         for (x in arg) {
             consoleLog += "$x "
         }
-        consoleLog += "\n"
         appendEntry()
     }
 
