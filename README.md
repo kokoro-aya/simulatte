@@ -38,13 +38,13 @@ For download please go to the pages of [Release](https://github.com/kokoro-aya/a
 
 ### Prerequisite
 
-Simulatte requires Java version of range 11 to 15. At the moment, since Kotlin is not compatible with Java 16, this version is not supported. According to your OS platform, you can use `choco`, `brew` or `apt-get` or other package manager to get the latest OpenJDK with `adoptopenjdk`.
+Simulatte requires Java version of range 11 to 15. You may upgrade the Kotlin version to use latest Java although I have not tested this yet. Ideally, Kotlin 1.9.20 supports Java version up to 21. According to your OS platform, you can use `choco`, `brew` or `apt-get` or other package manager to get the latest OpenJDK with `adoptopenjdk`.
 
 Every release is a single fat jar file, bundled with a full Kotlin/Ktor runtime.
 
 You could download the latest release of Simulatte in the [release](https://github.com/kokoro-aya/simulatte/releases) column of this repo.
 
-To use the server you may need to implement and setup your own client. However, you can download the [Postman](https://www.postman.com/downloads/) to launch requests and receive responses from the Simulatte server, for the debug purpose. By the way, you have to implement a feature to quit the server.
+To use the server you may need to implement and setup your own client. However, you can download the [Hoppscotch](https://github.com/hoppscotch/hoppscotch) to launch requests and receive responses from the Simulatte server, for the debug purpose. By the way, you have to implement a feature to quit the server.
 
 ### Start Simulatte
 
